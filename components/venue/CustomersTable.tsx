@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { markOptedOut } from "@/app/dashboard/actions";
 import { Section } from "@/components/dashboard/Section";
 import { formatDaysAgo, formatMoney } from "@/lib/format";
 import { formatPhone } from "@/lib/phone";
@@ -20,8 +21,18 @@ export type CustomerRow = {
 const PAGE = 25;
 
 /** Searchable list of every customer with visits, last visit, reward progress and text consent. */
-export function CustomersTable({ customers, showSpend }: { customers: CustomerRow[]; showSpend: boolean }) {
+export function CustomersTable({ customers: initial, showSpend }: { customers: CustomerRow[]; showSpend: boolean }) {
+  const [customers, setCustomers] = useState(initial);
   const [query, setQuery] = useState("");
+  const [pending, start] = useTransition();
+
+  const optOut = (c: CustomerRow) => {
+    if (!window.confirm(`Mark ${c.name} as opted out of texts? They'll be left out of message exports.`)) return;
+    start(async () => {
+      const { ok } = await markOptedOut(c.id);
+      if (ok) setCustomers((list) => list.map((x) => (x.id === c.id ? { ...x, textConsent: false } : x)));
+    });
+  };
   const [limit, setLimit] = useState(PAGE);
 
   const filtered = useMemo(() => {
@@ -74,6 +85,16 @@ export function CustomersTable({ customers, showSpend }: { customers: CustomerRo
                 >
                   {c.textConsent ? "Texts OK" : "No texts"}
                 </span>
+                {c.textConsent && (
+                  <button
+                    type="button"
+                    disabled={pending}
+                    onClick={() => optOut(c)}
+                    className="text-[11px] font-medium text-muted underline underline-offset-2 hover:text-ink"
+                  >
+                    Opt out
+                  </button>
+                )}
               </div>
             </li>
           ))}

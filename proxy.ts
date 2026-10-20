@@ -31,6 +31,12 @@ export async function proxy(request: NextRequest) {
     login.search = "";
     return NextResponse.redirect(login);
   }
+  if (signedIn && pathname === "/login") {
+    const dashboard = request.nextUrl.clone();
+    dashboard.pathname = "/dashboard";
+    dashboard.search = "";
+    return NextResponse.redirect(dashboard);
+  }
   return response;
 }
 

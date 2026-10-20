@@ -40,3 +40,8 @@ export function formatPhoneInput(digits: string) {
 }
 
 export const phoneDigits = (s: string) => s.replace(/\D/g, "");
+
+/** Whole days since an ISO timestamp. */
+export function daysSince(iso: string, now = Date.now()) {
+  return Math.max(0, Math.floor((now - Date.parse(iso)) / 86_400_000));
+}

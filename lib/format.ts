@@ -45,3 +45,9 @@ export const phoneDigits = (s: string) => s.replace(/\D/g, "");
 export function daysSince(iso: string, now = Date.now()) {
   return Math.max(0, Math.floor((now - Date.parse(iso)) / 86_400_000));
 }
+
+/** Calendar days between an ISO timestamp and now in a time zone: last night at 11pm is "yesterday". */
+export function calendarDaysSince(iso: string, timeZone: string, now = Date.now()) {
+  const day = new Intl.DateTimeFormat("en-CA", { timeZone }); // YYYY-MM-DD
+  return Math.max(0, Math.round((Date.parse(day.format(new Date(now))) - Date.parse(day.format(new Date(iso)))) / 86_400_000));
+}

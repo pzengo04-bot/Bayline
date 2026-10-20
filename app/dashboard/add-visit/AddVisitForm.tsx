@@ -88,11 +88,11 @@ export function AddVisitForm({ rewardType, pointsPerDollar, rewardText }: Props)
         {error && <p className="mt-3 text-sm font-medium text-red-700">{error}</p>}
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
           {canRedeem && !redeemed && (
-            <button type="button" disabled={pending} onClick={() => redeem(saved.customerId)} className={`${button.accent} flex-1`}>
+            <button type="button" disabled={pending} onClick={() => redeem(saved.customerId)} className={`${button.accent} sm:flex-1`}>
               Redeem {saved.progress.reward_text}
             </button>
           )}
-          <button type="button" onClick={reset} className={`${button.primary} flex-1`}>
+          <button type="button" onClick={reset} className={`${button.primary} sm:flex-1`}>
             Add another visit
           </button>
         </div>

@@ -15,9 +15,8 @@ export async function makeDb(migrationsDir) {
     grant usage on schema auth to anon, authenticated;
     grant execute on function auth.uid() to anon, authenticated;
     grant usage on schema public to anon, authenticated, service_role;
-    alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
-    alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
-    alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
+    -- Like newer Supabase projects: no automatic table grants, so migrations must grant what they need.
+    -- (Postgres itself still lets PUBLIC execute new functions; migrations revoke where it matters.)
   `);
   for (const f of fs.readdirSync(migrationsDir).filter((f) => f.endsWith(".sql")).sort()) {
     try {

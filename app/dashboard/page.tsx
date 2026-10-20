@@ -34,13 +34,13 @@ async function Dashboard() {
     getHeatmap(venue.id),
   ]);
   const spend = hasSpend(rows);
-  const quiet = goneQuiet(rows);
+  const quiet = goneQuiet(rows, venue.timezone);
   const repeatRate = overview.active_customers ? overview.repeat_customers / overview.active_customers : 0;
   const month = new Intl.DateTimeFormat("en-US", { month: "long", timeZone: venue.timezone }).format(new Date());
 
   const customers: CustomerRow[] = rows
     .map((r) => {
-      const s = toSummary(r);
+      const s = toSummary(r, venue.timezone);
       return {
         id: r.id,
         name: r.name,
@@ -93,7 +93,7 @@ async function Dashboard() {
 
           <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
             <RegularsTable
-              regulars={topRegulars(rows)}
+              regulars={topRegulars(rows, venue.timezone)}
               subtitle={spend ? "Your top customers by visits and spend" : "Your top customers by visits"}
               showSpend={spend}
             />

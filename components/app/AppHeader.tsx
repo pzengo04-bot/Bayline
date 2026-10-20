@@ -25,7 +25,7 @@ export async function AppHeader() {
     <header className="border-b border-line bg-white print:hidden">
       <div className="mx-auto max-w-6xl px-4 pt-3">
         <div className="flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <Link href="/dashboard" aria-label="Dashboard home" className="shrink-0">
               <Logo />
             </Link>
@@ -35,7 +35,7 @@ export async function AppHeader() {
           </div>
           <form action={signOut} className="flex items-center gap-3">
             <span className="hidden max-w-[14rem] truncate text-sm text-muted md:inline">{access.user.email}</span>
-            <button type="submit" className="rounded-full px-3 py-1.5 text-sm font-semibold text-muted hover:bg-ink/[0.06] hover:text-ink">
+            <button type="submit" className="whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold text-muted hover:bg-ink/[0.06] hover:text-ink">
               Sign out
             </button>
           </form>

@@ -24,8 +24,8 @@ async function Messages({ searchParams }: { searchParams: PageProps<"/dashboard/
   const params = await searchParams;
   const [rows, heatmapRows] = await Promise.all([getCustomerStats(venue.id), getHeatmap(venue.id)]);
 
-  const quiet = new Set(goneQuiet(rows).map((c) => c.id));
-  const regulars = new Set(activeRegulars(rows).map((r) => r.id));
+  const quiet = new Set(goneQuiet(rows, venue.timezone).map((c) => c.id));
+  const regulars = new Set(activeRegulars(rows, venue.timezone).map((r) => r.id));
   const tally = (pick: (id: string) => boolean) => {
     const group = rows.filter((r) => pick(r.id));
     return { total: group.length, optedIn: group.filter((r) => r.text_consent).length };

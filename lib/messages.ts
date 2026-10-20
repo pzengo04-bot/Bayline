@@ -32,15 +32,17 @@ export function templateText(
   slot: string | null,
 ) {
   const unit = UNIT[venue.type];
+  // Plain hyphens: one en dash makes a text cost 3x as many SMS segments.
+  slot = slot?.replace(/[–—]/g, "-") ?? null;
   switch (id) {
     case "win_back":
-      return `Hi from ${venue.name}! We haven't seen you in a while. Come back in the next 2 weeks and get 20% off your next ${unit}. Show this text at the front desk.`;
+      return `We miss you at ${venue.name}! Come back in the next 2 weeks for 20% off your next ${unit}. Show this text at the front desk.`;
     case "off_peak":
-      return `${slot ?? "Weekday afternoons"} is wide open at ${venue.name}. Book this week and get 20% off your ${unit}. Show this text at the front desk.`;
+      return `${slot ?? "Weekday afternoons"} is wide open at ${venue.name}. Come in this week for 20% off your ${unit}. Show this text at the desk.`;
     case "reward_reminder":
       return venue.reward_type === "stamps"
-        ? `You're getting close to a ${venue.reward_text} at ${venue.name}! Every visit earns a stamp, just check in with your phone number.`
-        : `Your points are adding up at ${venue.name}! ${venue.points_needed} points gets you a ${venue.reward_text}. Ask for your balance at the front desk.`;
+        ? `You're close to a ${venue.reward_text} at ${venue.name}! Every visit earns a stamp. Just check in with your phone number.`
+        : `Your points are adding up at ${venue.name}! ${venue.points_needed} points gets you a ${venue.reward_text}. Ask the front desk for your balance.`;
   }
 }
 

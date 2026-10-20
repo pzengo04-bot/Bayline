@@ -30,7 +30,7 @@ export function VisitsHeatmap({ heatmap }: { heatmap: VisitHeatmap }) {
         grid={grid}
         emptyKeys={emptyKeys}
         block={block ?? undefined}
-        emptyLegend="Quietest hours"
+        emptyLegend="Quietest stretch"
         describe={(d, i) => `${grid.rows[d].day} ${formatHour(grid.hours[i])}: ${plural(counts[d][i])}`}
         readout={(d, i) => plural(counts[d][i])}
       />

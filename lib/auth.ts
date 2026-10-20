@@ -1,5 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import type { RewardSettings } from "@/lib/rewards";
@@ -28,6 +29,7 @@ export const VENUE_COOKIE = "bayline_venue";
 
 /** The signed-in user, their admin flag and the venues they can open. Cached per request. */
 export const getAccess = cache(async (): Promise<Access | null> => {
+  await connection(); // signed-in pages are per request and work with "now" (days since last visit, this month)
   const supabase = await createUserClient();
   const { data: claims } = await supabase.auth.getClaims();
   const sub = claims?.claims?.sub;

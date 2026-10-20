@@ -11,6 +11,9 @@ if (!url) {
 }
 const sql = postgres(url, { max: 1, onnotice: () => {} });
 
+// Local times are passed as text and converted with timezone(): handing postgres.js a date-like
+// string straight into "::timestamp at time zone" shifted every visit by the UTC offset.
+
 // Seeded random numbers so every run produces the same data.
 let seed = 42;
 const rand = () => {
@@ -42,13 +45,13 @@ function pickHour(weekend) {
 }
 
 const today = new Date();
-/** Local wall-clock time `daysAgo` days back, at a realistic hour, as "YYYY-MM-DD HH:MM". */
-function localVisitTime(daysAgo) {
-  const d = new Date(today.getTime() - daysAgo * 86_400_000);
-  const dow = d.getDay();
+const ymdIn = (date, timeZone) => new Intl.DateTimeFormat("en-CA", { timeZone }).format(date); // YYYY-MM-DD
+/** Venue-local wall-clock time `daysAgo` (≥ 1) days back, at a realistic hour, as "YYYY-MM-DD HH:MM". */
+function localVisitTime(daysAgo, timeZone = "America/New_York") {
+  const ymd = ymdIn(new Date(today.getTime() - Math.max(1, daysAgo) * 86_400_000), timeZone);
+  const dow = new Date(`${ymd}T12:00:00Z`).getUTCDay();
   const weekend = dow === 0 || dow === 6 || (dow === 5 && rand() < 0.5);
   const hour = pickHour(weekend);
-  const ymd = d.toISOString().slice(0, 10);
   return `${ymd} ${String(hour).padStart(2, "0")}:${pick(["00", "05", "15", "30", "45", "50"])}`;
 }
 
@@ -57,7 +60,7 @@ function visitPattern(kind) {
   const days = [];
   if (kind === "regular") {
     const cadence = randInt(4, 9);
-    for (let d = randInt(90, 140); d >= randInt(0, 6); d -= Math.max(2, cadence + randInt(-2, 3))) days.push(d);
+    for (let d = randInt(90, 140); d >= randInt(1, 6); d -= Math.max(2, cadence + randInt(-2, 3))) days.push(d);
   } else if (kind === "quiet") {
     const cadence = randInt(5, 12);
     const stop = randInt(22, 60);
@@ -117,9 +120,9 @@ try {
         const [row] = await tx`
           insert into public.customers (venue_id, name, phone, text_consent, consent_timestamp, consent_text, created_at)
           values (${v.id}, ${c.name}, ${c.phone}, ${c.consent},
-            ${c.consent ? tx`(${firstLocal}::timestamp at time zone ${v.timezone})` : null},
+            ${c.consent ? tx`timezone(${v.timezone}::text, (${firstLocal}::text)::timestamp)` : null},
             ${c.consent ? consentText : null},
-            (${firstLocal}::timestamp at time zone ${v.timezone}))
+            timezone(${v.timezone}::text, (${firstLocal}::text)::timestamp))
           returning id`;
         offsets.forEach((d, i) => {
           const local = i === 0 ? firstLocal : localVisitTime(d);
@@ -132,7 +135,7 @@ try {
       for (const vi of visits) {
         await tx`
           insert into public.visits (venue_id, customer_id, visited_at, amount, source)
-          values (${v.id}, ${vi.customer_id}, (${vi.local}::timestamp at time zone ${v.timezone}),
+          values (${v.id}, ${vi.customer_id}, timezone(${v.timezone}::text, (${vi.local}::text)::timestamp),
             ${vi.source === "staff" ? vi.amount : null}, ${vi.source})`;
       }
       console.log(`${venue.name}: ${customers.length} customers, ${visits.length} visits  →  /v/${venue.slug}`);

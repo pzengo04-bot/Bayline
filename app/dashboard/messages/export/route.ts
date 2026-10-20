@@ -9,7 +9,9 @@ import type { AudienceId } from "@/lib/messages";
 /** Quote a CSV cell and stop spreadsheet apps from running it as a formula. */
 function cell(value: string | number) {
   let s = String(value);
-  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+  // Phone numbers like +19145550123 are safe and must stay importable; anything else starting with
+  // a formula character (a name like "=HYPERLINK(...)") gets a leading apostrophe.
+  if (/^[=+\-@\t\r]/.test(s) && !/^\+\d{10,15}$/.test(s)) s = `'${s}`;
   return `"${s.replace(/"/g, '""')}"`;
 }
 
@@ -19,8 +21,8 @@ export async function GET(request: NextRequest) {
 
   const audience = (request.nextUrl.searchParams.get("audience") ?? "all") as AudienceId;
   const rows = await getCustomerStats(venue.id);
-  const quietIds = new Set(goneQuiet(rows).map((c) => c.id));
-  const regularIds = new Set(activeRegulars(rows).map((r) => r.id));
+  const quietIds = new Set(goneQuiet(rows, venue.timezone).map((c) => c.id));
+  const regularIds = new Set(activeRegulars(rows, venue.timezone).map((r) => r.id));
   const pick: Record<AudienceId, (r: CustomerStatsRow) => boolean> = {
     gone_quiet: (r) => quietIds.has(r.id),
     regulars: (r) => regularIds.has(r.id),

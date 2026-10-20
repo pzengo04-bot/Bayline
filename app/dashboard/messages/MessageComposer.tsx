@@ -106,13 +106,13 @@ export function MessageComposer({ counts, templates, initialAudience, initialTem
           {segments > 1 ? " (shorter is cheaper)" : ""}
         </p>
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-          <button type="button" onClick={copy} className={`${button.primary} flex-1`}>
+          <button type="button" onClick={copy} className={`${button.primary} sm:flex-1`}>
             {copied ? "Copied!" : "Copy message"}
           </button>
           <a
             href={count.optedIn ? `/dashboard/messages/export?audience=${audience}` : undefined}
             aria-disabled={!count.optedIn}
-            className={`${button.secondary} flex-1 ${count.optedIn ? "" : "pointer-events-none opacity-50"}`}
+            className={`${button.secondary} sm:flex-1 ${count.optedIn ? "" : "pointer-events-none opacity-50"}`}
           >
             Export list ({count.optedIn}) CSV
           </a>

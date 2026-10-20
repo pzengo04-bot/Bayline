@@ -5,7 +5,7 @@ import { PageSkeleton } from "@/components/app/PageSkeleton";
 import { Section } from "@/components/dashboard/Section";
 import { button, card } from "@/components/ui/styles";
 import { requireAdmin } from "@/lib/auth";
-import { daysSince, formatDaysAgo } from "@/lib/format";
+import { calendarDaysSince, formatDaysAgo } from "@/lib/format";
 import { programSummary } from "@/lib/rewards";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createUserClient } from "@/lib/supabase/server";
@@ -80,7 +80,7 @@ async function Admin() {
                       <div>
                         <dt className="text-xs text-muted">Last check-in</dt>
                         <dd className="font-semibold">
-                          {s?.last_visit_at ? formatDaysAgo(daysSince(s.last_visit_at)) : "none yet"}
+                          {s?.last_visit_at ? formatDaysAgo(calendarDaysSince(s.last_visit_at, v.timezone)) : "none yet"}
                         </dd>
                       </div>
                     </dl>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { startTransition, useActionState, useState } from "react";
 import { RewardFields } from "@/components/app/RewardFields";
 import { button } from "@/components/ui/styles";
 import type { RewardSettings } from "@/lib/rewards";
@@ -11,6 +11,33 @@ const input = "mt-1.5 h-11 w-full rounded-xl border border-line bg-white px-3 te
 
 export function CreateVenueForm() {
   const [state, action, pending] = useActionState<FormState, FormData>(createVenue, { status: "idle" });
+  // A new key after each successful create gives the next venue a fresh, empty form.
+  const formKey = state.status === "ok" ? state.message : "draft";
+
+  return (
+    <form
+      className="space-y-4"
+      onSubmit={(e) => {
+        // Submit by hand so React doesn't auto-reset the fields (that would desync the dropdowns on errors).
+        e.preventDefault();
+        const data = new FormData(e.currentTarget);
+        startTransition(() => action(data));
+      }}
+    >
+      <VenueFields key={formKey} />
+      {state.status !== "idle" && (
+        <p className={`rounded-xl px-3 py-2.5 text-sm ${state.status === "ok" ? "bg-accent/40" : "bg-red-50 text-red-800"}`}>
+          {state.message}
+        </p>
+      )}
+      <button type="submit" disabled={pending} className={`${button.primary} w-full sm:w-auto`}>
+        {pending ? "Creating…" : "Create venue"}
+      </button>
+    </form>
+  );
+}
+
+function VenueFields() {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [slugEdited, setSlugEdited] = useState(false);
@@ -24,7 +51,7 @@ export function CreateVenueForm() {
   });
 
   return (
-    <form action={action} className="space-y-4">
+    <>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm font-semibold">
           Venue name
@@ -94,15 +121,6 @@ export function CreateVenueForm() {
         Owner email <span className="font-normal text-muted">(they&apos;ll get an invite)</span>
         <input name="owner_email" type="email" autoComplete="off" className={input} />
       </label>
-
-      {state.status !== "idle" && (
-        <p className={`rounded-xl px-3 py-2.5 text-sm ${state.status === "ok" ? "bg-accent/40" : "bg-red-50 text-red-800"}`}>
-          {state.message}
-        </p>
-      )}
-      <button type="submit" disabled={pending} className={`${button.primary} w-full sm:w-auto`}>
-        {pending ? "Creating…" : "Create venue"}
-      </button>
-    </form>
+    </>
   );
 }

@@ -3,9 +3,9 @@
 export const site = {
   name: "Bayline", // placeholder brand name
   tagline: "Fill your empty bays. Bring back your regulars.",
-  email: "hello@example.com", // placeholder
+  email: "peter@getbayline.app",
   phone: "(555) 010-0100", // placeholder
   phoneHref: "tel:+15550100100",
   // Swap for a Calendly link, e.g. "https://calendly.com/your-name/15min"
-  callUrl: "mailto:hello@example.com?subject=15-minute%20call",
+  callUrl: "mailto:peter@getbayline.app?subject=15-minute%20call",
 };

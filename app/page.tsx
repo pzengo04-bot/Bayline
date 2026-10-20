@@ -61,6 +61,9 @@ export default function Home() {
             <a href="#founding" className="hidden text-muted hover:text-ink sm:inline">
               Founding offer
             </a>
+            <Link href="/login" className="whitespace-nowrap px-2 text-muted hover:text-ink sm:px-0">
+              Venue login
+            </Link>
             <Link href="/demo" className={button.small}>
               Live demo
             </Link>
@@ -209,9 +212,14 @@ export default function Home() {
         <div className="border-t border-white/10">
           <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-5 text-sm text-white/50 sm:flex-row sm:justify-between">
             <p>© {site.name}</p>
-            <Link href="/demo" className="hover:text-white">
-              Live demo
-            </Link>
+            <div className="flex gap-5">
+              <Link href="/demo" className="hover:text-white">
+                Live demo
+              </Link>
+              <Link href="/login" className="hover:text-white">
+                Venue login
+              </Link>
+            </div>
           </div>
         </div>
       </footer>

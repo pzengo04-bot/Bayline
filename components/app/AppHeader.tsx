@@ -22,7 +22,7 @@ export async function AppHeader() {
   if (access.isAdmin) items.push({ href: "/admin", label: "Admin" });
 
   return (
-    <header className="border-b border-line bg-white">
+    <header className="border-b border-line bg-white print:hidden">
       <div className="mx-auto max-w-6xl px-4 pt-3">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">

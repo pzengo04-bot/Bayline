@@ -95,7 +95,23 @@ async function googleStatus() {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion }),
     });
-    return { configured: true, serviceAccount: cfg.clientEmail, issuerId: cfg.issuerId, tokenOk: res.ok };
+    let issuerAccess: number | null = null;
+    if (res.ok) {
+      // Listing classes only works if the service account was added as a user on the issuer account.
+      const { access_token } = (await res.json()) as { access_token: string };
+      const list = await fetch(
+        `https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass?issuerId=${encodeURIComponent(cfg.issuerId)}&maxResults=1`,
+        { headers: { Authorization: `Bearer ${access_token}` } },
+      );
+      issuerAccess = list.status;
+    }
+    return {
+      configured: true,
+      serviceAccount: cfg.clientEmail,
+      issuerId: cfg.issuerId,
+      tokenOk: res.ok,
+      issuerAccess: issuerAccess === 200 ? "ok" : issuerAccess,
+    };
   } catch (e) {
     return { configured: true, error: (e as Error).message };
   }

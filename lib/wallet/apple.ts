@@ -142,10 +142,14 @@ export async function buildApplePass(d: PassData, opts: { voided?: boolean } = {
     },
     { key: "member", label: "MEMBER", value: d.first_name, textAlignment: "PKTextAlignmentRight" },
   );
-  if (d.offer) {
-    // changeMessage "%@" makes iPhone show the new offer text on the lock screen when it changes.
-    pass.backFields.push({ key: "offer", label: "LATEST OFFER", value: d.offer.text, changeMessage: "%@" });
-  }
+  // Always present: iPhone only announces a field whose value *changes*, not one that appears for the
+  // first time. With a placeholder here from day one, every offer shows on the lock screen via "%@".
+  pass.backFields.push({
+    key: "offer",
+    label: "LATEST OFFER",
+    value: d.offer?.text ?? `Offers from ${v.name} will show up here.`,
+    changeMessage: "%@",
+  });
   pass.backFields.push(
     {
       key: "message",

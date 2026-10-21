@@ -33,6 +33,18 @@ export const OFFER_TEMPLATES = [
 ] as const;
 export type OfferTemplate = (typeof OFFER_TEMPLATES)[number]["id"];
 
+/** The short line for the front of the card (max 40 characters). */
+export function offerTemplateShort(id: OfferTemplate, slow: string | null) {
+  switch (id) {
+    case "win_back":
+      return "Bonus stamp on any visit this week";
+    case "slow_hours":
+      return slow && slow.length <= 30 ? `Wide open ${slow}` : "Quiet hours: come play!";
+    case "reward":
+      return "You're close to your reward!";
+  }
+}
+
 export function offerTemplate(id: OfferTemplate, venue: { name: string; type: VenueType; reward_text: string }, slow: string | null) {
   switch (id) {
     case "win_back":

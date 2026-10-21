@@ -9,6 +9,7 @@ import { OFFER_MAX, type OfferAudience } from "@/lib/offer-templates";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createUserClient } from "@/lib/supabase/server";
 import { deliverOffer } from "@/lib/wallet/offer-delivery";
+import { OFFER_SHORT_MAX, offerShort } from "@/lib/wallet/pass-content";
 
 export type SendResult =
   | { ok: true; delivered: number; matched: number; noCard: number; cooldown: number }
@@ -16,7 +17,7 @@ export type SendResult =
 
 const AUDIENCES: OfferAudience[] = ["slipping", "regulars", "everyone", "demo_guests"];
 
-export async function sendOffer(input: { audience: string; message: string; endsOn?: string }): Promise<SendResult> {
+export async function sendOffer(input: { audience: string; message: string; short?: string; endsOn?: string }): Promise<SendResult> {
   const { access, venue } = await requireVenue();
   if (!venue || venue.role === "staff") return { ok: false, message: "Only the venue owner can send offers." };
   const audience = input.audience as OfferAudience;
@@ -26,6 +27,8 @@ export async function sendOffer(input: { audience: string; message: string; ends
   let message = input.message.replace(/\s+/g, " ").trim();
   if (!message) return { ok: false, message: "Write a message first." };
   if (message.length > OFFER_MAX) return { ok: false, message: `Keep it to ${OFFER_MAX} characters.` };
+  const short = (input.short ?? "").replace(/\s+/g, " ").trim() || offerShort({ text: message, expires_at: "" });
+  if (short.length > OFFER_SHORT_MAX) return { ok: false, message: `Keep the card line to ${OFFER_SHORT_MAX} characters.` };
 
   // Offers expire at the end of the chosen day, venue time (default 7 days, at most 90).
   const today = ymdInZone(venue.timezone);
@@ -60,6 +63,7 @@ export async function sendOffer(input: { audience: string; message: string; ends
       venue_id: venue.id,
       audience,
       message,
+      short_text: short,
       recipients: plan.matched,
       delivered: plan.deliver.length,
       created_by: access.user.id,

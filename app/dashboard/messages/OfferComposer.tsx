@@ -7,6 +7,7 @@ import { button, card } from "@/components/ui/styles";
 import { AndroidOfferPreview, IphoneOfferPreview } from "@/components/wallet/OfferPreview";
 import type { Label } from "@/lib/labels";
 import { OFFER_MAX, OFFER_TEMPLATES, type OfferAudience, type OfferTemplate } from "@/lib/offer-templates";
+import { OFFER_SHORT_MAX, offerShort } from "@/lib/wallet/pass-content";
 import { sendOffer, type SendResult } from "./actions";
 
 export type AudienceSummary = {
@@ -23,7 +24,7 @@ type Props = {
   venue: { name: string; logoUrl: string | null; cardBg: string; cardFg: string; isDemo: boolean; cooldownDays: number };
   dates: { today: string; defaultEnd: string; maxEnd: string };
   audiences: AudienceSummary[];
-  templates: Record<OfferTemplate, string>;
+  templates: Record<OfferTemplate, { text: string; short: string }>;
   initialAudience: OfferAudience;
   initialTemplate: OfferTemplate;
   quick: boolean;
@@ -36,18 +37,20 @@ const endsLabel = (ymd: string) =>
 export function OfferComposer({ venue, dates, audiences, templates, initialAudience, initialTemplate, quick }: Props) {
   const [audienceId, setAudienceId] = useState<OfferAudience>(initialAudience);
   const [template, setTemplate] = useState<OfferTemplate | null>(initialTemplate);
-  const [message, setMessage] = useState(templates[initialTemplate]);
+  const [message, setMessage] = useState(templates[initialTemplate].text);
+  const [short, setShort] = useState(templates[initialTemplate].short);
+  const [shortEdited, setShortEdited] = useState(false);
   const [preview, setPreview] = useState<"iphone" | "android">("iphone");
   const [endsOn, setEndsOn] = useState(dates.defaultEnd);
   const [confirming, setConfirming] = useState(quick);
   const [result, setResult] = useState<SendResult | null>(null);
   const [pending, start] = useTransition();
   const audience = audiences.find((a) => a.id === audienceId) ?? audiences[0];
-  const tooLong = message.length > OFFER_MAX;
+  const tooLong = message.length > OFFER_MAX || short.length > OFFER_SHORT_MAX;
 
   const send = () =>
     start(async () => {
-      const r = await sendOffer({ audience: audience.id, message, endsOn });
+      const r = await sendOffer({ audience: audience.id, message, short, endsOn });
       setResult(r);
       if (r.ok) setConfirming(false);
     });
@@ -141,7 +144,9 @@ export function OfferComposer({ venue, dates, audiences, templates, initialAudie
                 type="button"
                 onClick={() => {
                   setTemplate(t.id);
-                  setMessage(templates[t.id]);
+                  setMessage(templates[t.id].text);
+                  setShort(templates[t.id].short);
+                  setShortEdited(false);
                 }}
                 className={`rounded-full px-3 py-1.5 text-sm font-semibold ${
                   template === t.id ? "bg-ink text-white" : "bg-ink/[0.06] text-muted hover:text-ink"
@@ -160,6 +165,7 @@ export function OfferComposer({ venue, dates, audiences, templates, initialAudie
             onChange={(e) => {
               setMessage(e.target.value);
               setTemplate(null);
+              if (!shortEdited) setShort(e.target.value.trim() ? offerShort({ text: e.target.value, expires_at: "" }) : "");
             }}
             rows={3}
             className="mt-3 w-full resize-none rounded-xl border border-line bg-paper p-3 text-[15px] leading-snug focus:border-ink focus:outline-none"
@@ -167,6 +173,22 @@ export function OfferComposer({ venue, dates, audiences, templates, initialAudie
           <p className={`mt-1 text-right text-xs tabular-nums ${tooLong ? "font-semibold text-red-700" : "text-muted"}`}>
             {message.length} / {OFFER_MAX}
           </p>
+          <label className="mt-1 block text-sm">
+            <span className="font-semibold">Front of the card</span>
+            <span className="block text-xs text-muted">A short version shown in the banner on the card. The full message is in the card details.</span>
+            <input
+              value={short}
+              maxLength={OFFER_SHORT_MAX}
+              onChange={(e) => {
+                setShort(e.target.value);
+                setShortEdited(true);
+              }}
+              className="mt-1.5 h-11 w-full rounded-xl border border-line bg-paper px-3 text-[15px] focus:border-ink focus:outline-none"
+            />
+            <span className={`mt-1 block text-right text-xs tabular-nums ${short.length > OFFER_SHORT_MAX ? "font-semibold text-red-700" : "text-muted"}`}>
+              {short.length} / {OFFER_SHORT_MAX}
+            </span>
+          </label>
           <label className="mt-2 flex items-center justify-between gap-3 text-sm">
             <span>
               <span className="font-semibold">Offer ends</span>
@@ -226,6 +248,7 @@ export function OfferComposer({ venue, dates, audiences, templates, initialAudie
           Send to {audience.deliver} customer{audience.deliver === 1 ? "" : "s"}?
         </p>
         <p className="mt-2 rounded-xl bg-paper p-3 text-[15px] leading-snug">{message}</p>
+        <p className="mt-2 text-xs text-muted">On the card: “{short || offerShort({ text: message, expires_at: "" })}”</p>
         <p className="mt-2 text-xs text-muted">Ends {endsLabel(endsOn)}.</p>
         {!quick && (
           <p className="mt-2 text-xs text-muted">

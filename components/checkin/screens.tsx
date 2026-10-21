@@ -33,13 +33,13 @@ function Badge({ children }: { children: ReactNode }) {
   );
 }
 
-type Result = { status: "joined" | "stamped" | "limit_reached"; firstName: string; progress: Progress };
+type Result = { status: "joined" | "stamped" | "limit_reached"; firstName: string; progress: Progress; headStart?: number };
 
 const progressLine = (p: Progress) =>
   p.reward_type === "stamps" ? `${p.stamps} of ${p.stamps_needed}` : `${p.points} / ${p.points_needed} pts`;
 
 export function TapResultScreen({ result }: { result: Result }) {
-  const { status, firstName, progress } = result;
+  const { status, firstName, progress, headStart = 0 } = result;
   if (isRewardReady(progress) && status !== "limit_reached") return <RewardReadyScreen firstName={firstName} progress={progress} />;
 
   const heading =
@@ -55,6 +55,11 @@ export function TapResultScreen({ result }: { result: Result }) {
     <div className="text-center">
       <Badge>{badge}</Badge>
       <h2 className="mt-2 font-display text-4xl font-bold uppercase leading-none">{heading}</h2>
+      {status === "joined" && headStart > 0 && (
+        <p className="mt-3 text-muted">
+          We added {headStart === 1 ? "a bonus stamp" : `${headStart} bonus stamps`} to get you started.
+        </p>
+      )}
       {status === "limit_reached" && (
         <p className="mt-3 text-muted">You&apos;ve already earned today&apos;s stamp. See you next time.</p>
       )}

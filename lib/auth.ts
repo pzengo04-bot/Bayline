@@ -32,6 +32,9 @@ export type Venue = RewardSettings & {
   logo_text: string | null;
   address: string | null;
   website: string | null;
+  milestone_text: string | null;
+  milestone_at: number | null;
+  head_start_stamps: number;
 };
 
 export type Access = {

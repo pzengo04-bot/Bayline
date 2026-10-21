@@ -9,7 +9,7 @@ import { createAnonClient } from "@/lib/supabase/server";
 import { notifyPassChanged } from "@/lib/wallet/notify";
 
 export type TapResult =
-  | { status: "joined" | "stamped" | "limit_reached"; firstName: string; progress: Progress }
+  | { status: "joined" | "stamped" | "limit_reached"; firstName: string; progress: Progress; headStart?: number }
   | { status: "need_details" | "need_name" | "invalid_phone" | "venue_not_found" | "error" };
 
 /**
@@ -48,6 +48,7 @@ export async function tap(input: {
   const r = data as {
     status: TapResult["status"];
     first_name?: string;
+    head_start?: number;
     customer_id?: string;
     return_token?: string;
     progress?: Progress;
@@ -66,7 +67,12 @@ export async function tap(input: {
       const message = r.progress.reward_type === "stamps" ? "Stamp added" : "Points added";
       after(() => notifyPassChanged([customerId], message));
     }
-    return { status: r.status as "joined" | "stamped" | "limit_reached", firstName: r.first_name, progress: r.progress };
+    return {
+      status: r.status as "joined" | "stamped" | "limit_reached",
+      firstName: r.first_name,
+      progress: r.progress,
+      headStart: r.status === "joined" ? (r.head_start ?? 0) : 0,
+    };
   }
   return { status: r.status } as TapResult;
 }

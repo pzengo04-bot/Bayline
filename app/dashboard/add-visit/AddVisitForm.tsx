@@ -5,7 +5,7 @@ import { ProgressCard } from "@/components/checkin/ProgressCard";
 import { button, card } from "@/components/ui/styles";
 import { daysSince, formatDaysAgo, formatPhoneInput, phoneDigits } from "@/lib/format";
 import { formatPhone } from "@/lib/phone";
-import { isRewardReady, type RewardType } from "@/lib/rewards";
+import { isRewardReady, type Progress, type RewardType } from "@/lib/rewards";
 import { lookupCustomer, redeemReward, saveVisit, type LookupResult, type SaveVisitResult } from "./actions";
 
 type Props = { rewardType: RewardType; pointsPerDollar: number; rewardText: string };
@@ -26,7 +26,7 @@ export function AddVisitForm({ rewardType, pointsPerDollar, rewardText }: Props)
   const [amount, setAmount] = useState("");
   const [saved, setSaved] = useState<Extract<SaveVisitResult, { status: "saved" }> | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [redeemed, setRedeemed] = useState(false);
+  const [redeemed, setRedeemed] = useState<"main" | "milestone" | null>(null);
   const [pending, start] = useTransition();
   const points = rewardType === "points";
   const preview = Number(amount.replace(/[$,\s]/g, ""));
@@ -38,7 +38,7 @@ export function AddVisitForm({ rewardType, pointsPerDollar, rewardText }: Props)
     setAmount("");
     setSaved(null);
     setError(null);
-    setRedeemed(false);
+    setRedeemed(null);
   };
 
   const find = () =>
@@ -57,25 +57,47 @@ export function AddVisitForm({ rewardType, pointsPerDollar, rewardText }: Props)
       else setSaved(r);
     });
 
-  const redeem = (customerId: string) =>
+  const redeem = (customerId: string, kind: "main" | "milestone") =>
     start(async () => {
-      const r = await redeemReward(customerId);
+      const r = await redeemReward(customerId, kind);
       if (!r.ok || !r.progress) return setError(r.message ?? "Couldn't redeem.");
       const progress = r.progress;
       setSaved((s) => (s ? { ...s, progress } : s));
       setLookup((l) => (l?.status === "found" ? { ...l, customer: { ...l.customer, progress } } : l));
-      setRedeemed(true);
+      setRedeemed(kind);
     });
 
+  /** Separate buttons for the milestone and the main reward; each is given once per card. */
+  const redeemButtons = (customerId: string, progress: Progress, className: string) => (
+    <>
+      {progress.milestone?.ready && (
+        <button type="button" disabled={pending} onClick={() => redeem(customerId, "milestone")} className={`${button.accent} ${className}`}>
+          Redeem {progress.milestone.text}
+        </button>
+      )}
+      {isRewardReady(progress) && (
+        <button type="button" disabled={pending} onClick={() => redeem(customerId, "main")} className={`${button.accent} ${className}`}>
+          Redeem {progress.reward_text}
+        </button>
+      )}
+    </>
+  );
+  const redeemedNote = redeemed && (
+    <p className="mt-3 rounded-xl bg-accent/40 px-3 py-2 text-sm">
+      {redeemed === "main" ? "Reward redeemed. Their card starts over." : "Milestone reward redeemed. Their stamps keep counting."}
+    </p>
+  );
+
   if (saved) {
-    const canRedeem = isRewardReady(saved.progress);
+    const p = saved.progress;
+    const ready = isRewardReady(p) ? p.reward_text : p.milestone?.ready ? p.milestone.text : null;
     return (
       <div className={`${card} p-5 sm:p-6`}>
-        {canRedeem && !redeemed ? (
+        {ready && !redeemed ? (
           <div className="rounded-2xl bg-accent p-4 text-center">
             <p className="text-sm font-semibold uppercase tracking-widest">Reward ready</p>
-            <p className="mt-1 font-display text-3xl font-bold uppercase">{saved.progress.reward_text}</p>
-            <p className="mt-1 text-sm">Give {saved.name.split(" ")[0]} their reward, then tap Redeem so their card starts over.</p>
+            <p className="mt-1 font-display text-3xl font-bold uppercase">{ready}</p>
+            <p className="mt-1 text-sm">Give {saved.name.split(" ")[0]} their reward, then tap Redeem.</p>
           </div>
         ) : (
           <p className="flex items-center gap-2 font-semibold text-accent-strong">
@@ -84,16 +106,12 @@ export function AddVisitForm({ rewardType, pointsPerDollar, rewardText }: Props)
           </p>
         )}
         <div className="mt-4">
-          <ProgressCard progress={saved.progress} />
+          <ProgressCard progress={p} />
         </div>
-        {redeemed && <p className="mt-3 rounded-xl bg-accent/40 px-3 py-2 text-sm">Reward redeemed. Their card starts over.</p>}
+        {redeemedNote}
         {error && <p className="mt-3 text-sm font-medium text-red-700">{error}</p>}
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-          {canRedeem && !redeemed && (
-            <button type="button" disabled={pending} onClick={() => redeem(saved.customerId)} className={`${button.accent} sm:flex-1`}>
-              Redeem {saved.progress.reward_text}
-            </button>
-          )}
+          {redeemButtons(saved.customerId, p, "sm:flex-1")}
           <button type="button" onClick={reset} className={`${button.primary} sm:flex-1`}>
             Add another visit
           </button>
@@ -154,17 +172,8 @@ export function AddVisitForm({ rewardType, pointsPerDollar, rewardText }: Props)
           <div className="mt-3">
             <ProgressCard progress={lookup.customer.progress} />
           </div>
-          {isRewardReady(lookup.customer.progress) && (
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => redeem(lookup.customer.id)}
-              className={`${button.accent} mt-3 w-full`}
-            >
-              Redeem {lookup.customer.progress.reward_text}
-            </button>
-          )}
-          {redeemed && <p className="mt-3 rounded-xl bg-accent/40 px-3 py-2 text-sm">Reward redeemed. Their card starts over.</p>}
+          <div className="mt-3 flex flex-col gap-2">{redeemButtons(lookup.customer.id, lookup.customer.progress, "w-full")}</div>
+          {redeemedNote}
         </div>
       )}
 

@@ -7,7 +7,7 @@ import { requireVenue } from "@/lib/auth";
 import { isFuture, ymdInZone } from "@/lib/format";
 import { getHeatmap } from "@/lib/data";
 import { loadOfferContext, planOffer } from "@/lib/offers";
-import { OFFER_AUDIENCES, OFFER_TEMPLATES, offerTemplate, type OfferAudience, type OfferTemplate } from "@/lib/offer-templates";
+import { OFFER_AUDIENCES, OFFER_TEMPLATES, offerTemplate, offerTemplateShort, type OfferAudience, type OfferTemplate } from "@/lib/offer-templates";
 import { findSlowWindow } from "@/lib/slow-hours";
 import { createUserClient } from "@/lib/supabase/server";
 import { OfferComposer, type AudienceSummary } from "./OfferComposer";
@@ -64,7 +64,9 @@ async function Messages({ searchParams }: { searchParams: PageProps<"/dashboard/
 
   const slow = findSlowWindow(heatmapRows, { openHour: venue.open_hour, closeHour: venue.close_hour });
   const shortSlow = slow ? `${slow.shortDay} ${slow.label.split(" ").slice(1).join(" ")}` : null;
-  const templates = Object.fromEntries(OFFER_TEMPLATES.map((t) => [t.id, offerTemplate(t.id, venue, shortSlow)])) as Record<OfferTemplate, string>;
+  const templates = Object.fromEntries(
+    OFFER_TEMPLATES.map((t) => [t.id, { text: offerTemplate(t.id, venue, shortSlow), short: offerTemplateShort(t.id, shortSlow) }]),
+  ) as Record<OfferTemplate, { text: string; short: string }>;
   const audience = audiences.find((a) => a.id === one(params.audience))?.id ?? audiences[0].id;
   const template = OFFER_TEMPLATES.find((t) => t.id === one(params.template))?.id ?? "win_back";
   const audienceName = (id: string) => audienceDefs.find((a) => a.id === id)?.label ?? id;

@@ -6,7 +6,7 @@ import { ApplePassPreview, GooglePassPreview, type PassLook } from "@/components
 import { button, card } from "@/components/ui/styles";
 import { formatHour } from "@/lib/format";
 import { formatPhone } from "@/lib/phone";
-import type { Progress, RewardSettings } from "@/lib/rewards";
+import { milestoneAt, type Progress, type RewardSettings } from "@/lib/rewards";
 import { contrastRatio } from "@/lib/wallet/strip";
 import { removeLogo, saveCard, uploadLogo, type SaveState } from "./actions";
 
@@ -24,6 +24,9 @@ type Props = {
     logo_text: string | null;
     address: string | null;
     website: string | null;
+    milestone_text: string | null;
+    milestone_at: number | null;
+    head_start_stamps: number;
   };
 };
 
@@ -36,6 +39,9 @@ const PRESETS = [
   { bg: "#f6f5f0", fg: "#0f1512", accent: "#d9480f" },
   { bg: "#7a1f2b", fg: "#ffffff", accent: "#ffd6a5" },
 ];
+
+/** "a free pitcher" → "free pitcher" (for "1 free pitcher"). */
+const stripArticle = (s: string) => s.trim().replace(/^(a|an|the)\s+/i, "");
 
 function ColorField({ label, name, value, onChange }: { label: string; name: string; value: string; onChange: (v: string) => void }) {
   return (
@@ -64,6 +70,13 @@ export function CardDesigner({ venueName, initial }: Props) {
   const [view, setView] = useState<"apple" | "google">("apple");
   const [side, setSide] = useState<"front" | "back">("front");
   const [withOffer, setWithOffer] = useState(false);
+  const [sampleState, setSampleState] = useState<"progress" | "milestone" | "ready">("progress");
+  const [milestone, setMilestone] = useState({
+    on: Boolean(initial.milestone_text),
+    text: initial.milestone_text ?? "",
+    at: initial.milestone_at ?? 0,
+  });
+  const [headStart, setHeadStart] = useState({ on: initial.head_start_stamps > 0, n: initial.head_start_stamps || 1 });
   const [details, setDetails] = useState({
     logoText: initial.logo_text ?? "",
     address: initial.address ?? "",
@@ -76,14 +89,32 @@ export function CardDesigner({ venueName, initial }: Props) {
 
   const textContrast = contrastRatio(colors.fg, colors.bg);
   const accentContrast = contrastRatio(colors.accent, colors.bg);
+  const stampsGoal = Math.max(2, rewards.stamps_needed || 5);
+  const pointsGoal = Math.max(10, rewards.points_needed || 500);
+  const goal = rewards.reward_type === "stamps" ? stampsGoal : pointsGoal;
+  // Default: halfway, rounded down; kept inside the allowed range when the goal changes.
+  const milestonePos = milestoneAt(rewards.reward_type, goal, milestone.at);
+  const milestoneOn = milestone.on && milestonePos !== null;
+  const msAt = milestonePos ?? 2;
+  const milestoneText = milestone.text.trim() || "free drink";
+  const sampleHave =
+    sampleState === "ready" ? goal : sampleState === "milestone" && milestoneOn ? msAt : Math.max(1, Math.round(goal * 0.3));
   const sample: Progress = {
     reward_type: rewards.reward_type,
     reward_text: rewards.reward_text || "reward",
-    stamps: Math.max(1, Math.min(3, (rewards.stamps_needed || 5) - 2)),
-    stamps_needed: Math.max(2, rewards.stamps_needed || 5),
-    points: Math.round((rewards.points_needed || 500) * 0.64),
-    points_needed: Math.max(10, rewards.points_needed || 500),
+    stamps: Math.min(stampsGoal, sampleHave),
+    stamps_needed: stampsGoal,
+    points: Math.min(pointsGoal, sampleHave),
+    points_needed: pointsGoal,
+    reward_ready: sampleState === "ready",
+    milestone: milestoneOn
+      ? { at: msAt, text: milestoneText, ready: sampleState === "milestone" }
+      : null,
   };
+  const costLine =
+    rewards.reward_type === "stamps"
+      ? `You'll give ${milestoneOn ? `1 ${stripArticle(milestoneText)} + ` : ""}1 ${stripArticle(rewards.reward_text || "reward")} every ${stampsGoal} visits.`
+      : `You'll give ${milestoneOn ? `1 ${stripArticle(milestoneText)} + ` : ""}1 ${stripArticle(rewards.reward_text || "reward")} every ${pointsGoal} points.`;
   const look: PassLook = {
     venueName,
     logoUrl,
@@ -102,7 +133,7 @@ export function CardDesigner({ venueName, initial }: Props) {
       website: details.website.trim() || null,
     },
     offer: withOffer
-      ? { text: `We miss you at ${venueName}! Come back this week for a bonus stamp.`, expires_at: SAMPLE_OFFER_END }
+      ? { text: `We miss you at ${venueName}! Come back this week for a bonus stamp on any visit.`, short: "Bonus stamp on any visit this week", expires_at: SAMPLE_OFFER_END }
       : null,
   };
 
@@ -198,6 +229,93 @@ export function CardDesigner({ venueName, initial }: Props) {
         <section className={`${card} space-y-4 p-4 sm:p-5`}>
           <h2 className="font-display text-xl font-bold uppercase tracking-wide">Rewards</h2>
           <RewardFields value={rewards} onChange={setRewards} />
+
+          <div className="rounded-xl border border-line p-3">
+            <label className="flex items-center gap-2 text-sm font-semibold">
+              <input
+                type="checkbox"
+                name="milestone_on"
+                checked={milestone.on}
+                onChange={(e) => setMilestone((m) => ({ ...m, on: e.target.checked }))}
+                className="size-4 accent-[var(--ink)]"
+              />
+              Add a milestone reward
+            </label>
+            <p className="mt-1 text-xs text-muted">A smaller reward partway through the card keeps people coming back.</p>
+            {milestone.on && (
+              <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_10rem]">
+                <label className="block text-xs text-muted">
+                  Milestone reward
+                  <input
+                    name="milestone_text"
+                    maxLength={40}
+                    value={milestone.text}
+                    onChange={(e) => setMilestone((m) => ({ ...m, text: e.target.value }))}
+                    placeholder="free pitcher"
+                    className="mt-1 h-11 w-full rounded-xl border border-line bg-white px-3 text-base text-ink focus:border-ink focus:outline-none"
+                  />
+                </label>
+                <label className="block text-xs text-muted">
+                  {rewards.reward_type === "stamps" ? "Unlocks at stamp" : "Unlocks at points"}
+                  {rewards.reward_type === "stamps" ? (
+                    <select
+                      name="milestone_at"
+                      value={msAt}
+                      onChange={(e) => setMilestone((m) => ({ ...m, at: Number(e.target.value) }))}
+                      className="mt-1 h-11 w-full rounded-xl border border-line bg-white px-3 text-base text-ink"
+                    >
+                      {Array.from({ length: Math.max(0, stampsGoal - 2) }, (_, i) => i + 2).map((n) => (
+                        <option key={n} value={n}>
+                          {n} of {stampsGoal}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      name="milestone_at"
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      max={pointsGoal - 1}
+                      value={msAt}
+                      onChange={(e) => setMilestone((m) => ({ ...m, at: Number(e.target.value) }))}
+                      className="mt-1 h-11 w-full rounded-xl border border-line bg-white px-3 text-base text-ink focus:border-ink focus:outline-none"
+                    />
+                  )}
+                </label>
+              </div>
+            )}
+            <p className="mt-3 rounded-lg bg-paper px-3 py-2 text-sm">{costLine}</p>
+          </div>
+
+          {rewards.reward_type === "stamps" && (
+            <div className="rounded-xl border border-line p-3">
+              <label className="flex items-center gap-2 text-sm font-semibold">
+                <input
+                  type="checkbox"
+                  name="head_start_on"
+                  checked={headStart.on}
+                  onChange={(e) => setHeadStart((h) => ({ ...h, on: e.target.checked }))}
+                  className="size-4 accent-[var(--ink)]"
+                />
+                Give new members a head start
+              </label>
+              <p className="mt-1 text-xs text-muted">Free stamps on joining. They don&apos;t count as visits in your insights.</p>
+              {headStart.on && (
+                <div className="mt-2 flex gap-2" role="radiogroup" aria-label="Head start stamps">
+                  {[1, 2].map((n) => (
+                    <label
+                      key={n}
+                      className={`cursor-pointer rounded-full px-3 py-1.5 text-sm font-semibold ${headStart.n === n ? "bg-ink text-white" : "bg-ink/[0.06] text-muted"}`}
+                    >
+                      <input type="radio" name="head_start_stamps" value={n} checked={headStart.n === n} onChange={() => setHeadStart({ on: true, n })} className="sr-only" />
+                      {n} free stamp{n === 1 ? "" : "s"}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
         <section className={`${card} space-y-4 p-4 sm:p-5`}>
@@ -315,6 +433,25 @@ export function CardDesigner({ venueName, initial }: Props) {
             <input type="checkbox" checked={withOffer} onChange={(e) => setWithOffer(e.target.checked)} className="accent-[var(--ink)]" />
             Show with an offer
           </label>
+        </div>
+        <div className="mx-auto mb-3 flex max-w-[320px] gap-1" role="group" aria-label="Sample customer">
+          {(
+            [
+              ["progress", "In progress"],
+              ...(milestoneOn ? ([["milestone", "Milestone"]] as const) : []),
+              ["ready", "Reward ready"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={sampleState === id}
+              onClick={() => setSampleState(id)}
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${sampleState === id ? "bg-ink text-white" : "bg-ink/[0.06] text-muted hover:text-ink"}`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
         <div className="flex justify-center rounded-3xl bg-[#e9e8e3] px-4 py-8">
           {view === "apple" ? <ApplePassPreview look={look} side={side} /> : <GooglePassPreview look={look} side={side} />}

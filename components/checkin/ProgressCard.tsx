@@ -3,6 +3,24 @@ import { progressText, type Progress } from "@/lib/rewards";
 
 /** Stamp card for short stamp programs, a progress bar for points or long stamp programs. */
 export function ProgressCard({ progress }: { progress: Progress }) {
+  const m = progress.milestone;
+  return (
+    <div>
+      <ProgressBody progress={progress} />
+      {m && (
+        <p className={`mt-2 rounded-xl px-3 py-2 text-sm ${m.ready ? "bg-accent font-semibold" : "bg-paper text-muted"}`}>
+          {m.ready
+            ? `Milestone ready: ${m.text}`
+            : m.redeemed
+              ? `Milestone (${m.text}) already given this card`
+              : `Milestone: ${m.text} at ${progress.reward_type === "stamps" ? `stamp ${m.at}` : `${m.at} points`}`}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function ProgressBody({ progress }: { progress: Progress }) {
   if (progress.reward_type === "stamps" && progress.stamps_needed <= 10) {
     return <StampCard stamps={progress.stamps} total={progress.stamps_needed} rewardLabel={progress.reward_text} />;
   }

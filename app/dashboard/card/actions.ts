@@ -105,13 +105,29 @@ export async function saveCard(_prev: SaveState, form: FormData): Promise<SaveSt
   if (website && (website.length > 200 || !/^https?:\/\/[^\s/]+\.[^\s]+$/i.test(website))) {
     return { status: "error", message: "Website should look like https://example.com" };
   }
+  // Milestone: text + which stamp (or points total) unlocks it, strictly before the main reward.
+  let milestone_text: string | null = null;
+  let milestone_at: number | null = null;
+  if (form.get("milestone_on") === "on") {
+    milestone_text = String(form.get("milestone_text") ?? "").trim().slice(0, 40) || null;
+    milestone_at = Number(form.get("milestone_at"));
+    const goal = rewards.value.reward_type === "stamps" ? rewards.value.stamps_needed : rewards.value.points_needed;
+    const min = rewards.value.reward_type === "stamps" ? 2 : 1;
+    if (!milestone_text) return { status: "error", message: "Name the milestone reward, like “free pitcher”." };
+    if (!Number.isInteger(milestone_at) || milestone_at < min || milestone_at >= goal) {
+      return { status: "error", message: `The milestone has to come before the main reward (${min} to ${goal - 1}).` };
+    }
+  }
+  const hs = Number(form.get("head_start_stamps"));
+  const head_start_stamps = form.get("head_start_on") === "on" && rewards.value.reward_type === "stamps" && (hs === 1 || hs === 2) ? hs : 0;
+
   const cooldown = Number(form.get("offer_cooldown_days"));
   const offer_cooldown_days = Number.isInteger(cooldown) && cooldown >= 1 && cooldown <= 60 ? cooldown : 7;
 
   const supabase = await createUserClient();
   const { data, error } = await supabase
     .from("venues")
-    .update({ ...rewards.value, card_bg, card_fg, card_accent, points_per_visit, phone, open_hour, close_hour, offer_cooldown_days, logo_text, address, website })
+    .update({ ...rewards.value, card_bg, card_fg, card_accent, points_per_visit, phone, open_hour, close_hour, offer_cooldown_days, logo_text, address, website, milestone_text, milestone_at, head_start_stamps })
     .eq("id", venue.id)
     .select("id");
   if (error || !data?.length) return { status: "error", message: error?.message ?? "Couldn't save. Try again." };

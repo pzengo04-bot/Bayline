@@ -21,6 +21,7 @@ export type AudienceSummary = {
 
 type Props = {
   venue: { name: string; logoUrl: string | null; cardBg: string; cardFg: string; isDemo: boolean; cooldownDays: number };
+  dates: { today: string; defaultEnd: string; maxEnd: string };
   audiences: AudienceSummary[];
   templates: Record<OfferTemplate, string>;
   initialAudience: OfferAudience;
@@ -29,12 +30,15 @@ type Props = {
 };
 
 const dayFormat = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
+const endsLabel = (ymd: string) =>
+  new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(`${ymd}T12:00:00Z`));
 
-export function OfferComposer({ venue, audiences, templates, initialAudience, initialTemplate, quick }: Props) {
+export function OfferComposer({ venue, dates, audiences, templates, initialAudience, initialTemplate, quick }: Props) {
   const [audienceId, setAudienceId] = useState<OfferAudience>(initialAudience);
   const [template, setTemplate] = useState<OfferTemplate | null>(initialTemplate);
   const [message, setMessage] = useState(templates[initialTemplate]);
   const [preview, setPreview] = useState<"iphone" | "android">("iphone");
+  const [endsOn, setEndsOn] = useState(dates.defaultEnd);
   const [confirming, setConfirming] = useState(quick);
   const [result, setResult] = useState<SendResult | null>(null);
   const [pending, start] = useTransition();
@@ -43,7 +47,7 @@ export function OfferComposer({ venue, audiences, templates, initialAudience, in
 
   const send = () =>
     start(async () => {
-      const r = await sendOffer({ audience: audience.id, message });
+      const r = await sendOffer({ audience: audience.id, message, endsOn });
       setResult(r);
       if (r.ok) setConfirming(false);
     });
@@ -163,6 +167,20 @@ export function OfferComposer({ venue, audiences, templates, initialAudience, in
           <p className={`mt-1 text-right text-xs tabular-nums ${tooLong ? "font-semibold text-red-700" : "text-muted"}`}>
             {message.length} / {OFFER_MAX}
           </p>
+          <label className="mt-2 flex items-center justify-between gap-3 text-sm">
+            <span>
+              <span className="font-semibold">Offer ends</span>
+              <span className="block text-xs text-muted">It disappears from cards after this day.</span>
+            </span>
+            <input
+              type="date"
+              value={endsOn}
+              min={dates.today}
+              max={dates.maxEnd}
+              onChange={(e) => setEndsOn(e.target.value || dates.defaultEnd)}
+              className="h-11 rounded-xl border border-line bg-white px-3 text-base"
+            />
+          </label>
         </fieldset>
 
         {result && !result.ok && <p className="rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-800">{result.message}</p>}
@@ -208,6 +226,7 @@ export function OfferComposer({ venue, audiences, templates, initialAudience, in
           Send to {audience.deliver} customer{audience.deliver === 1 ? "" : "s"}?
         </p>
         <p className="mt-2 rounded-xl bg-paper p-3 text-[15px] leading-snug">{message}</p>
+        <p className="mt-2 text-xs text-muted">Ends {endsLabel(endsOn)}.</p>
         {!quick && (
           <p className="mt-2 text-xs text-muted">
             It appears on their wallet card and as a notification. You can&apos;t unsend it.

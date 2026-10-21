@@ -38,3 +38,11 @@ test("weekdays only, and nothing when there's too little data", () => {
   assert.ok(findSlowWindow(week()).dayIndex < 5);
   assert.equal(findSlowWindow([{ dow: 1, hour: 14, visits: 3 }]), null);
 });
+
+const { endOfDayInZone } = await import("../../lib/format.ts");
+
+test("offer end dates land at 11:59:59pm venue time, across DST", () => {
+  assert.equal(endOfDayInZone("2026-10-28", "America/New_York"), "2026-10-29T03:59:59.000Z"); // EDT
+  assert.equal(endOfDayInZone("2026-11-10", "America/New_York"), "2026-11-11T04:59:59.000Z"); // EST
+  assert.equal(endOfDayInZone("2026-11-01", "America/Los_Angeles"), "2026-11-02T07:59:59.000Z"); // DST ends that day
+});

@@ -54,3 +54,28 @@ export function calendarDaysSince(iso: string, timeZone: string, now = Date.now(
 
 /** ISO timestamp for N days before now. */
 export const isoDaysAgo = (days: number, now = Date.now()) => new Date(now - days * 86_400_000).toISOString();
+
+/** "2026-10-28" in a time zone -> ISO instant for 11:59:59pm that day there. */
+export function endOfDayInZone(ymd: string, timeZone: string) {
+  const [y, m, d] = ymd.split("-").map(Number);
+  let guess = Date.UTC(y, m - 1, d, 23, 59, 59);
+  // Shift by the zone's offset at that moment (twice, to settle across DST changes).
+  for (let i = 0; i < 2; i++) {
+    const parts = Object.fromEntries(
+      new Intl.DateTimeFormat("en-US", { timeZone, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+        .formatToParts(new Date(guess))
+        .map((p) => [p.type, p.value]),
+    );
+    const asIfUtc = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute, +parts.second);
+    guess += Date.UTC(y, m - 1, d, 23, 59, 59) - asIfUtc;
+  }
+  return new Date(guess).toISOString();
+}
+
+/** Today + N days as YYYY-MM-DD in a time zone. */
+export function ymdInZone(timeZone: string, addDays = 0, now = Date.now()) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone }).format(new Date(now + addDays * 86_400_000));
+}
+
+/** True if an ISO timestamp is still in the future. */
+export const isFuture = (iso: string, now = Date.now()) => Date.parse(iso) > now;

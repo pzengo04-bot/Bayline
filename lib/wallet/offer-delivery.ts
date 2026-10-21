@@ -3,7 +3,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { pushPassUpdates } from "./apns";
 import { appleConfig, googleConfig } from "./config";
 import { logWalletEvent } from "./events";
-import { sendGoogleMessage } from "./google";
+import { getPassData } from "./data";
+import { sendGoogleMessage, updateGoogleObject } from "./google";
 
 /**
  * Deliver a logged offer to recipients' wallet cards.
@@ -14,7 +15,7 @@ import { sendGoogleMessage } from "./google";
 export async function deliverOffer(sendId: string) {
   const admin = createAdminClient();
   try {
-    const { data: send } = await admin.from("offer_sends").select("id, venue_id, message, venues(name)").eq("id", sendId).single();
+    const { data: send } = await admin.from("offer_sends").select("id, venue_id, message, expires_at, venues(name)").eq("id", sendId).single();
     if (!send) return;
     const venueName = (send.venues as unknown as { name: string } | null)?.name ?? "";
     const { data: recips } = await admin
@@ -45,9 +46,12 @@ export async function deliverOffer(sendId: string) {
     // Google
     if (googleConfig()) {
       for (const r of list.filter((x) => x.google)) {
-        const outcome = await sendGoogleMessage(r.serial, venueName, send.message);
+        const outcome = await sendGoogleMessage(r.serial, venueName, send.message, send.expires_at);
         if (outcome === "notified" || outcome === "silent") {
           await admin.from("offer_recipients").update({ google_notified: outcome === "notified" }).match({ send_id: sendId, customer_id: r.id });
+          // Refresh the card's text modules so "Latest offer" shows there too.
+          const data = await getPassData(r.serial);
+          if (data) await updateGoogleObject(data);
         } else {
           // Never saved (or failed): only Apple can still count it as delivered.
           await admin

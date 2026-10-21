@@ -4,6 +4,7 @@ import { NoVenue } from "@/components/app/NoVenue";
 import { PageSkeleton } from "@/components/app/PageSkeleton";
 import { Section } from "@/components/dashboard/Section";
 import { requireVenue } from "@/lib/auth";
+import { isFuture, ymdInZone } from "@/lib/format";
 import { getHeatmap } from "@/lib/data";
 import { loadOfferContext, planOffer } from "@/lib/offers";
 import { OFFER_AUDIENCES, OFFER_TEMPLATES, offerTemplate, type OfferAudience, type OfferTemplate } from "@/lib/offer-templates";
@@ -22,7 +23,16 @@ export default function MessagesPage({ searchParams }: PageProps<"/dashboard/mes
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 const when = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
-type SendRow = { id: string; audience: string; message: string; recipients: number; delivered: number; came_back: number; created_at: string };
+type SendRow = {
+  id: string;
+  audience: string;
+  message: string;
+  recipients: number;
+  delivered: number;
+  came_back: number;
+  created_at: string;
+  expires_at: string;
+};
 
 async function Messages({ searchParams }: { searchParams: PageProps<"/dashboard/messages">["searchParams"] }) {
   const { venue } = await requireVenue();
@@ -74,6 +84,7 @@ async function Messages({ searchParams }: { searchParams: PageProps<"/dashboard/
           isDemo: venue.is_demo,
           cooldownDays: venue.offer_cooldown_days,
         }}
+        dates={{ today: ymdInZone(venue.timezone), defaultEnd: ymdInZone(venue.timezone, 7), maxEnd: ymdInZone(venue.timezone, 89) }}
         audiences={audiences}
         templates={templates}
         initialAudience={audience}
@@ -90,7 +101,8 @@ async function Messages({ searchParams }: { searchParams: PageProps<"/dashboard/
                 <div className="min-w-0">
                   <p className="text-sm">{s.message}</p>
                   <p className="text-xs text-muted">
-                    {when.format(new Date(s.created_at))} · {audienceName(s.audience)} · delivered to {s.delivered} of {s.recipients}
+                    {when.format(new Date(s.created_at))} · {audienceName(s.audience)} · delivered to {s.delivered} of {s.recipients} ·{" "}
+                    {isFuture(s.expires_at) ? `ends ${when.format(new Date(s.expires_at))}` : "ended"}
                   </p>
                 </div>
                 <p className="text-sm font-semibold tabular-nums">

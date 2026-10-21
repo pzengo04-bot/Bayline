@@ -2,7 +2,8 @@ import "server-only";
 import { PKPass } from "passkit-generator";
 import sharp from "sharp";
 import { siteUrl } from "@/lib/env";
-import { isRewardReady, type Progress } from "@/lib/rewards";
+import type { Progress } from "@/lib/rewards";
+import { backSections, memberNumber, progressValue, rewardValue } from "./pass-content";
 import { appleConfig } from "./config";
 import { stripSvg } from "./strip";
 
@@ -24,17 +25,21 @@ export type PassData = {
     pass_message: string | null;
     reward_type: "stamps" | "points";
     reward_text: string;
+    logo_text?: string | null;
+    address?: string | null;
+    phone?: string | null;
+    website?: string | null;
+    timezone?: string;
   };
   progress: Progress;
   /** Latest offer sent to this customer (Phase 2a), shown on the back with a lock-screen notification. */
-  offer?: { text: string; sent_at: string } | null;
+  offer?: { text: string; sent_at: string; expires_at: string } | null;
 };
 
 const rgb = (hex: string) =>
   `rgb(${parseInt(hex.slice(1, 3), 16)}, ${parseInt(hex.slice(3, 5), 16)}, ${parseInt(hex.slice(5, 7), 16)})`;
 
-export const progressValue = (p: Progress) =>
-  p.reward_type === "stamps" ? `${p.stamps} of ${p.stamps_needed}` : `${p.points} / ${p.points_needed} pts`;
+export { progressValue } from "./pass-content";
 
 export async function fetchLogo(url: string | null) {
   if (!url) return null;
@@ -70,7 +75,11 @@ async function passImages(d: PassData) {
       : await sharp(initialsSvg(v.name, v.card_bg, v.card_fg, icon)).png().toBuffer();
 
     if (logo) {
-      files[`logo${suffix}.png`] = await sharp(logo).resize(160 * scale, 50 * scale, { fit: "inside" }).png().toBuffer();
+      // Apple's logo area is up to 160×50 points; render each density from the full-size source.
+      files[`logo${suffix}.png`] = await sharp(logo)
+        .resize(160 * scale, 50 * scale, { fit: "inside", kernel: "lanczos3" })
+        .png({ compressionLevel: 9 })
+        .toBuffer();
     }
 
     const p = d.progress;
@@ -114,7 +123,8 @@ export async function buildApplePass(d: PassData, opts: { voided?: boolean } = {
       serialNumber: d.serial,
       organizationName: v.name,
       description: `${v.name} rewards card`,
-      ...(hasLogo ? {} : { logoText: v.name }),
+      // Text beside the logo: the venue's choice (e.g. "Bayline" next to a symbol), or its name if there's no logo.
+      ...(v.logo_text ? { logoText: v.logo_text } : hasLogo ? {} : { logoText: v.name }),
       backgroundColor: rgb(v.card_bg),
       foregroundColor: rgb(v.card_fg),
       labelColor: rgb(v.card_fg),
@@ -128,6 +138,9 @@ export async function buildApplePass(d: PassData, opts: { voided?: boolean } = {
   );
   pass.type = "storeCard";
 
+  // Front: progress in the header ("NEW OFFER" beside it while an offer is active), then just the
+  // reward and the member's first name under the stamp strip.
+  if (d.offer) pass.headerFields.push({ key: "offer_flag", label: "", value: "NEW OFFER" });
   pass.headerFields.push({
     key: "progress",
     label: p.reward_type === "stamps" ? "VISITS" : "POINTS",
@@ -135,37 +148,27 @@ export async function buildApplePass(d: PassData, opts: { voided?: boolean } = {
     changeMessage: p.reward_type === "stamps" ? "Stamp added: %@" : "Points: %@",
   });
   pass.secondaryFields.push(
-    {
-      key: "reward",
-      label: "REWARD",
-      value: isRewardReady(p) ? "Ready, show staff" : v.reward_text,
-    },
+    { key: "reward", label: "REWARD", value: rewardValue(p, v.reward_text) },
     { key: "member", label: "MEMBER", value: d.first_name, textAlignment: "PKTextAlignmentRight" },
   );
-  // The latest offer sits on the front, where iPhone reliably announces changes on the lock screen
-  // ("%@" = the new text). It's always present: iPhone only announces a field whose value *changes*,
-  // not one that appears for the first time. The back repeats it in full, without a second alert.
-  const offerText = d.offer?.text ?? "Watch this space for member offers";
-  pass.auxiliaryFields.push({ key: "offer", label: "OFFER", value: offerText, changeMessage: "%@" });
-  pass.backFields.push({ key: "offer_full", label: "LATEST OFFER", value: offerText });
-  pass.backFields.push(
-    {
-      key: "message",
-      label: `FROM ${v.name.toUpperCase()}`,
-      value: v.pass_message ?? "Tap the stand or scan the code at the front desk to earn rewards.",
-      changeMessage: "%@",
-    },
-    {
-      key: "how",
-      label: "HOW IT WORKS",
-      value:
-        p.reward_type === "stamps"
-          ? `Earn a stamp each visit. ${p.stamps_needed} stamps = ${v.reward_text}.`
-          : `Earn points each visit. ${p.points_needed} points = ${v.reward_text}.`,
-    },
-    { key: "card", label: "YOUR CARD", value: `${siteUrl()}/v/${v.slug}` },
-  );
-  pass.setBarcodes({ message: d.serial, format: "PKBarcodeFormatQR", messageEncoding: "iso-8859-1" });
+
+  // Back: the offer first. It's always present (a placeholder when there's none), because iPhone only
+  // announces a field whose value changes, never one that newly appears. changeMessage "%@" puts the
+  // new offer text on the lock screen.
+  for (const section of backSections(v, p, d.offer, "apple", v.timezone)) {
+    pass.backFields.push({
+      key: section.key,
+      label: section.label.toUpperCase(),
+      value: section.value,
+      ...(section.key === "offer" && d.offer ? { changeMessage: "%@" } : {}),
+    });
+  }
+  pass.setBarcodes({
+    message: d.serial,
+    format: "PKBarcodeFormatQR",
+    messageEncoding: "iso-8859-1",
+    altText: `Member ${memberNumber(d.serial)}`,
+  });
 
   return pass.getAsBuffer();
 }

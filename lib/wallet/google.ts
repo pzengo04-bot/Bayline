@@ -1,8 +1,8 @@
 import "server-only";
 import { importPKCS8, SignJWT } from "jose";
 import { siteUrl } from "@/lib/env";
-import { isRewardReady } from "@/lib/rewards";
-import { type PassData, progressValue } from "./apple";
+import type { PassData } from "./apple";
+import { backSections, memberNumber, progressValue, rewardValue } from "./pass-content";
 import { googleConfig } from "./config";
 
 // Google Wallet loyalty cards: one class per venue (look and program), one object per customer
@@ -67,37 +67,37 @@ export function loyaltyClass(cfg: Cfg, d: Pick<PassData, "venue">) {
 export function loyaltyObject(cfg: Cfg, d: PassData) {
   const v = d.venue;
   const p = d.progress;
+  const member = memberNumber(d.serial);
+  const links = [
+    ...(v.website ? [{ id: "website", uri: v.website, description: "Website" }] : []),
+    ...(v.phone ? [{ id: "phone", uri: `tel:${v.phone}`, description: "Call" }] : []),
+    { id: "card", uri: `${siteUrl()}/v/${v.slug}`, description: "Your card" },
+  ];
   return {
     id: objectId(cfg.issuerId, d.serial),
     classId: classId(cfg.issuerId, v.id),
     state: "ACTIVE",
-    accountId: d.serial,
+    accountId: member,
     accountName: d.first_name,
     loyaltyPoints: {
       label: p.reward_type === "stamps" ? "Visits" : "Points",
       balance: { string: progressValue(p) },
     },
-    secondaryLoyaltyPoints: {
-      label: "Reward",
-      balance: { string: isRewardReady(p) ? "Ready, show staff" : v.reward_text },
-    },
-    barcode: { type: "QR_CODE", value: d.serial },
+    secondaryLoyaltyPoints: { label: "Reward", balance: { string: rewardValue(p, v.reward_text) } },
+    barcode: { type: "QR_CODE", value: d.serial, alternateText: `Member ${member}` },
     heroImage: {
       sourceUri: {
         uri: `${siteUrl()}/api/wallet/image/strip?serial=${d.serial}&v=${encodeURIComponent(d.updated_at)}`,
       },
       contentDescription: { defaultValue: { language: "en-US", value: progressValue(p) } },
     },
-    textModulesData: [
-      {
-        id: "message",
-        header: `From ${v.name}`,
-        body: v.pass_message ?? "Tap the stand or scan the code at the front desk to earn rewards.",
-      },
-    ],
-    linksModuleData: {
-      uris: [{ id: "card", uri: `${siteUrl()}/v/${v.slug}`, description: "Your card" }],
-    },
+    textModulesData: backSections(v, p, d.offer, "google", v.timezone)
+      .filter((s) => s.label && !["address", "phone", "website"].includes(s.key))
+      .map((s) => ({ id: s.key, header: s.label, body: s.value })),
+    linksModuleData: { uris: links },
+    ...(v.address
+      ? { infoModuleData: { labelValueRows: [{ columns: [{ label: "Address", value: v.address }] }], showLastUpdateTime: false } }
+      : {}),
   };
 }
 
@@ -150,13 +150,25 @@ export async function updateGoogleClass(d: Pick<PassData, "venue">) {
  * Show an offer on a customer's Google card with a phone notification. Google limits notifications
  * per pass; if that's hit, the message is still added, silently. Returns what happened.
  */
-export async function sendGoogleMessage(serial: string, header: string, body: string): Promise<"notified" | "silent" | "not_saved" | "failed"> {
+export async function sendGoogleMessage(
+  serial: string,
+  header: string,
+  body: string,
+  expiresAt?: string,
+): Promise<"notified" | "silent" | "not_saved" | "failed"> {
   const cfg = googleConfig();
   if (!cfg) return "failed";
   const id = objectId(cfg.issuerId, serial);
   const post = (messageType: string) =>
     api(cfg, "POST", `/loyaltyObject/${encodeURIComponent(id)}/addMessage`, {
-      message: { header, body, id: `offer_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`, messageType },
+      message: {
+        header,
+        body,
+        id: `offer_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        messageType,
+        // Matches the offer's end date: Google hides the message after it.
+        ...(expiresAt ? { displayInterval: { start: { date: new Date().toISOString() }, end: { date: expiresAt } } } : {}),
+      },
     });
   let res = await post("TEXT_AND_NOTIFY");
   if (res.ok) return "notified";

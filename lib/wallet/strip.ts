@@ -29,29 +29,34 @@ export function stripSvg(s: Strip, width = 375, height = 123) {
 </svg>`;
   }
 
-  const n = Math.max(2, Math.min(s.stampsNeeded, 12));
+  // Stamps: up to 6 in one row, more in two rows. Circles are sized to leave even margins left/right
+  // and top/bottom, so every stamp sits comfortably inside the strip.
+  const n = Math.max(2, Math.min(s.stampsNeeded, 20));
   const rows = n > 6 ? 2 : 1;
   const perRow = Math.ceil(n / rows);
-  const gap = 10;
-  const size = Math.min((width - pad * 2 - gap * (perRow - 1)) / perRow, (height - 20 - gap * (rows - 1)) / rows);
-  const totalW = perRow * size + (perRow - 1) * gap;
-  const x0 = (width - totalW) / 2;
-  const y0 = (height - (rows * size + (rows - 1) * gap)) / 2;
+  const marginX = width * 0.08;
+  const marginY = height * (rows === 1 ? 0.22 : 0.12);
+  const gap = Math.min(width * 0.035, 14);
+  const rowGap = height * 0.08;
+  const size = Math.min(
+    (width - marginX * 2 - gap * (perRow - 1)) / perRow,
+    (height - marginY * 2 - rowGap * (rows - 1)) / rows,
+  );
   const r = size / 2;
+  const stroke = Math.max(2, size * 0.07);
+  const y0 = (height - (rows * size + (rows - 1) * rowGap)) / 2;
   let circles = "";
   for (let i = 0; i < n; i++) {
     const row = Math.floor(i / perRow);
-    const col = i % perRow;
-    const cx = x0 + col * (size + gap) + r;
-    const cy = y0 + row * (size + gap) + r;
-    const filled = i < s.stamps;
-    const last = i === n - 1;
-    circles += filled
-      ? `<circle cx="${cx}" cy="${cy}" r="${r - 1}" fill="${s.accent}"/><path d="M${cx - r * 0.32} ${cy + r * 0.02} l${r * 0.22} ${r * 0.24} l${r * 0.42} -${r * 0.46}" fill="none" stroke="${s.bg}" stroke-width="${Math.max(2, r * 0.16)}" stroke-linecap="round" stroke-linejoin="round"/>`
-      : `<circle cx="${cx}" cy="${cy}" r="${r - 2}" fill="none" stroke="${s.fg}" stroke-opacity="0.35" stroke-width="2.5"/>` +
-        (last
-          ? `<text x="${cx}" y="${cy + r * 0.3}" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="${r * 0.9}" fill="${s.fg}" fill-opacity="0.5">★</text>`
-          : "");
+    const inRow = row === rows - 1 ? n - perRow * (rows - 1) : perRow;
+    const col = i - row * perRow;
+    const rowW = inRow * size + (inRow - 1) * gap;
+    const cx = (width - rowW) / 2 + col * (size + gap) + r;
+    const cy = y0 + row * (size + rowGap) + r;
+    circles +=
+      i < s.stamps
+        ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${s.accent}"/><path d="M${cx - r * 0.36} ${cy + r * 0.02} l${r * 0.25} ${r * 0.26} l${r * 0.47} -${r * 0.5}" fill="none" stroke="${s.bg}" stroke-width="${stroke * 1.3}" stroke-linecap="round" stroke-linejoin="round"/>`
+        : `<circle cx="${cx}" cy="${cy}" r="${r - stroke / 2}" fill="none" stroke="${s.fg}" stroke-opacity="0.45" stroke-width="${stroke}"/>`;
   }
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
   <rect width="${width}" height="${height}" fill="${s.bg}"/>${circles}

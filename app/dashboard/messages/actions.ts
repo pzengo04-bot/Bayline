@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { requireVenue } from "@/lib/auth";
+import { endOfDayInZone, ymdInZone } from "@/lib/format";
 import { loadOfferContext, planOffer } from "@/lib/offers";
 import { OFFER_MAX, type OfferAudience } from "@/lib/offer-templates";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -15,7 +16,7 @@ export type SendResult =
 
 const AUDIENCES: OfferAudience[] = ["slipping", "regulars", "everyone", "demo_guests"];
 
-export async function sendOffer(input: { audience: string; message: string }): Promise<SendResult> {
+export async function sendOffer(input: { audience: string; message: string; endsOn?: string }): Promise<SendResult> {
   const { access, venue } = await requireVenue();
   if (!venue || venue.role === "staff") return { ok: false, message: "Only the venue owner can send offers." };
   const audience = input.audience as OfferAudience;
@@ -25,6 +26,12 @@ export async function sendOffer(input: { audience: string; message: string }): P
   let message = input.message.replace(/\s+/g, " ").trim();
   if (!message) return { ok: false, message: "Write a message first." };
   if (message.length > OFFER_MAX) return { ok: false, message: `Keep it to ${OFFER_MAX} characters.` };
+
+  // Offers expire at the end of the chosen day, venue time (default 7 days, at most 90).
+  const today = ymdInZone(venue.timezone);
+  const endsOn = /^\d{4}-\d{2}-\d{2}$/.test(input.endsOn ?? "") ? input.endsOn! : ymdInZone(venue.timezone, 7);
+  if (endsOn < today || endsOn > ymdInZone(venue.timezone, 89)) return { ok: false, message: "Pick an end date within the next 90 days." };
+  const expiresAt = endOfDayInZone(endsOn, venue.timezone);
 
   // Recompute recipients now; never trust a list from the browser.
   const { customers } = await loadOfferContext(venue);
@@ -56,6 +63,7 @@ export async function sendOffer(input: { audience: string; message: string }): P
       recipients: plan.matched,
       delivered: plan.deliver.length,
       created_by: access.user.id,
+      expires_at: expiresAt,
     })
     .select("id")
     .single();

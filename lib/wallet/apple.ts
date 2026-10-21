@@ -26,6 +26,8 @@ export type PassData = {
     reward_text: string;
   };
   progress: Progress;
+  /** Latest offer sent to this customer (Phase 2a), shown on the back with a lock-screen notification. */
+  offer?: { text: string; sent_at: string } | null;
 };
 
 const rgb = (hex: string) =>
@@ -138,6 +140,10 @@ export async function buildApplePass(d: PassData): Promise<Buffer> {
     },
     { key: "member", label: "MEMBER", value: d.first_name, textAlignment: "PKTextAlignmentRight" },
   );
+  if (d.offer) {
+    // changeMessage "%@" makes iPhone show the new offer text on the lock screen when it changes.
+    pass.backFields.push({ key: "offer", label: "LATEST OFFER", value: d.offer.text, changeMessage: "%@" });
+  }
   pass.backFields.push(
     {
       key: "message",

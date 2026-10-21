@@ -137,13 +137,27 @@ export async function updateGoogleClass(d: Pick<PassData, "venue">) {
   if (!res.ok && res.status !== 404) console.warn("Google class update", res.status, await res.text());
 }
 
-/** Phase 2: show an offer on a customer's Google card with a phone notification. */
-export async function sendGoogleMessage(serial: string, header: string, body: string) {
+/**
+ * Show an offer on a customer's Google card with a phone notification. Google limits notifications
+ * per pass; if that's hit, the message is still added, silently. Returns what happened.
+ */
+export async function sendGoogleMessage(serial: string, header: string, body: string): Promise<"notified" | "silent" | "not_saved" | "failed"> {
   const cfg = googleConfig();
-  if (!cfg) return;
+  if (!cfg) return "failed";
   const id = objectId(cfg.issuerId, serial);
-  const res = await api(cfg, "POST", `/loyaltyObject/${encodeURIComponent(id)}/addMessage`, {
-    message: { header, body, id: `msg_${Date.now()}`, messageType: "TEXT_AND_NOTIFY" },
-  });
-  if (!res.ok && res.status !== 404) console.warn("Google addMessage", res.status, await res.text());
+  const post = (messageType: string) =>
+    api(cfg, "POST", `/loyaltyObject/${encodeURIComponent(id)}/addMessage`, {
+      message: { header, body, id: `offer_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`, messageType },
+    });
+  let res = await post("TEXT_AND_NOTIFY");
+  if (res.ok) return "notified";
+  if (res.status === 404) return "not_saved";
+  const detail = await res.text();
+  if (res.status === 429 || /notif|limit|quota/i.test(detail)) {
+    console.warn("Google notification limit hit; adding the message without a notification", serial.slice(0, 8));
+    res = await post("TEXT");
+    if (res.ok) return "silent";
+  }
+  console.warn("Google addMessage failed", res.status, detail.slice(0, 300));
+  return "failed";
 }

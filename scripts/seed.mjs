@@ -4,6 +4,7 @@
 //   Bayline Demo  (/v/bayline-demo)  for pitches: branded card, ~60 fake customers, unlimited taps per day.
 //                                    Real people who joined the demo ("demo guests") are kept.
 // Usage: npm run db:seed   (safe to re-run; only touches these venues)
+import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 import postgres from "postgres";
 import sharp from "sharp";
@@ -106,26 +107,21 @@ const VENUES = [
     venue: { name: "Bayline Demo", slug: "bayline-demo", type: "golf_sim", reward_type: "stamps", stamps_needed: 5,
       points_per_dollar: 1, points_needed: 500, reward_text: "free bay hour", stamps_per_day: null,
       card_bg: "#0f1512", card_fg: "#ffffff", card_accent: "#c4f04a",
-      pass_message: "Thanks for trying Bayline! Tap the stand again to watch your stamp land.", is_demo: true },
+      pass_message: "Thanks for trying Bayline! Tap the stand again to watch your stamp land.", is_demo: true,
+      logo_text: "Bayline", website: "https://getbayline.app" },
     customers: makeCustomers(60, { regular: 20, quiet: 10 }),
     amount: () => null,
   },
 ];
 
-/** The Bayline mark + wordmark as a PNG logo, uploaded for the demo venue. */
+/** The Bayline swirl mark (public/brand) as the demo venue's logo; "Bayline" shows beside it as logo text. */
 async function uploadDemoLogo(venueId) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="420" height="96" viewBox="0 0 420 96">
-    <rect x="0" y="8" width="80" height="80" rx="22" fill="#c4f04a"/>
-    <rect x="18" y="29" width="10" height="38" rx="5" fill="#0f1512"/>
-    <rect x="35" y="29" width="10" height="38" rx="5" fill="#0f1512"/>
-    <rect x="52" y="48" width="10" height="19" rx="5" fill="#0f1512"/>
-    <text x="100" y="70" font-family="Helvetica, Arial, sans-serif" font-size="58" font-weight="800" letter-spacing="2" fill="#ffffff">BAYLINE</text>
-  </svg>`;
-  const png = await sharp(Buffer.from(svg), { density: 300 }).trim().png().toBuffer();
+  const svg = readFileSync(new URL("../public/brand/bayline-mark-for-dark-bg.svg", import.meta.url));
+  const png = await sharp(svg, { density: 600 }).trim().resize({ height: 300 }).png().toBuffer();
   const storage = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SECRET_KEY, {
     auth: { persistSession: false },
   }).storage.from("venue-logos");
-  const path = `${venueId}/logo-demo.png`;
+  const path = `${venueId}/logo-demo-mark.png`;
   const { error } = await storage.upload(path, png, { contentType: "image/png", upsert: true });
   if (error) throw new Error(`Demo logo upload failed: ${error.message}`);
   return `${storage.getPublicUrl(path).data.publicUrl}?v=${Date.now()}`;
@@ -141,7 +137,8 @@ try {
           points_per_dollar = excluded.points_per_dollar, points_needed = excluded.points_needed,
           reward_text = excluded.reward_text, stamps_per_day = excluded.stamps_per_day,
           card_bg = excluded.card_bg, card_fg = excluded.card_fg, card_accent = excluded.card_accent,
-          pass_message = excluded.pass_message, is_demo = excluded.is_demo
+          pass_message = excluded.pass_message, is_demo = excluded.is_demo,
+          logo_text = excluded.logo_text, website = excluded.website
         returning id, name, timezone`;
       // Test venues reset completely; the demo venue keeps its real demo guests.
       if (venue.is_demo) await tx`delete from public.customers where venue_id = ${v.id} and is_seed`;

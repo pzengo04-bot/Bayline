@@ -40,6 +40,9 @@ async function Card() {
           open_hour: venue.open_hour,
           close_hour: venue.close_hour,
           offer_cooldown_days: venue.offer_cooldown_days,
+          logo_text: venue.logo_text,
+          address: venue.address,
+          website: venue.website,
         }}
       />
     </div>

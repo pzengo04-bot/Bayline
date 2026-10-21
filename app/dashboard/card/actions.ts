@@ -98,13 +98,20 @@ export async function saveCard(_prev: SaveState, form: FormData): Promise<SaveSt
   if (open_hour !== null && close_hour !== null && !(open_hour >= 0 && close_hour <= 24 && close_hour > open_hour)) {
     return { status: "error", message: "Closing time must be after opening time." };
   }
+  const logo_text = String(form.get("logo_text") ?? "").trim().slice(0, 24) || null;
+  const address = String(form.get("address") ?? "").trim().slice(0, 160) || null;
+  let website: string | null = String(form.get("website") ?? "").trim() || null;
+  if (website && !/^https?:\/\//i.test(website)) website = `https://${website}`;
+  if (website && (website.length > 200 || !/^https?:\/\/[^\s/]+\.[^\s]+$/i.test(website))) {
+    return { status: "error", message: "Website should look like https://example.com" };
+  }
   const cooldown = Number(form.get("offer_cooldown_days"));
   const offer_cooldown_days = Number.isInteger(cooldown) && cooldown >= 1 && cooldown <= 60 ? cooldown : 7;
 
   const supabase = await createUserClient();
   const { data, error } = await supabase
     .from("venues")
-    .update({ ...rewards.value, card_bg, card_fg, card_accent, points_per_visit, phone, open_hour, close_hour, offer_cooldown_days })
+    .update({ ...rewards.value, card_bg, card_fg, card_accent, points_per_visit, phone, open_hour, close_hour, offer_cooldown_days, logo_text, address, website })
     .eq("id", venue.id)
     .select("id");
   if (error || !data?.length) return { status: "error", message: error?.message ?? "Couldn't save. Try again." };

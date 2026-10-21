@@ -21,8 +21,13 @@ type Props = {
     open_hour: number | null;
     close_hour: number | null;
     offer_cooldown_days: number;
+    logo_text: string | null;
+    address: string | null;
+    website: string | null;
   };
 };
+
+const SAMPLE_OFFER_END = "2026-10-28T23:59:00-04:00";
 
 const PRESETS = [
   { bg: "#0f1512", fg: "#ffffff", accent: "#c4f04a" },
@@ -57,6 +62,14 @@ export function CardDesigner({ venueName, initial }: Props) {
   const [logoUrl, setLogoUrl] = useState(initial.logo_url);
   const [logoMsg, setLogoMsg] = useState<string | null>(null);
   const [view, setView] = useState<"apple" | "google">("apple");
+  const [side, setSide] = useState<"front" | "back">("front");
+  const [withOffer, setWithOffer] = useState(false);
+  const [details, setDetails] = useState({
+    logoText: initial.logo_text ?? "",
+    address: initial.address ?? "",
+    website: initial.website ?? "",
+    phone: initial.phone ? formatPhone(initial.phone) : "",
+  });
   const [uploading, startUpload] = useTransition();
   const [state, action, pending] = useActionState<SaveState, FormData>(saveCard, { status: "idle" });
   const fileRef = useRef<HTMLInputElement>(null);
@@ -71,7 +84,27 @@ export function CardDesigner({ venueName, initial }: Props) {
     points: Math.round((rewards.points_needed || 500) * 0.64),
     points_needed: Math.max(10, rewards.points_needed || 500),
   };
-  const look: PassLook = { venueName, logoUrl, bg: colors.bg, fg: colors.fg, accent: colors.accent, firstName: "Mike", progress: sample };
+  const look: PassLook = {
+    venueName,
+    logoUrl,
+    logoText: details.logoText.trim() || null,
+    bg: colors.bg,
+    fg: colors.fg,
+    accent: colors.accent,
+    firstName: "Mike",
+    progress: sample,
+    venue: {
+      name: venueName,
+      reward_type: rewards.reward_type,
+      reward_text: rewards.reward_text || "reward",
+      address: details.address.trim() || null,
+      phone: details.phone.trim() ? `+1${details.phone.replace(/\D/g, "").slice(-10)}` : null,
+      website: details.website.trim() || null,
+    },
+    offer: withOffer
+      ? { text: `We miss you at ${venueName}! Come back this week for a bonus stamp.`, expires_at: SAMPLE_OFFER_END }
+      : null,
+  };
 
   const onLogo = (file: File | undefined) => {
     if (!file) return;
@@ -118,6 +151,16 @@ export function CardDesigner({ venueName, initial }: Props) {
             </div>
             <p className="mt-1.5 text-xs text-muted">A wide logo on a transparent background works best. Max 2 MB.</p>
             {logoMsg && <p className="mt-1 text-sm text-red-700">{logoMsg}</p>}
+            <label className="mt-3 block text-sm font-semibold">
+              Text next to logo <span className="font-normal text-muted">(optional, iPhone; e.g. your name beside a symbol)</span>
+              <input
+                name="logo_text"
+                maxLength={24}
+                value={details.logoText}
+                onChange={(e) => setDetails((d) => ({ ...d, logoText: e.target.value }))}
+                className="mt-1.5 h-11 w-full rounded-xl border border-line bg-white px-3 text-base font-normal focus:border-ink focus:outline-none"
+              />
+            </label>
           </div>
 
           <div>
@@ -204,17 +247,26 @@ export function CardDesigner({ venueName, initial }: Props) {
               days
             </span>
           </label>
-          <label className="block text-sm font-semibold">
-            Venue phone
-            <input
-              name="phone"
-              type="tel"
-              inputMode="tel"
-              defaultValue={initial.phone ? formatPhone(initial.phone) : ""}
-              placeholder="(555) 555-5555"
-              className="mt-1.5 h-11 w-full rounded-xl border border-line bg-white px-3 text-base focus:border-ink focus:outline-none"
-            />
-          </label>
+          {(
+            [
+              ["phone", "Venue phone", "(555) 555-5555", "tel"],
+              ["address", "Address", "123 Main St, Springfield", "text"],
+              ["website", "Website", "https://example.com", "url"],
+            ] as const
+          ).map(([name, label, placeholder, type]) => (
+            <label key={name} className="block text-sm font-semibold">
+              {label} <span className="font-normal text-muted">(shown on the back of the card)</span>
+              <input
+                name={name}
+                type={type}
+                inputMode={type === "tel" ? "tel" : undefined}
+                value={details[name]}
+                onChange={(e) => setDetails((d) => ({ ...d, [name]: e.target.value }))}
+                placeholder={placeholder}
+                className="mt-1.5 h-11 w-full rounded-xl border border-line bg-white px-3 text-base font-normal focus:border-ink focus:outline-none"
+              />
+            </label>
+          ))}
         </section>
 
         {state.status !== "idle" && (
@@ -245,8 +297,27 @@ export function CardDesigner({ venueName, initial }: Props) {
             </button>
           ))}
         </div>
+        <div className="mx-auto mb-3 flex max-w-[320px] items-center justify-between gap-2">
+          <div className="flex gap-1" role="group" aria-label="Side">
+            {(["front", "back"] as const).map((sd) => (
+              <button
+                key={sd}
+                type="button"
+                aria-pressed={side === sd}
+                onClick={() => setSide(sd)}
+                className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${side === sd ? "bg-ink text-white" : "bg-ink/[0.06] text-muted hover:text-ink"}`}
+              >
+                {sd}
+              </button>
+            ))}
+          </div>
+          <label className="flex items-center gap-1.5 text-xs text-muted">
+            <input type="checkbox" checked={withOffer} onChange={(e) => setWithOffer(e.target.checked)} className="accent-[var(--ink)]" />
+            Show with an offer
+          </label>
+        </div>
         <div className="flex justify-center rounded-3xl bg-[#e9e8e3] px-4 py-8">
-          {view === "apple" ? <ApplePassPreview look={look} /> : <GooglePassPreview look={look} />}
+          {view === "apple" ? <ApplePassPreview look={look} side={side} /> : <GooglePassPreview look={look} side={side} />}
         </div>
         <p className="mt-3 text-center text-xs text-muted">
           Live preview with a sample customer. {view === "google" ? "Google picks the text color for contrast." : ""}

@@ -29,6 +29,9 @@ export type Venue = RewardSettings & {
   open_hour: number | null;
   close_hour: number | null;
   offer_cooldown_days: number;
+  logo_text: string | null;
+  address: string | null;
+  website: string | null;
 };
 
 export type Access = {

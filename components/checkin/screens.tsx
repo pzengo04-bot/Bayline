@@ -4,13 +4,16 @@ import { ProgressCard } from "./ProgressCard";
 
 // Presentational join/tap screens. The live page and the card designer preview both render these.
 
-export function VenueHeading({ name, logoUrl }: { name: string; logoUrl?: string | null }) {
+export function VenueHeading({ name, logoUrl, cardBg }: { name: string; logoUrl?: string | null; cardBg?: string }) {
   return (
     <div className="flex flex-col items-center text-center">
       {logoUrl ? (
-        // Venue logos are small uploaded PNGs from our own storage; plain <img> keeps the page light.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={logoUrl} alt="" className="h-14 w-auto max-w-[70%] object-contain" />
+        // Logos are designed for the wallet card, so show them on the card color.
+        <span className="inline-flex max-w-[80%] items-center justify-center rounded-2xl px-5 py-3" style={{ background: cardBg ?? "var(--ink)" }}>
+          {/* Small uploaded PNGs from our own storage; a plain <img> keeps the page light. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={logoUrl} alt="" className="h-10 w-auto max-w-full object-contain" />
+        </span>
       ) : (
         <p className="text-xs font-semibold uppercase tracking-widest text-muted">Rewards</p>
       )}

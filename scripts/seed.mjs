@@ -1,8 +1,11 @@
-// Creates (or resets) two test venues with fake customers and realistic visit times:
-//   Test Lounge  (/v/test-lounge)  golf sims, visit stamps, ~50 customers
-//   Test Cages   (/v/test-cages)   batting cages, points per dollar, ~25 customers
-// Usage: npm run db:seed   (safe to re-run; only touches these two venues)
+// Creates (or resets) the test venues with fake customers and realistic visit times:
+//   Test Lounge   (/v/test-lounge)   golf sims, visit stamps, ~50 customers
+//   Test Cages    (/v/test-cages)    batting cages, points, ~25 customers
+//   Bayline Demo  (/v/bayline-demo)  for pitches: branded card, no customers, unlimited taps per day
+// Usage: npm run db:seed   (safe to re-run; only touches these venues)
+import { createClient } from "@supabase/supabase-js";
 import postgres from "postgres";
+import sharp from "sharp";
 
 const url = process.env.SUPABASE_DB_URL;
 if (!url) {
@@ -98,7 +101,34 @@ const VENUES = [
     customers: makeCustomers(25, { regular: 6, quiet: 4 }),
     amount: () => pick([25, 30, 35, 40, 45, 55, 60, 75]),
   },
+  {
+    venue: { name: "Bayline Demo", slug: "bayline-demo", type: "golf_sim", reward_type: "stamps", stamps_needed: 5,
+      points_per_dollar: 1, points_needed: 500, reward_text: "free bay hour", stamps_per_day: null,
+      card_bg: "#0f1512", card_fg: "#ffffff", card_accent: "#c4f04a",
+      pass_message: "Thanks for trying Bayline! Tap the stand again to watch your stamp land." },
+    customers: [],
+    amount: () => null,
+  },
 ];
+
+/** The Bayline mark + wordmark as a PNG logo, uploaded for the demo venue. */
+async function uploadDemoLogo(venueId) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="420" height="96" viewBox="0 0 420 96">
+    <rect x="0" y="8" width="80" height="80" rx="22" fill="#c4f04a"/>
+    <rect x="18" y="29" width="10" height="38" rx="5" fill="#0f1512"/>
+    <rect x="35" y="29" width="10" height="38" rx="5" fill="#0f1512"/>
+    <rect x="52" y="48" width="10" height="19" rx="5" fill="#0f1512"/>
+    <text x="100" y="70" font-family="Helvetica, Arial, sans-serif" font-size="58" font-weight="800" letter-spacing="2" fill="#ffffff">BAYLINE</text>
+  </svg>`;
+  const png = await sharp(Buffer.from(svg), { density: 300 }).trim().png().toBuffer();
+  const storage = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SECRET_KEY, {
+    auth: { persistSession: false },
+  }).storage.from("venue-logos");
+  const path = `${venueId}/logo-demo.png`;
+  const { error } = await storage.upload(path, png, { contentType: "image/png", upsert: true });
+  if (error) throw new Error(`Demo logo upload failed: ${error.message}`);
+  return `${storage.getPublicUrl(path).data.publicUrl}?v=${Date.now()}`;
+}
 
 try {
   for (const { venue, customers, amount } of VENUES) {
@@ -108,7 +138,9 @@ try {
         on conflict (slug) do update set name = excluded.name, type = excluded.type,
           reward_type = excluded.reward_type, stamps_needed = excluded.stamps_needed,
           points_per_dollar = excluded.points_per_dollar, points_needed = excluded.points_needed,
-          reward_text = excluded.reward_text
+          reward_text = excluded.reward_text, stamps_per_day = excluded.stamps_per_day,
+          card_bg = excluded.card_bg, card_fg = excluded.card_fg, card_accent = excluded.card_accent,
+          pass_message = excluded.pass_message
         returning id, name, timezone`;
       await tx`delete from public.customers where venue_id = ${v.id}`;
 
@@ -137,6 +169,9 @@ try {
           insert into public.visits (venue_id, customer_id, visited_at, amount, source)
           values (${v.id}, ${vi.customer_id}, timezone(${v.timezone}::text, (${vi.local}::text)::timestamp),
             ${vi.source === "staff" ? vi.amount : null}, ${vi.source})`;
+      }
+      if (venue.slug === "bayline-demo") {
+        await tx`update public.venues set logo_url = ${await uploadDemoLogo(v.id)} where id = ${v.id}`;
       }
       console.log(`${venue.name}: ${customers.length} customers, ${visits.length} visits  →  /v/${venue.slug}`);
     });

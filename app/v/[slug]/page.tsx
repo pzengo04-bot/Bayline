@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-type JoinVenue = RewardSettings & { id: string; name: string; slug: string; logo_url: string | null; points_per_visit: number };
+type JoinVenue = RewardSettings & { id: string; name: string; slug: string; logo_url: string | null; card_bg: string; points_per_visit: number };
 
 export default function JoinPage({ params, searchParams }: PageProps<"/v/[slug]">) {
   return (
@@ -41,7 +41,7 @@ async function Join({ params, searchParams }: Pick<PageProps<"/v/[slug]">, "para
 
   return (
     <>
-      <VenueHeading name={venue.name} logoUrl={venue.logo_url} />
+      <VenueHeading name={venue.name} logoUrl={venue.logo_url} cardBg={venue.card_bg} />
       <p className="mt-2 text-center text-sm font-medium text-accent-strong">{programSummary(venue)}</p>
       <div className="mt-8">
         <TapFlow

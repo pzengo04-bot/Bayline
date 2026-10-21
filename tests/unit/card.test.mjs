@@ -42,7 +42,8 @@ test("articles and front fields", () => {
   const v = { reward_text: "free bay hour" };
   assert.deepEqual(cardFront(v, stamps(3)).fields, [{ key: "reward", label: "REWARD", value: "Free bay hour" }]);
   assert.equal(cardFront(v, stamps(3, { milestone: { at: 5, text: "free pitcher", ready: false } })).fields[0].value, "Free pitcher");
-  assert.equal(cardFront(v, stamps(10, { reward_ready: true })).fields[0].value, "Ready! Show staff");
+  assert.equal(cardFront(v, stamps(10, { reward_ready: true })).fields[0].value, "Free bay hour", "ready text lives in the strip only");
+  assert.equal(cardFront(v, stamps(5, { milestone: { at: 5, text: "free pitcher", ready: true } })).fields[0].value, "Free pitcher");
   assert.deepEqual(cardFront(v, stamps(3), { short: "Bonus stamp" }).fields[1], { key: "offer", label: "OFFER", value: "Bonus stamp" });
   assert.equal(rewardsSummary(v, stamps(3, { milestone: { at: 5, text: "free pitcher", ready: false } })), "Free pitcher at stamp 5 · Free bay hour at stamp 10");
 });
@@ -54,3 +55,32 @@ test("offer short text: the venue's line, else the first sentence, max 40 charac
   assert.ok(long.length <= 40 && long.endsWith("…"), long);
 });
 
+
+test("pass model: alerts ride on always-present back fields, icons default by business type", async () => {
+  const { passModel } = await import("../../lib/wallet/pass-model.ts");
+  const { stampIconFor } = await import("../../lib/wallet/stamp-icons.ts");
+  const base = {
+    customer_id: "c", serial: "5028d3c8-1004-4451-80d5-360c7f24f151", first_name: "Mia", apple_auth_token: "", updated_at: "",
+    venue: { id: "v", name: "Corner Coffee", slug: "c", logo_url: null, card_bg: "#000000", card_fg: "#ffffff", card_accent: "#ffcc00", pass_message: null, reward_type: "stamps", reward_text: "free drink", type: "cafe" },
+    progress: stamps(3, { reward_text: "free drink", stamps_needed: 8 }),
+  };
+  const quiet = passModel(base, { hasLogo: false });
+  assert.equal(quiet.logoText, "Corner Coffee");
+  assert.equal(quiet.strip.icon, "coffee");
+  assert.ok(quiet.back.every((f) => !f.changeMessage), "no alerts for a plain stamp");
+  assert.deepEqual(quiet.header, [{ key: "member_name", label: "MEMBER", value: "Mia" }]);
+
+  const ready = passModel({ ...base, progress: stamps(8, { reward_text: "free drink", stamps_needed: 8, reward_ready: true }) }, { hasLogo: false });
+  const status = ready.back.find((f) => f.key === "status");
+  assert.equal(status.value, "Free drink ready! Show staff");
+  assert.equal(status.changeMessage, "%@");
+  assert.equal(ready.fields[0].value, "Free drink");
+
+  const offer = passModel({ ...base, offer: { text: "Half-price lattes today!", short: null, sent_at: "", expires_at: "2030-01-01T00:00:00Z" } }, { hasLogo: false });
+  assert.equal(offer.back.find((f) => f.key === "offer").changeMessage, "%@");
+  assert.equal(offer.fields[1].value, "Half-price lattes today!");
+
+  assert.equal(stampIconFor({ type: "golf_sim" }), "golf");
+  assert.equal(stampIconFor({ type: "barbershop", stamp_icon: "star" }), "star");
+  assert.equal(stampIconFor({ type: "unknown" }), "check");
+});

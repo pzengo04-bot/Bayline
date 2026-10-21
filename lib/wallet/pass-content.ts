@@ -1,6 +1,7 @@
 // What a wallet card says, shared by the Apple pass, the Google card and the Card tab previews.
 
 import { isRewardReady, type Progress } from "@/lib/rewards";
+import { stripLine } from "./strip";
 
 export type PassVenue = {
   name: string;
@@ -40,7 +41,6 @@ export function memberNumber(serial: string) {
 export const progressValue = (p: Progress) =>
   p.reward_type === "stamps" ? `${p.stamps} of ${p.stamps_needed}` : `${p.points} / ${p.points_needed} pts`;
 
-export const rewardValue = (p: Progress, rewardText: string) => (isRewardReady(p) ? "Ready! Show staff" : capitalize(rewardText));
 
 /** What the customer is working toward next: the milestone until it's reached, then the main reward. */
 export function nextReward(p: Progress, rewardText: string) {
@@ -49,18 +49,14 @@ export function nextReward(p: Progress, rewardText: string) {
 }
 
 /**
- * The field row under the strip: REWARD always, OFFER only while an offer is active. Both carry the
- * lock-screen alerts, because iPhone reliably announces changes to front fields.
+ * The field row under the strip: REWARD (always the reward itself, e.g. "Free drink"; "ready" lives
+ * in the strip banner) and OFFER only while an offer is active.
  */
 export function cardFront(v: Pick<PassVenue, "reward_text">, p: Progress, offer?: { short: string } | null) {
-  const reward = isRewardReady(p)
-    ? "Ready! Show staff"
-    : p.milestone?.ready
-      ? `${capitalize(p.milestone.text)} ready! Show staff`
-      : capitalize(nextReward(p, v.reward_text));
+  const reward = isRewardReady(p) ? v.reward_text : p.milestone?.ready ? p.milestone.text : nextReward(p, v.reward_text);
   return {
     fields: [
-      { key: "reward", label: "REWARD", value: reward },
+      { key: "reward", label: "REWARD", value: capitalize(reward) },
       ...(offer ? [{ key: "offer", label: "OFFER", value: offer.short }] : []),
     ],
   };
@@ -100,6 +96,8 @@ export function backSections(
       : { key: "offer", label: "Latest offer", value: `No current offers. New offers from ${v.name} show up here.` },
   );
   if (offer) sections.push({ key: "offer_until", label: "Offer valid until", value: offerUntil(offer, timeZone) });
+  // Always present, so a reward turning ready can alert on the lock screen ("Free drink ready! Show staff").
+  sections.push({ key: "status", label: "Your card", value: stripLine({ progress: p }).text });
   sections.push({ key: "rewards", label: "Rewards", value: rewardsSummary(v, p) });
   sections.push({
     key: "how",

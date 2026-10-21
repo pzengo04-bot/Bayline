@@ -23,6 +23,12 @@ const UNIT: Record<VenueType, string> = {
   golf_sim: "bay hour",
   pickleball: "court hour",
   batting_cages: "cage session",
+  cafe: "drink",
+  barbershop: "cut",
+  fitness: "class",
+  pet: "visit",
+  car_wash: "wash",
+  dessert: "treat",
   other: "visit",
 };
 

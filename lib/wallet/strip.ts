@@ -4,8 +4,11 @@
 // everywhere, with no dependence on fonts installed on the machine.
 
 import { isRewardReady, type Progress } from "@/lib/rewards";
+import { iconSvg, REWARD_ICONS, STAMP_ICONS, type StampIcon } from "./stamp-icons";
 
 export type StripState = {
+  /** What each stamp shows (coffee cup, golf ball…). Defaults to a check. */
+  icon?: StampIcon;
   /** Includes the milestone, if the venue has one. */
   progress: Progress;
   /** The venue's short offer text while an offer is active. */
@@ -30,6 +33,9 @@ export type TextFn = {
   draw: (text: string, o: TextOpts) => string;
   width: (text: string, size: number, weight: 600 | 700) => number;
 };
+
+/** Bump when the drawing changes, so cached strip images (Google, Card tab) are fetched again. */
+export const STRIP_VERSION = 4;
 
 /** Apple's storeCard strip, in points. Content stays inside the middle 123pt so it survives either crop. */
 export const STRIP_W = 375;
@@ -74,8 +80,6 @@ function gift(cx: number, cy: number, size: number, fill: string, cut: string) {
 </g>`;
 }
 
-const check = (cx: number, cy: number, r: number, color: string) =>
-  `<path d="M${cx - r * 0.38} ${cy + r * 0.02} l${r * 0.26} ${r * 0.27} l${r * 0.5} -${r * 0.52}" fill="none" stroke="${color}" stroke-width="${Math.max(2, r * 0.2)}" stroke-linecap="round" stroke-linejoin="round"/>`;
 
 /** WCAG contrast ratio between two #rrggbb colors (1–21). Under 4.5 is hard to read for small text. */
 export function contrastRatio(a: string, b: string) {
@@ -135,16 +139,16 @@ export function stripSvg(s: StripState, text: TextFn, scale = 1, width = STRIP_W
     body += text.draw(`of ${p.points_needed} pts`, { x: barX + nw + 6, y: 54, size: 15, weight: 600, anchor: "start", fill: s.fg, opacity: 0.7 });
     body += `<rect x="${barX}" y="${barY}" width="${barW}" height="12" rx="6" fill="${s.fg}" fill-opacity="0.18"/>`;
     body += `<rect x="${barX}" y="${barY}" width="${Math.max(12, barW * pct(p.points))}" height="12" rx="6" fill="${s.accent}"/>`;
-    const marker = (at: number) => {
+    const marker = (at: number, paths: string[]) => {
       const gx = barX + barW * pct(at);
       const reached = p.points >= at;
       return (
         `<circle cx="${gx}" cy="${barY + 6}" r="${markerR}" fill="${reached ? s.accent : s.bg}" stroke="${reached ? s.bg : mark}" stroke-width="2"/>` +
-        gift(gx, barY + 6, 15, reached ? onColor(s.accent, s.bg, s.fg) : mark, reached ? s.accent : s.bg)
+        iconSvg(paths, gx, barY + 6, 15, reached ? onColor(s.accent, s.bg, s.fg) : mark)
       );
     };
-    if (m && m.at > 0 && m.at < p.points_needed) body += marker(m.at);
-    body += marker(p.points_needed);
+    if (m && m.at > 0 && m.at < p.points_needed) body += marker(m.at, REWARD_ICONS.gift);
+    body += marker(p.points_needed, REWARD_ICONS.trophy);
   } else {
     const n = Math.max(2, Math.min(p.stamps_needed, 20));
     const mark = contrastRatio(s.accent, s.bg) >= 2 ? s.accent : s.fg;
@@ -170,17 +174,24 @@ export function stripSvg(s: StripState, text: TextFn, scale = 1, width = STRIP_W
       const cx = (W - rowW) / 2 + col * (size + gap) + r;
       const cy = y0 + row * (size + rowGap) + r;
       const earned = i < p.stamps;
-      // Reward stamps (the milestone and the last one) carry a present.
-      const isReward = i === n - 1 || (m && m.at === i + 1 && m.at < p.stamps_needed);
+      // The last stamp is the main reward (a trophy, always visible); the milestone gets a gift.
+      const paths =
+        i === n - 1 ? REWARD_ICONS.trophy : m && m.at === i + 1 && m.at < p.stamps_needed ? REWARD_ICONS.gift : null;
+      const iconSize = size * 0.6;
+      // The golf ball's dimples cover the whole stamp: the stamp circle is the ball.
+      const stampIconSize = s.icon === "golf" ? size * 0.82 : iconSize;
       if (earned) {
-        const ink = onColor(s.accent, s.bg, s.fg);
+        // Filled: the card visibly fills up.
         body += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${s.accent}"/>`;
-        body += isReward ? gift(cx, cy, size * 0.56, ink, s.accent) : check(cx, cy, r, ink);
-      } else if (isReward) {
+        body += iconSvg(paths ?? STAMP_ICONS[s.icon ?? "check"].paths, cx, cy, paths ? iconSize : stampIconSize, onColor(s.accent, s.bg, s.fg));
+      } else if (paths) {
         body += `<circle cx="${cx}" cy="${cy}" r="${r - stroke / 2}" fill="none" stroke="${mark}" stroke-width="${stroke}"/>`;
-        body += gift(cx, cy, size * 0.52, mark, s.bg);
+        body += iconSvg(paths, cx, cy, iconSize, mark);
       } else {
-        body += `<circle cx="${cx}" cy="${cy}" r="${r - stroke / 2}" fill="none" stroke="${s.fg}" stroke-opacity="0.45" stroke-width="${stroke}"/>`;
+        // Empty: the outlined icon in a muted text color inside a faint ring (a plain ring for checks).
+        const plain = !s.icon || s.icon === "check";
+        body += `<circle cx="${cx}" cy="${cy}" r="${r - stroke / 2}" fill="none" stroke="${s.fg}" stroke-opacity="${plain ? 0.45 : 0.22}" stroke-width="${stroke}"/>`;
+        if (!plain) body += iconSvg(STAMP_ICONS[s.icon!].paths, cx, cy, stampIconSize, s.fg, 0.42);
       }
     }
   }

@@ -4,7 +4,13 @@ export const VENUE_TYPES = [
   { value: "golf_sim", label: "Golf simulators", reward: "free bay hour" },
   { value: "pickleball", label: "Pickleball / padel", reward: "free court hour" },
   { value: "batting_cages", label: "Batting cages", reward: "free cage session" },
-  { value: "other", label: "Other", reward: "free session" },
+  { value: "cafe", label: "Café / coffee shop", reward: "free drink" },
+  { value: "barbershop", label: "Barbershop / salon", reward: "free haircut" },
+  { value: "fitness", label: "Gym / fitness studio", reward: "free class" },
+  { value: "pet", label: "Pet grooming", reward: "free bath" },
+  { value: "car_wash", label: "Car wash", reward: "free wash" },
+  { value: "dessert", label: "Ice cream / dessert", reward: "free scoop" },
+  { value: "other", label: "Other", reward: "free visit" },
 ] as const;
 
 export const TIMEZONES = [

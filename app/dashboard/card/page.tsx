@@ -46,6 +46,8 @@ async function Card() {
           milestone_text: venue.milestone_text,
           milestone_at: venue.milestone_at,
           head_start_stamps: venue.head_start_stamps,
+          stamp_icon: venue.stamp_icon,
+          type: venue.type,
         }}
       />
     </div>

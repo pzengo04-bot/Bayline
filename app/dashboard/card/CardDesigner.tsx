@@ -8,6 +8,7 @@ import { formatHour } from "@/lib/format";
 import { formatPhone } from "@/lib/phone";
 import { milestoneAt, type Progress, type RewardSettings } from "@/lib/rewards";
 import { contrastRatio } from "@/lib/wallet/strip";
+import { iconSvg, STAMP_ICONS, stampIconFor, type StampIcon } from "@/lib/wallet/stamp-icons";
 import { removeLogo, saveCard, uploadLogo, type SaveState } from "./actions";
 
 type Props = {
@@ -27,6 +28,8 @@ type Props = {
     milestone_text: string | null;
     milestone_at: number | null;
     head_start_stamps: number;
+    stamp_icon: string | null;
+    type: string;
   };
 };
 
@@ -39,6 +42,11 @@ const PRESETS = [
   { bg: "#f6f5f0", fg: "#0f1512", accent: "#d9480f" },
   { bg: "#7a1f2b", fg: "#ffffff", accent: "#ffd6a5" },
 ];
+
+const pickerPaths = (key: StampIcon) => {
+  const def: { paths: string[]; outline?: string } = STAMP_ICONS[key];
+  return def.outline ? [def.outline, ...def.paths] : def.paths;
+};
 
 /** "a free pitcher" → "free pitcher" (for "1 free pitcher"). */
 const stripArticle = (s: string) => s.trim().replace(/^(a|an|the)\s+/i, "");
@@ -76,6 +84,7 @@ export function CardDesigner({ venueName, initial }: Props) {
     text: initial.milestone_text ?? "",
     at: initial.milestone_at ?? 0,
   });
+  const [stampIcon, setStampIcon] = useState<StampIcon>(stampIconFor(initial));
   const [headStart, setHeadStart] = useState({ on: initial.head_start_stamps > 0, n: initial.head_start_stamps || 1 });
   const [details, setDetails] = useState({
     logoText: initial.logo_text ?? "",
@@ -131,6 +140,8 @@ export function CardDesigner({ venueName, initial }: Props) {
       address: details.address.trim() || null,
       phone: details.phone.trim() ? `+1${details.phone.replace(/\D/g, "").slice(-10)}` : null,
       website: details.website.trim() || null,
+      type: initial.type,
+      stamp_icon: stampIcon,
     },
     offer: withOffer
       ? { text: `We miss you at ${venueName}! Come back this week for a bonus stamp on any visit.`, short: "Bonus stamp on any visit this week", expires_at: SAMPLE_OFFER_END }
@@ -216,6 +227,31 @@ export function CardDesigner({ venueName, initial }: Props) {
             <ColorField label="Text" name="card_fg" value={colors.fg} onChange={(fg) => setColors((c) => ({ ...c, fg }))} />
             <ColorField label="Stamps" name="card_accent" value={colors.accent} onChange={(accent) => setColors((c) => ({ ...c, accent }))} />
           </div>
+          <fieldset>
+            <legend className="text-sm font-semibold">Stamp icon</legend>
+            <input type="hidden" name="stamp_icon" value={stampIcon} />
+            <div className="mt-1.5 grid grid-cols-6 gap-2 sm:grid-cols-11">
+              {(Object.keys(STAMP_ICONS) as StampIcon[]).map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  aria-pressed={stampIcon === key}
+                  aria-label={STAMP_ICONS[key].label}
+                  title={STAMP_ICONS[key].label}
+                  onClick={() => setStampIcon(key)}
+                  className={`grid aspect-square place-items-center rounded-xl border ${stampIcon === key ? "border-ink bg-ink" : "border-line bg-white hover:border-ink/40"}`}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="size-6"
+                    aria-hidden="true"
+                    dangerouslySetInnerHTML={{ __html: iconSvg(pickerPaths(key), 12, 12, 24, stampIcon === key ? "#ffffff" : "#0f1512") }}
+                  />
+                </button>
+              ))}
+            </div>
+            <p className="mt-1.5 text-xs text-muted">Each visit fills one in. The milestone shows a gift and the last stamp a trophy.</p>
+          </fieldset>
           {textContrast < 4.5 && (
             <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">
               The text color is hard to read on this background (contrast {textContrast.toFixed(1)}:1, aim for 4.5 or more).

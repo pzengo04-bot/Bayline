@@ -2,7 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { isToken, returnCookieName } from "@/lib/customer-cookie";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { PassData } from "./apple";
+import type { PassData } from "./pass-model";
 
 // Server-side wallet reads and writes. These use the secret key because they run for customers
 // (no login) and for Apple's servers; every caller authenticates by cookie or pass token first.

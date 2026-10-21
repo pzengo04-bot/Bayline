@@ -23,6 +23,12 @@ const PLACE: Record<VenueType, string> = {
   golf_sim: "Bays are",
   pickleball: "Courts are",
   batting_cages: "Cages are",
+  cafe: "Tables are",
+  barbershop: "Chairs are",
+  fitness: "Classes are",
+  pet: "We're",
+  car_wash: "Bays are",
+  dessert: "We're",
   other: "We're",
 };
 

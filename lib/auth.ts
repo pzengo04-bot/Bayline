@@ -8,7 +8,17 @@ import { createUserClient } from "@/lib/supabase/server";
 
 // Data access layer: every signed-in page and action resolves the user and their venues through here.
 
-export type VenueType = "golf_sim" | "pickleball" | "batting_cages" | "other";
+export type VenueType =
+  | "golf_sim"
+  | "pickleball"
+  | "batting_cages"
+  | "cafe"
+  | "barbershop"
+  | "fitness"
+  | "pet"
+  | "car_wash"
+  | "dessert"
+  | "other";
 
 export type Venue = RewardSettings & {
   id: string;
@@ -35,6 +45,7 @@ export type Venue = RewardSettings & {
   milestone_text: string | null;
   milestone_at: number | null;
   head_start_stamps: number;
+  stamp_icon: string | null;
 };
 
 export type Access = {

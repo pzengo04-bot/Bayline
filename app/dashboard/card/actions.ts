@@ -9,6 +9,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createUserClient } from "@/lib/supabase/server";
 import { parseRewardSettings } from "@/lib/venues";
 import { notifyVenuePassesChanged } from "@/lib/wallet/notify";
+import { DEFAULT_STAMP_ICON, isStampIcon } from "@/lib/wallet/stamp-icons";
 
 export type SaveState = { status: "idle" | "ok" | "error"; message?: string };
 
@@ -121,13 +122,17 @@ export async function saveCard(_prev: SaveState, form: FormData): Promise<SaveSt
   const hs = Number(form.get("head_start_stamps"));
   const head_start_stamps = form.get("head_start_on") === "on" && rewards.value.reward_type === "stamps" && (hs === 1 || hs === 2) ? hs : 0;
 
+  // Stamp icon: stored only when it differs from the default for this type of business.
+  const iconRaw = form.get("stamp_icon");
+  const stamp_icon = isStampIcon(iconRaw) && iconRaw !== DEFAULT_STAMP_ICON[venue.type] ? iconRaw : null;
+
   const cooldown = Number(form.get("offer_cooldown_days"));
   const offer_cooldown_days = Number.isInteger(cooldown) && cooldown >= 1 && cooldown <= 60 ? cooldown : 7;
 
   const supabase = await createUserClient();
   const { data, error } = await supabase
     .from("venues")
-    .update({ ...rewards.value, card_bg, card_fg, card_accent, points_per_visit, phone, open_hour, close_hour, offer_cooldown_days, logo_text, address, website, milestone_text, milestone_at, head_start_stamps })
+    .update({ ...rewards.value, card_bg, card_fg, card_accent, points_per_visit, phone, open_hour, close_hour, offer_cooldown_days, logo_text, address, website, milestone_text, milestone_at, head_start_stamps, stamp_icon })
     .eq("id", venue.id)
     .select("id");
   if (error || !data?.length) return { status: "error", message: error?.message ?? "Couldn't save. Try again." };

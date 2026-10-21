@@ -17,6 +17,14 @@ export type Venue = RewardSettings & {
   type: VenueType;
   timezone: string;
   created_at: string;
+  phone: string | null;
+  logo_url: string | null;
+  card_bg: string;
+  card_fg: string;
+  card_accent: string;
+  points_per_visit: number;
+  stamps_per_day: number | null;
+  pass_message: string | null;
 };
 
 export type Access = {

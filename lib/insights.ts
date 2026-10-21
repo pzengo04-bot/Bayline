@@ -76,7 +76,8 @@ export function progressFor(r: Pick<CustomerStatsRow, "stamps" | "points">, venu
   return {
     reward_type: venue.reward_type,
     reward_text: venue.reward_text,
-    stamps: r.stamps,
+    reward_ready: venue.reward_type === "stamps" ? r.stamps >= venue.stamps_needed : r.points >= venue.points_needed,
+    stamps: Math.min(r.stamps, venue.stamps_needed),
     stamps_needed: venue.stamps_needed,
     points: r.points,
     points_needed: venue.points_needed,

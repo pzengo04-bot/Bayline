@@ -1,4 +1,4 @@
-// Shared reward types and wording, used by the check-in page, the dashboard and the settings preview.
+// Shared reward types and wording, used by the join page, wallet passes, the dashboard and the settings preview.
 
 export type RewardType = "stamps" | "points";
 
@@ -8,6 +8,7 @@ export type RewardSettings = {
   points_per_dollar: number;
   points_needed: number;
   reward_text: string;
+  points_per_visit?: number;
 };
 
 export type Progress = {
@@ -17,10 +18,16 @@ export type Progress = {
   stamps_needed: number;
   points: number;
   points_needed: number;
+  /** The card is full (stamps) or has enough points: staff can redeem. */
+  reward_ready?: boolean;
 };
+
+export const isRewardReady = (p: Progress) =>
+  p.reward_ready ?? (p.reward_type === "stamps" ? p.stamps >= p.stamps_needed : p.points >= p.points_needed);
 
 /** "3 of 5 visits, 2 more for a free bay hour" or "320 of 500 points" */
 export function progressText(p: Progress) {
+  if (isRewardReady(p)) return `Reward ready: ${p.reward_text}`;
   if (p.reward_type === "points") {
     return p.points >= p.points_needed
       ? `${p.points} points, enough for a ${p.reward_text}`
@@ -34,7 +41,9 @@ export function progressText(p: Progress) {
 export function programSummary(s: RewardSettings) {
   return s.reward_type === "stamps"
     ? `${s.stamps_needed} visits = ${s.reward_text}`
-    : `${formatRate(s.points_per_dollar)} per $1 · ${s.points_needed} points = ${s.reward_text}`;
+    : s.points_per_visit
+      ? `${formatRate(s.points_per_visit)} per visit · ${s.points_needed} points = ${s.reward_text}`
+      : `${formatRate(s.points_per_dollar)} per $1 · ${s.points_needed} points = ${s.reward_text}`;
 }
 
 const formatRate = (n: number) => `${Number(n)} point${Number(n) === 1 ? "" : "s"}`;

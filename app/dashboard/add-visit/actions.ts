@@ -1,9 +1,11 @@
 "use server";
 
+import { after } from "next/server";
 import { requireVenue } from "@/lib/auth";
 import { normalizePhone } from "@/lib/phone";
 import type { Progress } from "@/lib/rewards";
 import { createUserClient } from "@/lib/supabase/server";
+import { notifyPassChanged } from "@/lib/wallet/notify";
 
 export type FoundCustomer = {
   id: string;
@@ -21,7 +23,7 @@ export type LookupResult =
   | { status: "error"; message: string };
 
 export type SaveVisitResult =
-  | { status: "saved"; name: string; rewardUnlocked: boolean; progress: Progress; customerId: string }
+  | { status: "saved"; name: string; progress: Progress; customerId: string }
   | { status: "error"; message: string };
 
 // Every action re-reads the current venue from the session; the browser never chooses it.
@@ -63,15 +65,17 @@ export async function saveVisit(input: { phone: string; amount: string; name?: s
   if (error) {
     return { status: "error", message: error.message.includes("needs a name") ? "Add the customer's first name." : "Couldn't save. Try again." };
   }
-  const r = data as { customer_id: string; name: string; reward_unlocked: boolean; progress: Progress };
-  return { status: "saved", name: r.name, rewardUnlocked: r.reward_unlocked, progress: r.progress, customerId: r.customer_id };
+  const r = data as { customer_id: string; name: string; progress: Progress };
+  after(() => notifyPassChanged([r.customer_id], r.progress.reward_type === "stamps" ? "Stamp added" : "Points added"));
+  return { status: "saved", name: r.name, progress: r.progress, customerId: r.customer_id };
 }
 
 export async function redeemReward(customerId: string): Promise<{ ok: boolean; progress?: Progress; message?: string }> {
   const { venue } = await requireVenue();
   if (!venue) return { ok: false, message: "No venue selected." };
   const supabase = await createUserClient();
-  const { data, error } = await supabase.rpc("redeem_points_reward", { p_customer: customerId });
-  if (error) return { ok: false, message: error.message.includes("Not enough") ? "Not enough points yet." : "Couldn't redeem. Try again." };
+  const { data, error } = await supabase.rpc("redeem_reward", { p_customer: customerId });
+  if (error) return { ok: false, message: error.message.includes("not ready") ? "The reward isn't ready yet." : "Couldn't redeem. Try again." };
+  after(() => notifyPassChanged([customerId], "Reward redeemed"));
   return { ok: true, progress: data as Progress };
 }

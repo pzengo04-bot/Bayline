@@ -17,7 +17,7 @@ test("schema, taps, rewards and row level security", async () => {
   await db.query(`insert into platform_admins values ($1)`, [adm.id]);
   const { rows: [va] } = await db.query(`insert into venues (name, slug) values ('Test Lounge','test-lounge') returning id`);
   const { rows: [vb] } = await db.query(`insert into venues (name, slug, reward_type, points_per_dollar, points_per_visit, points_needed, reward_text) values ('Test Cages','test-cages','points',1,25,100,'free cage session') returning id`);
-  const { rows: [vd] } = await db.query(`insert into venues (name, slug, stamps_per_day) values ('Demo','demo', null) returning id`);
+  await db.query(`insert into venues (name, slug, stamps_per_day) values ('Demo','demo', null)`);
   await db.query(`insert into venue_members values ($1,$2,'owner'), ($3,$4,'owner')`, [a.id, va.id, b.id, vb.id]);
 
   // Join, return by cookie, daily limit.

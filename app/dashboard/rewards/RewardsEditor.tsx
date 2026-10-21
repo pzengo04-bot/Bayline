@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { RewardFields } from "@/components/app/RewardFields";
-import { RewardUnlockedScreen, VenueHeading, WelcomeScreen } from "@/components/checkin/screens";
+import { RewardReadyScreen, TapResultScreen, VenueHeading } from "@/components/checkin/screens";
 import { PhoneFrame } from "@/components/customer/PhoneFrame";
 import { button, card } from "@/components/ui/styles";
 import { programSummary, type Progress, type RewardSettings } from "@/lib/rewards";
@@ -80,9 +80,9 @@ export function RewardsEditor({ venueName, initial }: Props) {
             <p className="mt-2 text-center text-sm font-medium text-accent-strong">{programSummary(settings)}</p>
             <div className="mt-6">
               {view === "welcome" ? (
-                <WelcomeScreen firstName="Mike" isNew={false} progress={sample} />
+                <TapResultScreen result={{ status: "stamped", firstName: "Mike", progress: sample }} />
               ) : (
-                <RewardUnlockedScreen firstName="Mike" rewardText={settings.reward_text || "reward"} unlockedAt="today at 7:42 PM" />
+                <RewardReadyScreen firstName="Mike" progress={{ ...sample, reward_ready: true }} />
               )}
             </div>
           </div>

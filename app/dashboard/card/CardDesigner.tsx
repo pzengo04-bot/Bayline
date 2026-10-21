@@ -4,6 +4,7 @@ import { useActionState, useRef, useState, useTransition } from "react";
 import { RewardFields } from "@/components/app/RewardFields";
 import { ApplePassPreview, GooglePassPreview, type PassLook } from "@/components/wallet/PassPreview";
 import { button, card } from "@/components/ui/styles";
+import { formatHour } from "@/lib/format";
 import { formatPhone } from "@/lib/phone";
 import type { Progress, RewardSettings } from "@/lib/rewards";
 import { contrastRatio } from "@/lib/wallet/strip";
@@ -11,7 +12,16 @@ import { removeLogo, saveCard, uploadLogo, type SaveState } from "./actions";
 
 type Props = {
   venueName: string;
-  initial: RewardSettings & { card_bg: string; card_fg: string; card_accent: string; logo_url: string | null; phone: string | null };
+  initial: RewardSettings & {
+    card_bg: string;
+    card_fg: string;
+    card_accent: string;
+    logo_url: string | null;
+    phone: string | null;
+    open_hour: number | null;
+    close_hour: number | null;
+    offer_cooldown_days: number;
+  };
 };
 
 const PRESETS = [
@@ -147,8 +157,53 @@ export function CardDesigner({ venueName, initial }: Props) {
           <RewardFields value={rewards} onChange={setRewards} />
         </section>
 
-        <section className={`${card} space-y-2 p-4 sm:p-5`}>
+        <section className={`${card} space-y-4 p-4 sm:p-5`}>
           <h2 className="font-display text-xl font-bold uppercase tracking-wide">Venue</h2>
+          <fieldset>
+            <legend className="text-sm font-semibold">
+              Opening hours <span className="font-normal text-muted">(optional: quiet-hour tips stay inside them)</span>
+            </legend>
+            <div className="mt-1.5 grid grid-cols-2 gap-3">
+              {(
+                [
+                  ["open_hour", "Opens", initial.open_hour, Array.from({ length: 24 }, (_, h) => h)],
+                  ["close_hour", "Closes", initial.close_hour, Array.from({ length: 24 }, (_, h) => h + 1)],
+                ] as const
+              ).map(([name, label, value, hours]) => (
+                <label key={name} className="block text-xs text-muted">
+                  {label}
+                  <select
+                    name={name}
+                    defaultValue={value ?? ""}
+                    className="mt-1 h-11 w-full rounded-xl border border-line bg-white px-3 text-base text-ink"
+                  >
+                    <option value="">Not set</option>
+                    {hours.map((h) => (
+                      <option key={h} value={h}>
+                        {h === 24 ? "Midnight" : h === 12 ? "Noon" : formatHour(h)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <label className="block text-sm font-semibold">
+            Offers per customer
+            <span className="mt-1.5 flex items-center gap-2 text-sm font-normal text-muted">
+              At most one every
+              <input
+                name="offer_cooldown_days"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={60}
+                defaultValue={initial.offer_cooldown_days}
+                className="h-11 w-20 rounded-xl border border-line bg-white px-3 text-base text-ink focus:border-ink focus:outline-none"
+              />
+              days
+            </span>
+          </label>
           <label className="block text-sm font-semibold">
             Venue phone
             <input

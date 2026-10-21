@@ -89,10 +89,22 @@ export async function saveCard(_prev: SaveState, form: FormData): Promise<SaveSt
   const phone = phoneRaw ? normalizePhone(phoneRaw) : null;
   if (phoneRaw && !phone) return { status: "error", message: "Venue phone should be a 10-digit US number." };
 
+  // Opening hours: both or neither.
+  const openRaw = String(form.get("open_hour") ?? "");
+  const closeRaw = String(form.get("close_hour") ?? "");
+  const open_hour = openRaw === "" ? null : Number(openRaw);
+  const close_hour = closeRaw === "" ? null : Number(closeRaw);
+  if ((open_hour === null) !== (close_hour === null)) return { status: "error", message: "Set both opening and closing time, or neither." };
+  if (open_hour !== null && close_hour !== null && !(open_hour >= 0 && close_hour <= 24 && close_hour > open_hour)) {
+    return { status: "error", message: "Closing time must be after opening time." };
+  }
+  const cooldown = Number(form.get("offer_cooldown_days"));
+  const offer_cooldown_days = Number.isInteger(cooldown) && cooldown >= 1 && cooldown <= 60 ? cooldown : 7;
+
   const supabase = await createUserClient();
   const { data, error } = await supabase
     .from("venues")
-    .update({ ...rewards.value, card_bg, card_fg, card_accent, points_per_visit, phone })
+    .update({ ...rewards.value, card_bg, card_fg, card_accent, points_per_visit, phone, open_hour, close_hour, offer_cooldown_days })
     .eq("id", venue.id)
     .select("id");
   if (error || !data?.length) return { status: "error", message: error?.message ?? "Couldn't save. Try again." };

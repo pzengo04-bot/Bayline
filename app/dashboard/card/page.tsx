@@ -37,6 +37,9 @@ async function Card() {
           card_accent: venue.card_accent,
           logo_url: venue.logo_url,
           phone: venue.phone,
+          open_hour: venue.open_hour,
+          close_hour: venue.close_hour,
+          offer_cooldown_days: venue.offer_cooldown_days,
         }}
       />
     </div>

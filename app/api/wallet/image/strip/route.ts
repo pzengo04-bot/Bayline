@@ -1,31 +1,23 @@
 import { NextResponse, type NextRequest } from "next/server";
 import sharp from "sharp";
+import { stripState } from "@/lib/wallet/apple";
 import { getPassData } from "@/lib/wallet/data";
-import { stripSvg } from "@/lib/wallet/strip";
+import { STRIP_H, stripSvg } from "@/lib/wallet/strip";
+import { outlineText } from "@/lib/wallet/strip-font";
 
-// Punch-card image for one customer's card (Google Wallet hero image). Only shows stamp progress.
-// The URL carries a version so Google refetches after each change.
+// Google Wallet hero image for one customer's card: the same strip as the Apple pass (stamps plus
+// the progress line or offer banner), widened to Google's 1032×336. The URL carries a version so
+// Google refetches after each change.
 export async function GET(request: NextRequest) {
   const serial = request.nextUrl.searchParams.get("serial") ?? "";
   if (!/^[0-9a-f-]{36}$/i.test(serial)) return new NextResponse(null, { status: 404 });
   const d = await getPassData(serial);
   if (!d) return new NextResponse(null, { status: 404 });
-  const p = d.progress;
-  const svg = stripSvg(
-    {
-      rewardType: p.reward_type,
-      stamps: p.stamps,
-      stampsNeeded: p.stamps_needed,
-      points: p.points,
-      pointsNeeded: p.points_needed,
-      bg: d.venue.card_bg,
-      fg: d.venue.card_fg,
-      accent: d.venue.card_accent,
-    },
-    1032,
-    336,
-  );
-  const png = await sharp(Buffer.from(svg)).png().toBuffer();
+  const scale = 336 / STRIP_H;
+  const png = await sharp(Buffer.from(stripSvg(stripState(d), outlineText, scale, 1032 / scale)))
+    .resize(1032, 336)
+    .png()
+    .toBuffer();
   return new NextResponse(new Uint8Array(png), {
     headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000, immutable" },
   });

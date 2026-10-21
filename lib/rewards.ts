@@ -11,6 +11,16 @@ export type RewardSettings = {
   points_per_visit?: number;
 };
 
+/** An optional reward partway through the card (e.g. a free pitcher at stamp 5). */
+export type Milestone = {
+  /** The stamp (or points total) that unlocks it. */
+  at: number;
+  text: string;
+  /** Reached this card cycle and not redeemed yet. */
+  ready: boolean;
+  redeemed?: boolean;
+};
+
 export type Progress = {
   reward_type: RewardType;
   reward_text: string;
@@ -20,6 +30,7 @@ export type Progress = {
   points_needed: number;
   /** The card is full (stamps) or has enough points: staff can redeem. */
   reward_ready?: boolean;
+  milestone?: Milestone | null;
 };
 
 export const isRewardReady = (p: Progress) =>
@@ -47,3 +58,15 @@ export function programSummary(s: RewardSettings) {
 }
 
 const formatRate = (n: number) => `${Number(n)} point${Number(n) === 1 ? "" : "s"}`;
+
+/**
+ * Where the milestone sits: the venue's choice if it's valid, else halfway (rounded down). Stamp
+ * cards allow stamp 2 up to one before the last; points allow 1 up to one below the goal.
+ */
+export function milestoneAt(type: RewardType, goal: number, chosen?: number | null) {
+  const min = type === "stamps" ? 2 : 1;
+  const max = goal - 1;
+  if (max < min) return null;
+  const at = chosen && Number.isFinite(chosen) ? Math.round(chosen) : Math.floor(goal / 2);
+  return Math.min(max, Math.max(min, at));
+}

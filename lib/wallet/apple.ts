@@ -3,9 +3,10 @@ import { PKPass } from "passkit-generator";
 import sharp from "sharp";
 import { siteUrl } from "@/lib/env";
 import type { Progress } from "@/lib/rewards";
-import { backSections, memberNumber, progressValue, rewardValue } from "./pass-content";
+import { backSections, cardFront, memberDigits, memberNumber, offerShort } from "./pass-content";
 import { appleConfig } from "./config";
-import { stripSvg } from "./strip";
+import { STRIP_H, STRIP_W, stripSvg } from "./strip";
+import { outlineText } from "./strip-font";
 
 /** Everything a pass shows, from the wallet_pass_data database function. */
 export type PassData = {
@@ -32,14 +33,13 @@ export type PassData = {
     timezone?: string;
   };
   progress: Progress;
-  /** Latest offer sent to this customer (Phase 2a), shown on the back with a lock-screen notification. */
-  offer?: { text: string; sent_at: string; expires_at: string } | null;
+  /** The active offer for this customer, if any: short line on the front, full text on the back. */
+  offer?: { text: string; short?: string | null; sent_at: string; expires_at: string } | null;
 };
 
 const rgb = (hex: string) =>
   `rgb(${parseInt(hex.slice(1, 3), 16)}, ${parseInt(hex.slice(3, 5), 16)}, ${parseInt(hex.slice(5, 7), 16)})`;
 
-export { progressValue } from "./pass-content";
 
 export async function fetchLogo(url: string | null) {
   if (!url) return null;
@@ -57,6 +57,17 @@ export function initialsSvg(name: string, bg: string, fg: string, size: number, 
   return Buffer.from(
     `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><rect width="${size}" height="${size}" rx="${size * radius}" fill="${bg}"/><text x="50%" y="62%" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="${size * 0.42}" fill="${fg}">${initials}</text></svg>`,
   );
+}
+
+/** What the strip image shows for this customer (shared with Google's hero image). */
+export function stripState(d: PassData) {
+  return {
+    progress: d.progress,
+    offerShort: d.offer ? offerShort(d.offer) : null,
+    bg: d.venue.card_bg,
+    fg: d.venue.card_fg,
+    accent: d.venue.card_accent,
+  };
 }
 
 /** Icon (lock screen / notifications), logo (top-left of the card) and strip (punch card) images. */
@@ -82,24 +93,9 @@ async function passImages(d: PassData) {
         .toBuffer();
     }
 
-    const p = d.progress;
-    const svg = stripSvg(
-      {
-        rewardType: p.reward_type,
-        stamps: p.stamps,
-        stampsNeeded: p.stamps_needed,
-        points: p.points,
-        pointsNeeded: p.points_needed,
-        bg: v.card_bg,
-        fg: v.card_fg,
-        accent: v.card_accent,
-      },
-      375,
-      123,
-    );
-    files[`strip${suffix}.png`] = await sharp(Buffer.from(svg), { density: 72 * scale })
-      .resize(375 * scale, 123 * scale)
-      .png()
+    files[`strip${suffix}.png`] = await sharp(Buffer.from(stripSvg(stripState(d), outlineText, scale)))
+      .resize(STRIP_W * scale, STRIP_H * scale)
+      .png({ compressionLevel: 9 })
       .toBuffer();
   }
   return { files, hasLogo: Boolean(logo) };
@@ -138,24 +134,24 @@ export async function buildApplePass(d: PassData, opts: { voided?: boolean } = {
   );
   pass.type = "storeCard";
 
-  // Front: progress in the header ("NEW OFFER" beside it while an offer is active), then just the
-  // reward and the member's first name under the stamp strip.
-  if (d.offer) pass.headerFields.push({ key: "offer_flag", label: "", value: "NEW OFFER" });
-  pass.headerFields.push({
-    key: "progress",
-    label: p.reward_type === "stamps" ? "VISITS" : "POINTS",
-    value: progressValue(p),
-    changeMessage: p.reward_type === "stamps" ? "Stamp added: %@" : "Points: %@",
-  });
-  pass.secondaryFields.push(
-    { key: "reward", label: "REWARD", value: rewardValue(p, v.reward_text) },
-    { key: "member", label: "MEMBER", value: d.first_name, textAlignment: "PKTextAlignmentRight" },
-  );
+  // Front: no header fields (the strip image shows progress and the offer banner), then REWARD and,
+  // while an offer is active, OFFER. REWARD alerts only when a reward becomes ready; the offer alert
+  // rides on the back's offer field, which is always present (iPhone ignores fields that newly appear).
+  const front = cardFront(v, p, d.offer ? { short: offerShort(d.offer) } : null);
+  for (const f of front.fields) {
+    const ready = f.key === "reward" && /ready!/i.test(f.value);
+    pass.secondaryFields.push({
+      // Keys are unique across the whole pass; the back already has "offer".
+      key: f.key === "offer" ? "offer_front" : f.key,
+      label: f.label,
+      value: f.value,
+      ...(f.key === "offer" ? { textAlignment: "PKTextAlignmentRight" as const } : {}),
+      ...(ready ? { changeMessage: "%@" } : {}),
+    });
+  }
 
-  // Back: the offer first. It's always present (a placeholder when there's none), because iPhone only
-  // announces a field whose value changes, never one that newly appears. changeMessage "%@" puts the
-  // new offer text on the lock screen.
-  for (const section of backSections(v, p, d.offer, "apple", v.timezone)) {
+  const member = { name: d.first_name, number: memberNumber(d.serial) };
+  for (const section of backSections(v, p, d.offer, "apple", v.timezone, member)) {
     pass.backFields.push({
       key: section.key,
       label: section.label.toUpperCase(),
@@ -163,11 +159,12 @@ export async function buildApplePass(d: PassData, opts: { voided?: boolean } = {
       ...(section.key === "offer" && d.offer ? { changeMessage: "%@" } : {}),
     });
   }
+  // Slim Code 128 of the member number (staff find customers by phone; nothing needs the long card ID).
   pass.setBarcodes({
-    message: d.serial,
-    format: "PKBarcodeFormatQR",
+    message: memberDigits(d.serial),
+    format: "PKBarcodeFormatCode128",
     messageEncoding: "iso-8859-1",
-    altText: `Member ${memberNumber(d.serial)}`,
+    altText: `Member ${member.number}`,
   });
 
   return pass.getAsBuffer();

@@ -1,6 +1,9 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import type { Progress } from "@/lib/rewards";
-import { backSections, memberNumber, progressValue, rewardValue, type PassOffer, type PassVenue } from "@/lib/wallet/pass-content";
-import { stripSvg } from "@/lib/wallet/strip";
+import { code128c } from "@/lib/wallet/code128";
+import { backSections, cardFront, memberDigits, memberNumber, offerShort, progressValue, type PassOffer, type PassVenue } from "@/lib/wallet/pass-content";
 
 export type PassLook = {
   venueName: string;
@@ -10,6 +13,7 @@ export type PassLook = {
   fg: string;
   accent: string;
   firstName: string;
+  /** Includes the milestone, if any. */
   progress: Progress;
   venue: PassVenue;
   offer: PassOffer;
@@ -17,45 +21,60 @@ export type PassLook = {
 
 const SAMPLE_SERIAL = "5028d3c8-1004-4451-80d5-360c7f24f151";
 
-/** A decorative stand-in for the member QR code (the real pass encodes the customer's card ID). */
-function FakeQr({ size = 88 }: { size?: number }) {
-  const cells = 21;
-  const on = (x: number, y: number) => {
-    const finder = (cx: number, cy: number) =>
-      x >= cx && x < cx + 7 && y >= cy && y < cy + 7 && !(x > cx && x < cx + 6 && y > cy && y < cy + 6 && !(x > cx + 1 && x < cx + 5 && y > cy + 1 && y < cy + 5));
-    if (finder(0, 0) || finder(14, 0) || finder(0, 14)) return true;
-    if ((x < 8 && y < 8) || (x > 12 && y < 8) || (x < 8 && y > 12)) return false;
-    return (x * 7 + y * 13 + x * y) % 5 < 2;
-  };
-  const rects = [];
-  for (let y = 0; y < cells; y++) for (let x = 0; x < cells; x++) if (on(x, y)) rects.push(<rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" />);
+/** The member barcode (Code 128 of the member number), as the real pass shows it. */
+function Barcode({ height = 46 }: { height?: number }) {
+  const bars = code128c(memberDigits(SAMPLE_SERIAL));
+  const total = bars.reduce((a, b) => a + b, 0);
+  const starts = bars.map((_, i) => bars.slice(0, i).reduce((a, b) => a + b, 0));
+  const rects = bars.map((w, i) => (i % 2 === 0 ? <rect key={i} x={starts[i]} y={0} width={w} height={height} /> : null));
   return (
-    <svg width={size} height={size} viewBox={`-1 -1 ${cells + 2} ${cells + 2}`} aria-hidden="true">
-      <rect x="-1" y="-1" width={cells + 2} height={cells + 2} fill="#fff" />
-      <g fill="#111">{rects}</g>
-    </svg>
+    <div className="rounded-md bg-white px-3 pb-1 pt-2.5 text-center">
+      <svg width={total * 1.25} height={height * 0.8} viewBox={`0 0 ${total} ${height}`} preserveAspectRatio="none" aria-hidden="true" className="mx-auto block">
+        <g fill="#000">{rects}</g>
+      </svg>
+      <p className="mt-0.5 text-[10px] font-medium text-black/75">Member {memberNumber(SAMPLE_SERIAL)}</p>
+    </div>
   );
 }
 
-function Strip({ look }: { look: PassLook }) {
-  const p = look.progress;
-  const svg = stripSvg({
-    rewardType: p.reward_type,
-    stamps: p.stamps,
-    stampsNeeded: p.stamps_needed,
-    points: p.points,
-    pointsNeeded: p.points_needed,
+function useDebounced<T>(value: T, ms: number) {
+  const [v, setV] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setV(value), ms);
+    return () => clearTimeout(t);
+  }, [value, ms]);
+  return v;
+}
+
+/** The strip image, rendered by the server with the same code as real passes. */
+function Strip({ look, google = false }: { look: PassLook; google?: boolean }) {
+  const payload = JSON.stringify({
+    p: look.progress,
+    o: look.offer ? offerShort(look.offer) : null,
     bg: look.bg,
     fg: look.fg,
-    accent: look.accent,
+    ac: look.accent,
+    g: google ? 1 : 0,
   });
-  return <div className="w-full [&>svg]:block [&>svg]:h-auto [&>svg]:w-full" dangerouslySetInnerHTML={{ __html: svg }} />;
+  const src = useDebounced(`/api/wallet/image/preview?s=${base64url(payload)}`, 250);
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt="" className="block w-full" style={{ aspectRatio: google ? "1032 / 336" : "375 / 144", background: look.bg }} />
+  );
+}
+
+function base64url(s: string) {
+  const bytes = new TextEncoder().encode(s);
+  let bin = "";
+  bytes.forEach((b) => (bin += String.fromCharCode(b)));
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 function BackList({ look, platform }: { look: PassLook; platform: "apple" | "google" }) {
+  const member = { name: look.firstName, number: memberNumber(SAMPLE_SERIAL) };
   return (
     <dl className="divide-y divide-black/10">
-      {backSections(look.venue, look.progress, look.offer, platform).map((s) => (
+      {backSections(look.venue, look.progress, look.offer, platform, undefined, member).map((s) => (
         <div key={s.key} className="px-4 py-2.5">
           {s.label && <dt className={`text-[10px] font-semibold ${platform === "apple" ? "uppercase tracking-wide" : ""} text-black/50`}>{s.label}</dt>}
           <dd className={`text-[13px] leading-snug ${s.key === "powered" ? "text-black/50" : "text-black"}`}>{s.value}</dd>
@@ -65,9 +84,8 @@ function BackList({ look, platform }: { look: PassLook; platform: "apple" | "goo
   );
 }
 
-/** Apple Wallet store card, front or back, roughly as it renders on an iPhone. */
+/** Apple Wallet store card, front or Pass Details, as it renders on an iPhone. */
 export function ApplePassPreview({ look, side = "front" }: { look: PassLook; side?: "front" | "back" }) {
-  const p = look.progress;
   if (side === "back") {
     return (
       <div className="w-full max-w-[320px] overflow-hidden rounded-[14px] bg-white shadow-[0_12px_30px_-12px_rgba(0,0,0,0.45)]">
@@ -77,52 +95,45 @@ export function ApplePassPreview({ look, side = "front" }: { look: PassLook; sid
     );
   }
   const logoText = look.logoText || (!look.logoUrl ? look.venueName : null);
+  const fields = cardFront(look.venue, look.progress, look.offer ? { short: offerShort(look.offer) } : null).fields;
   return (
     <div className="w-full max-w-[320px] overflow-hidden rounded-[14px] shadow-[0_12px_30px_-12px_rgba(0,0,0,0.45)]" style={{ background: look.bg, color: look.fg }}>
-      <div className="flex h-12 items-center justify-between gap-2 px-3">
-        <div className="flex h-8 min-w-0 items-center gap-1.5">
-          {look.logoUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={look.logoUrl} alt="" className="h-7 max-w-[7rem] object-contain" />
-          )}
-          {logoText && <span className="truncate text-[15px] font-semibold">{logoText}</span>}
-        </div>
-        <div className="flex shrink-0 items-start gap-3 text-right leading-tight">
-          {look.offer && <p className="self-center rounded px-1 text-[11px] font-bold tracking-wide" style={{ color: look.accent }}>NEW OFFER</p>}
-          <div>
-            <p className="text-[9px] font-semibold uppercase tracking-wide opacity-70">{p.reward_type === "stamps" ? "Visits" : "Points"}</p>
-            <p className="text-[15px] font-semibold">{progressValue(p)}</p>
-          </div>
-        </div>
+      <div className="flex h-12 items-center gap-1.5 px-3">
+        {look.logoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={look.logoUrl} alt="" className="h-7 max-w-[7rem] object-contain" />
+        )}
+        {logoText && <span className="truncate text-[16px] font-semibold">{logoText}</span>}
       </div>
       <Strip look={look} />
-      <div className="grid grid-cols-2 gap-2 px-3 pt-2.5">
-        <div className="min-w-0">
-          <p className="text-[9px] font-semibold uppercase tracking-wide opacity-70">Reward</p>
-          <p className="truncate text-[14px]">{rewardValue(p, look.venue.reward_text)}</p>
-        </div>
-        <div className="min-w-0 text-right">
-          <p className="text-[9px] font-semibold uppercase tracking-wide opacity-70">Member</p>
-          <p className="truncate text-[14px]">{look.firstName}</p>
-        </div>
+      <div className="flex gap-3 px-3 pt-2.5">
+        {fields.map((f, i) => (
+          <div key={f.key} className={`min-w-0 flex-1 ${i === 1 ? "text-right" : ""}`}>
+            <p className="text-[9px] font-semibold uppercase tracking-wide opacity-70">{f.label}</p>
+            <p className={`text-[14px] leading-tight ${fields.length === 1 ? "" : "line-clamp-2"}`}>{f.value}</p>
+          </div>
+        ))}
       </div>
       <div className="flex justify-center px-3 pb-4 pt-4">
-        <div className="rounded-md bg-white px-2 pb-1 pt-2 text-center">
-          <FakeQr size={84} />
-          <p className="mt-0.5 text-[9px] text-black/70">Member {memberNumber(SAMPLE_SERIAL)}</p>
-        </div>
+        <Barcode />
       </div>
     </div>
   );
 }
 
-/** Google Wallet loyalty card, front or details, roughly as it renders on Android. */
+/** Google Wallet loyalty card, front or details, as it renders on Android. */
 export function GooglePassPreview({ look, side = "front" }: { look: PassLook; side?: "front" | "back" }) {
   const p = look.progress;
   if (side === "back") {
     return (
       <div className="w-full max-w-[320px] overflow-hidden rounded-[20px] bg-white shadow-[0_12px_30px_-12px_rgba(0,0,0,0.45)]">
         <p className="border-b border-black/10 px-4 py-3 text-[13px] font-medium">Details</p>
+        {look.offer && (
+          <div className="border-b border-black/10 px-4 py-2.5">
+            <p className="text-[10px] font-semibold text-black/50">Offer</p>
+            <p className="text-[13px] leading-snug">{offerShort(look.offer)}</p>
+          </div>
+        )}
         <BackList look={look} platform="google" />
       </div>
     );
@@ -148,19 +159,13 @@ export function GooglePassPreview({ look, side = "front" }: { look: PassLook; si
         </div>
         <div className="text-right">
           <p className="text-[11px] opacity-75">Reward</p>
-          <p className="truncate text-sm">{rewardValue(p, look.venue.reward_text)}</p>
+          <p className="text-sm leading-snug">{cardFront(look.venue, p).fields[0].value}</p>
         </div>
       </div>
-      {look.offer && (
-        <p className="mx-4 mt-3 rounded-xl bg-white/15 px-3 py-2 text-[13px] leading-snug">{look.offer.text}</p>
-      )}
-      <div className="flex justify-center px-4 pb-3 pt-4">
-        <div className="rounded-lg bg-white px-2 pb-1 pt-2 text-center">
-          <FakeQr size={96} />
-          <p className="mt-0.5 text-[10px] text-black/70">Member {memberNumber(SAMPLE_SERIAL)}</p>
-        </div>
+      <div className="flex justify-center px-4 pb-4 pt-4">
+        <Barcode />
       </div>
-      <Strip look={look} />
+      <Strip look={look} google />
     </div>
   );
 }

@@ -5,17 +5,9 @@
 
 import { isRewardReady, type Progress } from "@/lib/rewards";
 
-export type Milestone = {
-  /** The stamp (or points total) that unlocks it. */
-  at: number;
-  text: string;
-  /** Reached this cycle and not redeemed yet. */
-  ready: boolean;
-};
-
 export type StripState = {
+  /** Includes the milestone, if the venue has one. */
   progress: Progress;
-  milestone?: Milestone | null;
   /** The venue's short offer text while an offer is active. */
   offerShort?: string | null;
   bg: string;
@@ -56,9 +48,9 @@ export function withArticle(reward: string) {
 export type StripLine = { kind: "progress" | "ready" | "offer"; text: string };
 
 /** The one line under the stamps. Ready rewards beat offers, offers beat progress. */
-export function stripLine(s: Pick<StripState, "progress" | "milestone" | "offerShort">): StripLine {
+export function stripLine(s: Pick<StripState, "progress" | "offerShort">): StripLine {
   const p = s.progress;
-  const m = s.milestone;
+  const m = p.milestone;
   if (isRewardReady(p)) return { kind: "ready", text: `${upperFirst(p.reward_text)} ready! Show staff` };
   if (m?.ready) return { kind: "ready", text: `${upperFirst(m.text)} ready! Show staff` };
   if (s.offerShort) return { kind: "offer", text: s.offerShort };
@@ -101,14 +93,14 @@ export function contrastRatio(a: string, b: string) {
 const onColor = (fill: string, bg: string, fg: string) => (contrastRatio(fill, bg) >= contrastRatio(fill, fg) ? bg : fg);
 
 /**
- * The strip as SVG, laid out in points (375×144) and scaled to `scale` (1, 2 or 3 for Apple; Google's
- * hero image uses its own scale). Stamps sit in one row, or two when there are more than 6.
+ * The strip as SVG, laid out in points (375×144) and scaled to `scale` (1, 2 or 3 for Apple). Google's
+ * wider hero image passes a larger `width`. Stamps sit in one row, or two when there are more than 6.
  */
-export function stripSvg(s: StripState, text: TextFn, scale = 1) {
-  const W = STRIP_W;
+export function stripSvg(s: StripState, text: TextFn, scale = 1, width = STRIP_W) {
+  const W = width;
   const H = STRIP_H;
   const p = s.progress;
-  const m = s.milestone;
+  const m = p.milestone;
   const line = stripLine(s);
   const marginX = 24;
   let body = "";

@@ -2,7 +2,7 @@ import "server-only";
 import { importPKCS8, SignJWT } from "jose";
 import { siteUrl } from "@/lib/env";
 import type { PassData } from "./apple";
-import { backSections, memberNumber, progressValue, rewardValue } from "./pass-content";
+import { backSections, cardFront, memberDigits, memberNumber, offerShort, progressValue } from "./pass-content";
 import { googleConfig } from "./config";
 
 // Google Wallet loyalty cards: one class per venue (look and program), one object per customer
@@ -83,17 +83,21 @@ export function loyaltyObject(cfg: Cfg, d: PassData) {
       label: p.reward_type === "stamps" ? "Visits" : "Points",
       balance: { string: progressValue(p) },
     },
-    secondaryLoyaltyPoints: { label: "Reward", balance: { string: rewardValue(p, v.reward_text) } },
-    barcode: { type: "QR_CODE", value: d.serial, alternateText: `Member ${member}` },
+    secondaryLoyaltyPoints: { label: "Reward", balance: { string: cardFront(v, p).fields[0].value } },
+    barcode: { type: "CODE_128", value: memberDigits(d.serial), alternateText: `Member ${member}` },
     heroImage: {
       sourceUri: {
-        uri: `${siteUrl()}/api/wallet/image/strip?serial=${d.serial}&v=${encodeURIComponent(d.updated_at)}`,
+        uri: `${siteUrl()}/api/wallet/image/strip?serial=${d.serial}&d=3&v=${encodeURIComponent(d.updated_at)}`,
       },
       contentDescription: { defaultValue: { language: "en-US", value: progressValue(p) } },
     },
-    textModulesData: backSections(v, p, d.offer, "google", v.timezone)
-      .filter((s) => s.label && !["address", "phone", "website"].includes(s.key))
-      .map((s) => ({ id: s.key, header: s.label, body: s.value })),
+    // The hero image carries stamps and the offer banner; details list the offer and the rest.
+    textModulesData: [
+      ...(d.offer ? [{ id: "offer_short", header: "Offer", body: offerShort(d.offer) }] : []),
+      ...backSections(v, p, d.offer, "google", v.timezone, { name: d.first_name, number: member })
+        .filter((s) => s.label && !["address", "phone", "website"].includes(s.key))
+        .map((s) => ({ id: s.key, header: s.label, body: s.value })),
+    ],
     linksModuleData: { uris: links },
     ...(v.address
       ? { infoModuleData: { labelValueRows: [{ columns: [{ label: "Address", value: v.address }] }], showLastUpdateTime: false } }

@@ -20,7 +20,9 @@ export function appleConfig() {
 
 export function googleConfig() {
   const issuerId = process.env.GOOGLE_WALLET_ISSUER_ID?.trim();
-  const raw = b64("GOOGLE_WALLET_SERVICE_ACCOUNT_BASE64");
+  // Accept the key as base64 (as documented) or as the raw JSON file contents.
+  const value = process.env.GOOGLE_WALLET_SERVICE_ACCOUNT_BASE64?.trim();
+  const raw = value?.startsWith("{") ? value : b64("GOOGLE_WALLET_SERVICE_ACCOUNT_BASE64");
   if (!issuerId || !raw) return null;
   try {
     const sa = JSON.parse(raw) as { client_email: string; private_key: string };

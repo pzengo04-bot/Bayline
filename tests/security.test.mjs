@@ -40,6 +40,7 @@ async function venueWithOwner(label) {
     .throwOnError();
 
   await admin.from("taps").insert({ venue_id: venue.id, source: "nfc", result: "need_details" }).throwOnError();
+  await admin.from("offer_sends").insert({ venue_id: venue.id, audience: "everyone", message: `Hi from ${label}` }).throwOnError();
 
   // Sign in without email: generate a magic-link token and redeem it.
   const { data: link, error: le } = await admin.auth.admin.generateLink({ type: "magiclink", email });
@@ -103,6 +104,21 @@ describe("venue data stays separate", () => {
     const { error: e2 } = await A.client.from("customers").select("apple_auth_token");
     const { error: e3 } = await A.client.from("apple_registrations").select("push_token");
     assert.ok(e1 && e2 && e3);
+  });
+
+  test("owner of venue A cannot read venue B's offer log or customer labels", async () => {
+    const { data: sends } = await A.client.from("offer_sends").select("venue_id");
+    assert.ok(sends.length > 0 && sends.every((s) => s.venue_id === A.venue.id));
+    const { data: labels } = await A.client.from("customer_insights").select("id").eq("venue_id", B.venue.id);
+    assert.deepEqual(labels, []);
+  });
+
+  test("owner of venue A cannot send an offer as venue B", async () => {
+    const { data: me } = await A.client.auth.getUser();
+    const { error } = await A.client
+      .from("offer_sends")
+      .insert({ venue_id: B.venue.id, audience: "everyone", message: "sneaky", created_by: me.user.id });
+    assert.ok(error, "insert should be rejected");
   });
 
   test("anonymous visitors cannot read customers at all", async () => {

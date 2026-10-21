@@ -107,6 +107,7 @@ const VENUES = [
     venue: { name: "Bayline Demo", slug: "bayline-demo", type: "golf_sim", reward_type: "stamps", stamps_needed: 5,
       points_per_dollar: 1, points_needed: 500, reward_text: "free bay hour", stamps_per_day: null,
       card_bg: "#0f1512", card_fg: "#ffffff", card_accent: "#c4f04a",
+      milestone_text: "free drink", milestone_at: 3, head_start_stamps: 1,
       pass_message: "Thanks for trying Bayline! Tap the stand again to watch your stamp land.", is_demo: true,
       logo_text: "Bayline", website: "https://getbayline.app" },
     customers: makeCustomers(60, { regular: 20, quiet: 10 }),
@@ -138,7 +139,9 @@ try {
           reward_text = excluded.reward_text, stamps_per_day = excluded.stamps_per_day,
           card_bg = excluded.card_bg, card_fg = excluded.card_fg, card_accent = excluded.card_accent,
           pass_message = excluded.pass_message, is_demo = excluded.is_demo,
-          logo_text = excluded.logo_text, website = excluded.website
+          logo_text = excluded.logo_text, website = excluded.website,
+          milestone_text = excluded.milestone_text, milestone_at = excluded.milestone_at,
+          head_start_stamps = excluded.head_start_stamps
         returning id, name, timezone`;
       // Test venues reset completely; the demo venue keeps its real demo guests.
       if (venue.is_demo) await tx`delete from public.customers where venue_id = ${v.id} and is_seed`;

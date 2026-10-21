@@ -142,14 +142,12 @@ export async function buildApplePass(d: PassData, opts: { voided?: boolean } = {
     },
     { key: "member", label: "MEMBER", value: d.first_name, textAlignment: "PKTextAlignmentRight" },
   );
-  // Always present: iPhone only announces a field whose value *changes*, not one that appears for the
-  // first time. With a placeholder here from day one, every offer shows on the lock screen via "%@".
-  pass.backFields.push({
-    key: "offer",
-    label: "LATEST OFFER",
-    value: d.offer?.text ?? `Offers from ${v.name} will show up here.`,
-    changeMessage: "%@",
-  });
+  // The latest offer sits on the front, where iPhone reliably announces changes on the lock screen
+  // ("%@" = the new text). It's always present: iPhone only announces a field whose value *changes*,
+  // not one that appears for the first time. The back repeats it in full, without a second alert.
+  const offerText = d.offer?.text ?? "Watch this space for member offers";
+  pass.auxiliaryFields.push({ key: "offer", label: "OFFER", value: offerText, changeMessage: "%@" });
+  pass.backFields.push({ key: "offer_full", label: "LATEST OFFER", value: offerText });
   pass.backFields.push(
     {
       key: "message",

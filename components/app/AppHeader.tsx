@@ -15,7 +15,7 @@ export async function AppHeader() {
         { href: "/dashboard", label: "Dashboard" },
         { href: "/dashboard/add-visit", label: "Add visit" },
         { href: "/dashboard/messages", label: "Messages" },
-        ...(canEditRewards ? [{ href: "/dashboard/rewards", label: "Rewards" }] : []),
+        ...(canEditRewards ? [{ href: "/dashboard/card", label: "Card" }] : []),
         { href: "/dashboard/qr", label: "QR sign" },
       ]
     : [];

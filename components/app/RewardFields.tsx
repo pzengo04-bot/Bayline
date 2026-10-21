@@ -22,7 +22,7 @@ export function RewardFields({ value, onChange }: Props) {
           {(
             [
               ["stamps", "Visit stamps", "Every check-in earns a stamp"],
-              ["points", "Points per dollar", "Staff enter the amount spent"],
+              ["points", "Points", "Per tap, or per $ at the desk"],
             ] as const
           ).map(([type, label, hint]) => (
             <label
@@ -62,9 +62,23 @@ export function RewardFields({ value, onChange }: Props) {
           />
         </label>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <label className="block text-sm font-semibold">
-            Points per $1
+            Points per visit
+            <input
+              name="points_per_visit"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={10000}
+              required
+              value={value.points_per_visit ?? 10}
+              onChange={(e) => set("points_per_visit", Number(e.target.value))}
+              className={input}
+            />
+          </label>
+          <label className="block text-sm font-semibold">
+            Points per $1 <span className="font-normal text-muted">(staff)</span>
             <input
               name="points_per_dollar"
               type="number"
@@ -78,7 +92,7 @@ export function RewardFields({ value, onChange }: Props) {
               className={input}
             />
           </label>
-          <label className="block text-sm font-semibold">
+          <label className="col-span-2 block text-sm font-semibold sm:col-span-1">
             Points for a reward
             <input
               name="points_needed"
@@ -99,6 +113,7 @@ export function RewardFields({ value, onChange }: Props) {
         <>
           <input type="hidden" name="points_per_dollar" value={value.points_per_dollar} />
           <input type="hidden" name="points_needed" value={value.points_needed} />
+          <input type="hidden" name="points_per_visit" value={value.points_per_visit ?? 10} />
         </>
       ) : (
         <input type="hidden" name="stamps_needed" value={value.stamps_needed} />

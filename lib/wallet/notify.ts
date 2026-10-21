@@ -9,3 +9,8 @@ export async function notifyPassChanged(customerIds: string[], changeMessage?: s
   void customerIds;
   void changeMessage;
 }
+
+/** A venue's card design or rewards changed: refresh every customer's pass. */
+export async function notifyVenuePassesChanged(venueId: string) {
+  void venueId;
+}

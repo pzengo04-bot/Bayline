@@ -19,7 +19,7 @@ export function appleConfig() {
 }
 
 export function googleConfig() {
-  const issuerId = process.env.GOOGLE_WALLET_ISSUER_ID;
+  const issuerId = process.env.GOOGLE_WALLET_ISSUER_ID?.trim();
   const raw = b64("GOOGLE_WALLET_SERVICE_ACCOUNT_BASE64");
   if (!issuerId || !raw) return null;
   try {

@@ -65,7 +65,21 @@ function appleStatus() {
 /** Google: the service account can get an access token for the Wallet API. */
 async function googleStatus() {
   const cfg = googleConfig();
-  if (!cfg) return { configured: false };
+  if (!cfg) {
+    // Say which part is missing or malformed (shapes only, never values).
+    const issuer = process.env.GOOGLE_WALLET_ISSUER_ID ?? "";
+    const raw = process.env.GOOGLE_WALLET_SERVICE_ACCOUNT_BASE64 ?? "";
+    let keyFile: string = raw ? "set" : "missing";
+    if (raw) {
+      try {
+        const sa = JSON.parse(Buffer.from(raw, "base64").toString("utf8"));
+        keyFile = sa.client_email && sa.private_key ? "valid service-account JSON" : "JSON without client_email/private_key";
+      } catch {
+        keyFile = raw.trim().startsWith("{") ? "raw JSON pasted (needs base64)" : "not valid base64 JSON";
+      }
+    }
+    return { configured: false, issuerId: issuer ? (/^\d{10,25}$/.test(issuer.trim()) ? "set" : "set but not a number") : "missing", keyFile };
+  }
   try {
     const { importPKCS8, SignJWT } = await import("jose");
     const key = await importPKCS8(cfg.privateKey, "RS256");

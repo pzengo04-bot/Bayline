@@ -1,6 +1,7 @@
 // What a wallet card says, shared by the Apple pass, the Google card and the Card tab previews.
 
 import { isRewardReady, type Progress } from "@/lib/rewards";
+import type { Milestone } from "./strip";
 
 export type PassVenue = {
   name: string;
@@ -27,6 +28,30 @@ export const progressValue = (p: Progress) =>
   p.reward_type === "stamps" ? `${p.stamps} of ${p.stamps_needed}` : `${p.points} / ${p.points_needed} pts`;
 
 export const rewardValue = (p: Progress, rewardText: string) => (isRewardReady(p) ? "Ready! Show staff" : capitalize(rewardText));
+
+/** What the customer is working toward next: the milestone until it's reached, then the main reward. */
+export function nextReward(p: Progress, rewardText: string, milestone?: Milestone | null) {
+  const have = p.reward_type === "stamps" ? p.stamps : p.points;
+  return milestone && have < milestone.at ? milestone.text : rewardText;
+}
+
+/**
+ * The field row under the strip: REWARD always, OFFER only while an offer is active. Both carry the
+ * lock-screen alerts, because iPhone reliably announces changes to front fields.
+ */
+export function cardFront(v: Pick<PassVenue, "reward_text">, p: Progress, milestone?: Milestone | null, offer?: { short: string } | null) {
+  const reward = isRewardReady(p)
+    ? "Ready! Show staff"
+    : milestone?.ready
+      ? `${capitalize(milestone.text)} ready! Show staff`
+      : capitalize(nextReward(p, v.reward_text, milestone));
+  return {
+    fields: [
+      { key: "reward", label: "REWARD", value: reward },
+      ...(offer ? [{ key: "offer", label: "OFFER", value: offer.short }] : []),
+    ],
+  };
+}
 
 export function offerUntil(offer: NonNullable<PassOffer>, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric", timeZone }).format(new Date(offer.expires_at));

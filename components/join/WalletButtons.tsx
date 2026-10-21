@@ -22,43 +22,37 @@ export function WalletButtons({ slug, apple, google, compact = false }: Props) {
 
   const appleHref = `/api/wallet/apple/pass?venue=${encodeURIComponent(slug)}`;
   const googleHref = `/api/wallet/google/save?venue=${encodeURIComponent(slug)}`;
-  const primary = platform === "google" ? "google" : platform === "apple" ? "apple" : null;
 
-  const AppleBadge = (
-    <a href={appleHref} className="inline-block" aria-label="Add to Apple Wallet">
+  // Best match for this phone first; on a computer (or if that wallet isn't available) show both.
+  const enabled = (["apple", "google"] as const).filter((p) => (p === "apple" ? apple : google));
+  const primary = platform !== "other" && enabled.includes(platform) ? platform : null;
+  const badges = primary ? [primary] : enabled;
+  const other = primary ? enabled.find((p) => p !== primary) : undefined;
+
+  const Badge = ({ which }: { which: "apple" | "google" }) => (
+    <a href={which === "apple" ? appleHref : googleHref} className="inline-block">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/wallet/add-to-apple-wallet.svg" alt="Add to Apple Wallet" className="h-12 w-auto" />
-    </a>
-  );
-  const GoogleBadge = (
-    <a href={googleHref} className="inline-block" aria-label="Add to Google Wallet">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/wallet/add-to-google-wallet.svg" alt="Add to Google Wallet" className="h-12 w-auto" />
+      <img
+        src={`/wallet/add-to-${which}-wallet.svg`}
+        alt={which === "apple" ? "Add to Apple Wallet" : "Add to Google Wallet"}
+        className="h-12 w-auto"
+      />
     </a>
   );
 
   return (
     <div className={`flex flex-col items-center gap-3 ${compact ? "mt-6" : "mt-8"}`}>
       {!compact && <p className="text-sm text-muted">Keep your card on your phone. It updates every time you tap.</p>}
-      {primary === "apple" && apple ? AppleBadge : primary === "google" && google ? GoogleBadge : null}
-      {primary === null && (
-        <div className="flex flex-wrap justify-center gap-3">
-          {apple && AppleBadge}
-          {google && GoogleBadge}
-        </div>
-      )}
-      {primary === "apple" && google && (
-        <a href={googleHref} className="text-xs text-muted underline underline-offset-2">
-          Using Android? Add to Google Wallet
+      <div className="flex flex-wrap justify-center gap-3">
+        {badges.map((b) => (
+          <Badge key={b} which={b} />
+        ))}
+      </div>
+      {other && (
+        <a href={other === "apple" ? appleHref : googleHref} className="text-xs text-muted underline underline-offset-2">
+          {other === "apple" ? "Using iPhone? Add to Apple Wallet" : "Using Android? Add to Google Wallet"}
         </a>
       )}
-      {primary === "google" && apple && (
-        <a href={appleHref} className="text-xs text-muted underline underline-offset-2">
-          Using iPhone? Add to Apple Wallet
-        </a>
-      )}
-      {primary === "apple" && !apple && google && GoogleBadge}
-      {primary === "google" && !google && apple && AppleBadge}
     </div>
   );
 }

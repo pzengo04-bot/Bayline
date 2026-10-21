@@ -20,14 +20,14 @@ async function QrSign() {
   const { venue } = await requireVenue();
   if (!venue) return <NoVenue />;
 
-  const url = `${siteUrl()}/v/${venue.slug}`;
+  const url = `${siteUrl()}/t/${venue.slug}?src=qr`;
   const svg = await QRCode.toString(url, {
     type: "svg",
     margin: 0,
     errorCorrectionLevel: "M",
     color: { dark: "#0f1512", light: "#ffffff" },
   });
-  const shortUrl = url.replace(/^https?:\/\//, "");
+  const shortUrl = url.replace(/^https?:\/\//, "").replace(/\?.*$/, "");
 
   return (
     <div className="space-y-5">

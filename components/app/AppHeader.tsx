@@ -16,7 +16,7 @@ export async function AppHeader() {
         { href: "/dashboard/add-visit", label: "Add visit" },
         { href: "/dashboard/messages", label: "Messages" },
         ...(canEditRewards ? [{ href: "/dashboard/card", label: "Card" }] : []),
-        { href: "/dashboard/qr", label: "QR sign" },
+        { href: "/dashboard/stand", label: "Stand" },
       ]
     : [];
   if (access.isAdmin) items.push({ href: "/admin", label: "Admin" });

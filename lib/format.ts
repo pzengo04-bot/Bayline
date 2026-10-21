@@ -51,3 +51,6 @@ export function calendarDaysSince(iso: string, timeZone: string, now = Date.now(
   const day = new Intl.DateTimeFormat("en-CA", { timeZone }); // YYYY-MM-DD
   return Math.max(0, Math.round((Date.parse(day.format(new Date(now))) - Date.parse(day.format(new Date(iso)))) / 86_400_000));
 }
+
+/** ISO timestamp for N days before now. */
+export const isoDaysAgo = (days: number, now = Date.now()) => new Date(now - days * 86_400_000).toISOString();

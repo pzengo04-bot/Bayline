@@ -14,7 +14,8 @@ const detect = (): Platform =>
 
 /**
  * "Add to Apple Wallet" / "Add to Google Wallet". Shows the one that fits the phone, with the other
- * as a small link. Badge artwork lives in public/wallet/ (see docs/SETUP.md for the official files).
+ * as a small link. Badges in public/wallet/ are Apple's and Google's official US English artwork: use them
+ * unmodified (no recoloring, cropping or stretching), at least 40px tall.
  */
 export function WalletButtons({ slug, apple, google, compact = false }: Props) {
   const platform = useSyncExternalStore(() => () => {}, detect, () => "other" as Platform);

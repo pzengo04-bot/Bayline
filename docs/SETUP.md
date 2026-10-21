@@ -176,13 +176,13 @@ mkdir -p ~/bayline-secrets && cd ~/bayline-secrets
 
 ## 9. Wallet badge artwork
 
-The "Add to Apple Wallet" and "Add to Google Wallet" buttons must use the official artwork. The files in
-`public/wallet/` are placeholders. Download the official badges and save them over them, using the same
-names (`add-to-apple-wallet.svg`, `add-to-google-wallet.svg`):
+Done. `public/wallet/add-to-apple-wallet.svg` is Apple's official US/UK badge and
+`public/wallet/add-to-google-wallet.svg` is Google's official US English two-line badge. Both companies
+require the artwork unmodified (no recoloring, cropping or stretching). To update them, download the kits
+again and replace the files with the same names:
 
-- Apple: https://developer.apple.com/wallet/add-to-apple-wallet-guidelines/ (US English, black badge, SVG)
-- Google: https://developers.google.com/wallet/generic/resources/brand-guidelines ("Add to Google Wallet"
-  button, SVG)
+- Apple: https://developer.apple.com/wallet/add-to-apple-wallet-guidelines/ (`US_UK/RGB/…svg`)
+- Google: https://developers.google.com/wallet/generic/resources/brand-guidelines (`enUS_…add-wallet-badge.svg`)
 
 ## 10. NFC stand
 

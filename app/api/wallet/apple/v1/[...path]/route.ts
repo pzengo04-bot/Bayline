@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { buildApplePass } from "@/lib/wallet/apple";
 import { appleConfig } from "@/lib/wallet/config";
+import { logWalletEvent } from "@/lib/wallet/events";
 import { getPassData, getVoidedPass, markWalletPlatform } from "@/lib/wallet/data";
 
 // Apple Wallet web service (developer.apple.com: "Wallet Passes > Updating a pass").
@@ -35,6 +36,7 @@ export async function POST(request: NextRequest, { params }: Ctx) {
   if (path[0] === "log") {
     const body = await request.json().catch(() => ({}));
     console.warn("Apple Wallet log", JSON.stringify(body).slice(0, 2000));
+    await logWalletEvent("device_log", { detail: JSON.stringify(body) });
     return new NextResponse(null, { status: 200 });
   }
 
@@ -91,6 +93,7 @@ export async function GET(request: NextRequest, { params }: Ctx) {
       ...(live ?? []),
       ...(voided ?? []).map((v) => ({ pass_serial: v.serial, pass_updated_at: v.voided_at })),
     ];
+    await logWalletEvent("list_updated", { status: changed.length ? 200 : 204, detail: `since=${since ?? "none"} found=${changed.length}` });
     if (!changed?.length) return new NextResponse(null, { status: 204 });
     // Microsecond UTC timestamp with "Z" (no "+"), so the tag survives being put in a URL.
     const lastUpdated = changed
@@ -112,9 +115,11 @@ export async function GET(request: NextRequest, { params }: Ctx) {
     const ifModifiedSince = request.headers.get("if-modified-since");
     // HTTP dates have 1-second precision; compare at that resolution.
     if (ifModifiedSince && Math.floor(modified.getTime() / 1000) <= Math.floor(Date.parse(ifModifiedSince) / 1000)) {
+      await logWalletEvent("get_pass", { serial, status: 304, detail: `ims=${ifModifiedSince}` });
       return new NextResponse(null, { status: 304 });
     }
     const pkpass = await buildApplePass(data, { voided: "voided" in data });
+    await logWalletEvent("get_pass", { serial, status: 200, detail: `offer=${data.offer?.text?.slice(0, 40) ?? "none"}` });
     return new NextResponse(new Uint8Array(pkpass), {
       headers: {
         "Content-Type": "application/vnd.apple.pkpass",

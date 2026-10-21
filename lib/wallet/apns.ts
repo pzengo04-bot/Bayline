@@ -1,6 +1,7 @@
 import "server-only";
 import http2 from "node:http2";
 import { appleConfig } from "./config";
+import { logWalletEvent } from "./events";
 
 /**
  * Wake registered iPhones so Wallet fetches the latest pass. Pass updates use the Pass Type ID
@@ -17,7 +18,10 @@ export async function pushPassUpdates(pushTokens: string[]): Promise<string[]> {
     passphrase: cfg.keyPassphrase,
   });
   // Without a listener, a failed connection would throw an unhandled 'error' and crash the function.
-  client.on("error", (e) => console.warn("APNs connection error", e.message));
+  client.on("error", (e) => {
+    console.warn("APNs connection error", e.message);
+    void logWalletEvent("apns_connection_error", { detail: e.message });
+  });
   const dead: string[] = [];
   try {
     await Promise.all(
@@ -31,13 +35,21 @@ export async function pushPassUpdates(pushTokens: string[]): Promise<string[]> {
               "content-type": "application/json",
             });
             req.setTimeout(10_000, () => req.close());
+            let status = 0;
+            let body = "";
             req.on("response", (headers) => {
-              const status = Number(headers[":status"]);
+              status = Number(headers[":status"]);
               if (status === 410 || status === 400) dead.push(token);
               if (status !== 200) console.warn("APNs push", status, token.slice(0, 8));
             });
-            req.on("error", (e) => console.warn("APNs error", e.message));
-            req.on("close", () => resolve());
+            req.on("data", (chunk) => (body += chunk));
+            req.on("error", (e) => {
+              body = e.message;
+              console.warn("APNs error", e.message);
+            });
+            req.on("close", () => {
+              void logWalletEvent("apns_push", { status, detail: `${token.slice(0, 8)} ${body}`.trim() }).finally(resolve);
+            });
             req.end("{}");
           }),
       ),

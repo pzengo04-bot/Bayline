@@ -2,6 +2,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { pushPassUpdates } from "./apns";
 import { appleConfig, googleConfig } from "./config";
+import { logWalletEvent } from "./events";
 import { sendGoogleMessage } from "./google";
 
 /**
@@ -28,6 +29,7 @@ export async function deliverOffer(sendId: string) {
     // Apple
     const apple = list.filter((r) => r.apple);
     const cfg = appleConfig();
+    await logWalletEvent("offer_deliver", { detail: `send=${sendId} apple=${apple.length} google=${list.filter((r) => r.google).length} appleConfigured=${Boolean(cfg)}` });
     if (apple.length && cfg) {
       await admin.from("customers").update({ pass_updated_at: new Date().toISOString() }).in("id", apple.map((r) => r.id));
       const { data: regs } = await admin
@@ -35,6 +37,7 @@ export async function deliverOffer(sendId: string) {
         .select("push_token")
         .eq("pass_type_id", cfg.passTypeId)
         .in("serial_number", apple.map((r) => r.serial));
+      await logWalletEvent("offer_apple_push", { detail: `tokens=${(regs ?? []).length}` });
       const dead = await pushPassUpdates((regs ?? []).map((r) => r.push_token as string));
       if (dead.length) await admin.from("apple_registrations").delete().in("push_token", dead);
     }

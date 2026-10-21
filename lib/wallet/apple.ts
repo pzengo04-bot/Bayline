@@ -34,7 +34,7 @@ const rgb = (hex: string) =>
 export const progressValue = (p: Progress) =>
   p.reward_type === "stamps" ? `${p.stamps} of ${p.stamps_needed}` : `${p.points} / ${p.points_needed} pts`;
 
-async function fetchLogo(url: string | null) {
+export async function fetchLogo(url: string | null) {
   if (!url) return null;
   try {
     const res = await fetch(url);
@@ -45,10 +45,10 @@ async function fetchLogo(url: string | null) {
 }
 
 /** Fallback mark for venues without a logo: their initials on the card color. */
-function initialsSvg(name: string, bg: string, fg: string, size: number) {
+export function initialsSvg(name: string, bg: string, fg: string, size: number, radius = 0.22) {
   const initials = name.split(/\s+/).map((w) => w[0] ?? "").join("").slice(0, 2).toUpperCase();
   return Buffer.from(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><rect width="${size}" height="${size}" rx="${size * 0.22}" fill="${bg}"/><text x="50%" y="62%" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="${size * 0.42}" fill="${fg}">${initials}</text></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><rect width="${size}" height="${size}" rx="${size * radius}" fill="${bg}"/><text x="50%" y="62%" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="${size * 0.42}" fill="${fg}">${initials}</text></svg>`,
   );
 }
 

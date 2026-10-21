@@ -37,3 +37,10 @@ export async function markWalletPlatform(serial: string, platform: "apple" | "go
     await admin.from("customers").update({ wallet_platforms: [...current, platform] }).eq("pass_serial", serial);
   }
 }
+
+/** A cleared demo guest's final (voided) pass, kept so their iPhone can fetch it once more. */
+export async function getVoidedPass(serial: string): Promise<(PassData & { voided: true }) | null> {
+  const { data } = await createAdminClient().from("voided_passes").select("pass_data, voided_at").eq("serial", serial).maybeSingle();
+  if (!data) return null;
+  return { ...(data.pass_data as PassData), updated_at: data.voided_at as string, voided: true };
+}

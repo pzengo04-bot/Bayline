@@ -128,6 +128,15 @@ export async function updateGoogleObject(d: PassData) {
   if (!res.ok && res.status !== 404) console.warn("Google object update", res.status, await res.text());
 }
 
+/** Retire a customer's Google card (cleared demo guests). */
+export async function voidGoogleObject(serial: string) {
+  const cfg = googleConfig();
+  if (!cfg) return;
+  const id = objectId(cfg.issuerId, serial);
+  const res = await api(cfg, "PATCH", `/loyaltyObject/${encodeURIComponent(id)}`, { state: "INACTIVE" });
+  if (!res.ok && res.status !== 404) console.warn("Google void", res.status, await res.text());
+}
+
 /** Push a venue's look (name, logo, color) to its Google class. */
 export async function updateGoogleClass(d: Pick<PassData, "venue">) {
   const cfg = googleConfig();

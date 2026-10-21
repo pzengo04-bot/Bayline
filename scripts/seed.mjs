@@ -1,7 +1,8 @@
 // Creates (or resets) the test venues with fake customers and realistic visit times:
 //   Test Lounge   (/v/test-lounge)   golf sims, visit stamps, ~50 customers
 //   Test Cages    (/v/test-cages)    batting cages, points, ~25 customers
-//   Bayline Demo  (/v/bayline-demo)  for pitches: branded card, no customers, unlimited taps per day
+//   Bayline Demo  (/v/bayline-demo)  for pitches: branded card, ~60 fake customers, unlimited taps per day.
+//                                    Real people who joined the demo ("demo guests") are kept.
 // Usage: npm run db:seed   (safe to re-run; only touches these venues)
 import { createClient } from "@supabase/supabase-js";
 import postgres from "postgres";
@@ -105,8 +106,8 @@ const VENUES = [
     venue: { name: "Bayline Demo", slug: "bayline-demo", type: "golf_sim", reward_type: "stamps", stamps_needed: 5,
       points_per_dollar: 1, points_needed: 500, reward_text: "free bay hour", stamps_per_day: null,
       card_bg: "#0f1512", card_fg: "#ffffff", card_accent: "#c4f04a",
-      pass_message: "Thanks for trying Bayline! Tap the stand again to watch your stamp land." },
-    customers: [],
+      pass_message: "Thanks for trying Bayline! Tap the stand again to watch your stamp land.", is_demo: true },
+    customers: makeCustomers(60, { regular: 20, quiet: 10 }),
     amount: () => null,
   },
 ];
@@ -140,9 +141,11 @@ try {
           points_per_dollar = excluded.points_per_dollar, points_needed = excluded.points_needed,
           reward_text = excluded.reward_text, stamps_per_day = excluded.stamps_per_day,
           card_bg = excluded.card_bg, card_fg = excluded.card_fg, card_accent = excluded.card_accent,
-          pass_message = excluded.pass_message
+          pass_message = excluded.pass_message, is_demo = excluded.is_demo
         returning id, name, timezone`;
-      await tx`delete from public.customers where venue_id = ${v.id}`;
+      // Test venues reset completely; the demo venue keeps its real demo guests.
+      if (venue.is_demo) await tx`delete from public.customers where venue_id = ${v.id} and is_seed`;
+      else await tx`delete from public.customers where venue_id = ${v.id}`;
 
       const consentText = `I agree to receive offers by text from ${v.name}. Msg & data rates may apply. Reply STOP to opt out.`;
       const visits = [];
@@ -150,8 +153,8 @@ try {
         const offsets = visitPattern(c.kind);
         const firstLocal = localVisitTime(offsets[0]);
         const [row] = await tx`
-          insert into public.customers (venue_id, name, phone, text_consent, consent_timestamp, consent_text, created_at)
-          values (${v.id}, ${c.name}, ${c.phone}, ${c.consent},
+          insert into public.customers (venue_id, name, phone, is_seed, text_consent, consent_timestamp, consent_text, created_at)
+          values (${v.id}, ${c.name}, ${c.phone}, true, ${c.consent},
             ${c.consent ? tx`timezone(${v.timezone}::text, (${firstLocal}::text)::timestamp)` : null},
             ${c.consent ? consentText : null},
             timezone(${v.timezone}::text, (${firstLocal}::text)::timestamp))

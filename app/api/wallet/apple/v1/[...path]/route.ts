@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { buildApplePass } from "@/lib/wallet/apple";
 import { appleConfig } from "@/lib/wallet/config";
-import { getPassData, markWalletPlatform } from "@/lib/wallet/data";
+import { getPassData, getVoidedPass, markWalletPlatform } from "@/lib/wallet/data";
 
 // Apple Wallet web service (developer.apple.com: "Wallet Passes > Updating a pass").
 //   POST   v1/devices/{device}/registrations/{passType}/{serial}   register for updates
@@ -21,8 +21,11 @@ async function authorized(request: NextRequest, serial: string) {
   const header = request.headers.get("authorization") ?? "";
   const token = header.replace(/^ApplePass\s+/i, "");
   if (!token) return false;
-  const { data } = await createAdminClient().from("customers").select("apple_auth_token").eq("pass_serial", serial).maybeSingle();
-  return Boolean(data && data.apple_auth_token === token);
+  const admin = createAdminClient();
+  const { data } = await admin.from("customers").select("apple_auth_token").eq("pass_serial", serial).maybeSingle();
+  if (data) return data.apple_auth_token === token;
+  const { data: voided } = await admin.from("voided_passes").select("apple_auth_token").eq("serial", serial).maybeSingle();
+  return Boolean(voided && voided.apple_auth_token === token);
 }
 
 export async function POST(request: NextRequest, { params }: Ctx) {
@@ -78,9 +81,16 @@ export async function GET(request: NextRequest, { params }: Ctx) {
     const serials = (regs ?? []).map((r) => r.serial_number as string);
     if (serials.length === 0) return new NextResponse(null, { status: 204 });
 
+    const sinceOk = since && !Number.isNaN(Date.parse(since));
     let query = admin.from("customers").select("pass_serial, pass_updated_at").in("pass_serial", serials);
-    if (since && !Number.isNaN(Date.parse(since))) query = query.gt("pass_updated_at", since);
-    const { data: changed } = await query;
+    if (sinceOk) query = query.gt("pass_updated_at", since);
+    let voidedQuery = admin.from("voided_passes").select("serial, voided_at").in("serial", serials);
+    if (sinceOk) voidedQuery = voidedQuery.gt("voided_at", since);
+    const [{ data: live }, { data: voided }] = await Promise.all([query, voidedQuery]);
+    const changed = [
+      ...(live ?? []),
+      ...(voided ?? []).map((v) => ({ pass_serial: v.serial, pass_updated_at: v.voided_at })),
+    ];
     if (!changed?.length) return new NextResponse(null, { status: 204 });
     // Microsecond UTC timestamp with "Z" (no "+"), so the tag survives being put in a URL.
     const lastUpdated = changed
@@ -95,7 +105,7 @@ export async function GET(request: NextRequest, { params }: Ctx) {
     const [, passType, serial] = path;
     if (passType !== cfg.passTypeId) return new NextResponse(null, { status: 404 });
     if (!(await authorized(request, serial))) return new NextResponse(null, { status: 401 });
-    const data = await getPassData(serial);
+    const data = (await getPassData(serial)) ?? (await getVoidedPass(serial));
     if (!data) return new NextResponse(null, { status: 404 });
 
     const modified = new Date(data.updated_at);
@@ -104,7 +114,7 @@ export async function GET(request: NextRequest, { params }: Ctx) {
     if (ifModifiedSince && Math.floor(modified.getTime() / 1000) <= Math.floor(Date.parse(ifModifiedSince) / 1000)) {
       return new NextResponse(null, { status: 304 });
     }
-    const pkpass = await buildApplePass(data);
+    const pkpass = await buildApplePass(data, { voided: "voided" in data });
     return new NextResponse(new Uint8Array(pkpass), {
       headers: {
         "Content-Type": "application/vnd.apple.pkpass",

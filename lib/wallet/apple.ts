@@ -97,7 +97,7 @@ async function passImages(d: PassData) {
 }
 
 /** Build and sign a .pkpass for one customer. Throws if Apple credentials aren't configured. */
-export async function buildApplePass(d: PassData): Promise<Buffer> {
+export async function buildApplePass(d: PassData, opts: { voided?: boolean } = {}): Promise<Buffer> {
   const cfg = appleConfig();
   if (!cfg) throw new Error("Apple Wallet is not configured");
   const v = d.venue;
@@ -122,6 +122,8 @@ export async function buildApplePass(d: PassData): Promise<Buffer> {
       // Apple calls these to register devices and fetch updated passes.
       webServiceURL: `${siteUrl()}/api/wallet/apple`,
       authenticationToken: d.apple_auth_token,
+      // Cleared demo guests: Wallet greys the card out and stops expecting updates.
+      ...(opts.voided ? { voided: true } : {}),
     },
   );
   pass.type = "storeCard";

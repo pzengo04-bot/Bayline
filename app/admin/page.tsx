@@ -11,6 +11,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createUserClient } from "@/lib/supabase/server";
 import { venueTypeLabel } from "@/lib/venues";
 import { CreateVenueForm } from "./CreateVenueForm";
+import { ClearDemoGuests } from "./ClearDemoGuests";
 import { InvitePersonForm } from "./InvitePersonForm";
 
 export default function AdminPage() {
@@ -24,11 +25,14 @@ export default function AdminPage() {
 async function Admin() {
   const access = await requireAdmin();
   const supabase = await createUserClient();
-  const [{ data: activity }, { data: members }, { data: users }] = await Promise.all([
+  const demoIds = access.venues.filter((v) => v.is_demo).map((v) => v.id);
+  const [{ data: activity }, { data: members }, { data: users }, { data: guests }] = await Promise.all([
     supabase.rpc("venue_activity"),
     supabase.from("venue_members").select("venue_id, user_id, role"),
     createAdminClient().auth.admin.listUsers({ perPage: 1000 }),
+    supabase.from("customers").select("venue_id").in("venue_id", demoIds.length ? demoIds : ["00000000-0000-0000-0000-000000000000"]).eq("is_seed", false),
   ]);
+  const guestCount = (venueId: string) => (guests ?? []).filter((g) => g.venue_id === venueId).length;
   const stats = new Map((activity ?? []).map((a: { venue_id: string }) => [a.venue_id, a]));
   const people = new Map((users?.users ?? []).map((u) => [u.id, u]));
 
@@ -84,6 +88,7 @@ async function Admin() {
                         </dd>
                       </div>
                     </dl>
+                    {v.is_demo && <ClearDemoGuests venueId={v.id} count={guestCount(v.id)} />}
                     <div className="mt-3 border-t border-line pt-3">
                       {team.length === 0 ? (
                         <p className="text-xs text-muted">No one invited yet.</p>

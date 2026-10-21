@@ -5,6 +5,7 @@ import { after } from "next/server";
 import { requireVenue } from "@/lib/auth";
 import { loadOfferContext, planOffer } from "@/lib/offers";
 import { OFFER_MAX, type OfferAudience } from "@/lib/offer-templates";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createUserClient } from "@/lib/supabase/server";
 import { deliverOffer } from "@/lib/wallet/offer-delivery";
 
@@ -62,12 +63,17 @@ export async function sendOffer(input: { audience: string; message: string }): P
 
   const rows = [
     ...plan.deliver.map((c) => ({ send_id: send.id, customer_id: c.id, venue_id: venue.id, status: "delivered", apple: c.apple, google: c.google })),
-    ...plan.cooldown.map((c) => ({ send_id: send.id, customer_id: c.id, venue_id: venue.id, status: "cooldown" })),
-    ...plan.noCard.map((c) => ({ send_id: send.id, customer_id: c.id, venue_id: venue.id, status: "no_card" })),
+    // Every row lists every column: a bulk insert fills missing ones with null, not their defaults.
+    ...plan.cooldown.map((c) => ({ send_id: send.id, customer_id: c.id, venue_id: venue.id, status: "cooldown", apple: false, google: false })),
+    ...plan.noCard.map((c) => ({ send_id: send.id, customer_id: c.id, venue_id: venue.id, status: "no_card", apple: false, google: false })),
   ];
   for (let i = 0; i < rows.length; i += 500) {
     const { error: e } = await supabase.from("offer_recipients").insert(rows.slice(i, i + 500));
-    if (e) return { ok: false, message: e.message };
+    if (e) {
+      // Don't leave a half-logged send behind.
+      await createAdminClient().from("offer_sends").delete().eq("id", send.id);
+      return { ok: false, message: "Couldn't send. Try again." };
+    }
   }
 
   after(() => deliverOffer(send.id));

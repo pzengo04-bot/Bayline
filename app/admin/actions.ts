@@ -7,6 +7,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createUserClient } from "@/lib/supabase/server";
 import { normalizePhone } from "@/lib/phone";
 import { parseRewardSettings, slugify, TIMEZONES, VENUE_TYPES } from "@/lib/venues";
+import { pushPassUpdates } from "@/lib/wallet/apns";
+import { appleConfig } from "@/lib/wallet/config";
+import { getPassData } from "@/lib/wallet/data";
+import { voidGoogleObject } from "@/lib/wallet/google";
 
 export type FormState = { status: "idle" | "ok" | "error"; message?: string };
 
@@ -110,4 +114,49 @@ export async function invitePerson(_prev: FormState, form: FormData): Promise<Fo
   } catch (e) {
     return { status: "error", message: (e as Error).message };
   }
+}
+
+/**
+ * After a pitch: remove real people who joined the demo card. Their passes are voided first (Apple
+ * keeps a final voided copy to fetch; Google cards go inactive), then their customer rows go.
+ */
+export async function clearDemoGuests(venueId: string): Promise<FormState> {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { data: venue } = await admin.from("venues").select("id, is_demo").eq("id", venueId).maybeSingle();
+  if (!venue?.is_demo) return { status: "error", message: "Only the demo venue has demo guests." };
+
+  const { data: guests } = await admin
+    .from("customers")
+    .select("id, pass_serial, apple_auth_token, wallet_platforms")
+    .eq("venue_id", venueId)
+    .eq("is_seed", false);
+  if (!guests?.length) return { status: "ok", message: "No demo guests to clear." };
+
+  for (const g of guests) {
+    const data = await getPassData(g.pass_serial as string);
+    if (data) {
+      await admin.from("voided_passes").upsert({
+        serial: g.pass_serial,
+        venue_id: venueId,
+        apple_auth_token: g.apple_auth_token,
+        pass_data: data,
+      });
+    }
+    if (((g.wallet_platforms as string[]) ?? []).includes("google")) await voidGoogleObject(g.pass_serial as string);
+  }
+  const { error } = await admin.from("customers").delete().in("id", guests.map((g) => g.id));
+  if (error) return { status: "error", message: error.message };
+
+  // Wake their iPhones so Wallet fetches the voided pass.
+  const cfg = appleConfig();
+  if (cfg) {
+    const { data: regs } = await admin
+      .from("apple_registrations")
+      .select("push_token")
+      .in("serial_number", guests.map((g) => g.pass_serial as string));
+    await pushPassUpdates((regs ?? []).map((r) => r.push_token as string));
+  }
+  revalidatePath("/admin");
+  return { status: "ok", message: `Cleared ${guests.length} demo guest${guests.length === 1 ? "" : "s"}. Their cards are now voided.` };
 }

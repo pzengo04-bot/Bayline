@@ -125,21 +125,29 @@ export function stripSvg(s: StripState, text: TextFn, scale = 1, width = STRIP_W
   if (p.reward_type === "points") {
     const pct = (v: number) => Math.max(0, Math.min(1, v / Math.max(1, p.points_needed)));
     const barX = marginX;
-    const barW = W - marginX * 2;
+    const markerR = 13;
+    const barW = W - marginX * 2 - markerR; // room for the reward marker at the end
     const barY = 70;
+    // Reward markers read in the accent color, or the text color if the accent is too faint.
+    const mark = contrastRatio(s.accent, s.bg) >= 2 ? s.accent : s.fg;
     body += text.draw(String(p.points), { x: barX, y: 54, size: 30, weight: 700, anchor: "start", fill: s.accent });
     const nw = text.width(String(p.points), 30, 700);
     body += text.draw(`of ${p.points_needed} pts`, { x: barX + nw + 6, y: 54, size: 15, weight: 600, anchor: "start", fill: s.fg, opacity: 0.7 });
     body += `<rect x="${barX}" y="${barY}" width="${barW}" height="12" rx="6" fill="${s.fg}" fill-opacity="0.18"/>`;
     body += `<rect x="${barX}" y="${barY}" width="${Math.max(12, barW * pct(p.points))}" height="12" rx="6" fill="${s.accent}"/>`;
-    if (m && m.at > 0 && m.at < p.points_needed) {
-      const gx = barX + barW * pct(m.at);
-      const reached = p.points >= m.at;
-      body += `<circle cx="${gx}" cy="${barY + 6}" r="13" fill="${reached ? s.accent : s.bg}" stroke="${reached ? s.bg : s.fg}" stroke-opacity="${reached ? 1 : 0.45}" stroke-width="2"/>`;
-      body += gift(gx, barY + 6, 15, reached ? onColor(s.accent, s.bg, s.fg) : s.fg, reached ? s.accent : s.bg);
-    }
+    const marker = (at: number) => {
+      const gx = barX + barW * pct(at);
+      const reached = p.points >= at;
+      return (
+        `<circle cx="${gx}" cy="${barY + 6}" r="${markerR}" fill="${reached ? s.accent : s.bg}" stroke="${reached ? s.bg : mark}" stroke-width="2"/>` +
+        gift(gx, barY + 6, 15, reached ? onColor(s.accent, s.bg, s.fg) : mark, reached ? s.accent : s.bg)
+      );
+    };
+    if (m && m.at > 0 && m.at < p.points_needed) body += marker(m.at);
+    body += marker(p.points_needed);
   } else {
     const n = Math.max(2, Math.min(p.stamps_needed, 20));
+    const mark = contrastRatio(s.accent, s.bg) >= 2 ? s.accent : s.fg;
     const rows = n > 6 ? 2 : 1;
     const perRow = Math.ceil(n / rows);
     const zoneTop = 18;
@@ -162,14 +170,17 @@ export function stripSvg(s: StripState, text: TextFn, scale = 1, width = STRIP_W
       const cx = (W - rowW) / 2 + col * (size + gap) + r;
       const cy = y0 + row * (size + rowGap) + r;
       const earned = i < p.stamps;
-      const isMilestone = m && m.at === i + 1 && m.at < p.stamps_needed;
+      // Reward stamps (the milestone and the last one) carry a present.
+      const isReward = i === n - 1 || (m && m.at === i + 1 && m.at < p.stamps_needed);
       if (earned) {
         const ink = onColor(s.accent, s.bg, s.fg);
         body += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${s.accent}"/>`;
-        body += isMilestone ? gift(cx, cy, size * 0.56, ink, s.accent) : check(cx, cy, r, ink);
+        body += isReward ? gift(cx, cy, size * 0.56, ink, s.accent) : check(cx, cy, r, ink);
+      } else if (isReward) {
+        body += `<circle cx="${cx}" cy="${cy}" r="${r - stroke / 2}" fill="none" stroke="${mark}" stroke-width="${stroke}"/>`;
+        body += gift(cx, cy, size * 0.52, mark, s.bg);
       } else {
         body += `<circle cx="${cx}" cy="${cy}" r="${r - stroke / 2}" fill="none" stroke="${s.fg}" stroke-opacity="0.45" stroke-width="${stroke}"/>`;
-        if (isMilestone) body += `<g opacity="0.8">${gift(cx, cy, size * 0.52, s.fg, s.bg)}</g>`;
       }
     }
   }

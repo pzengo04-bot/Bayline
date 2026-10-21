@@ -39,10 +39,12 @@ Rewards and wallet cards for walk-in venues (golf sims, pickleball, cages). Live
 
 ## Wallet cards (v3)
 
-- Apple storeCard front: logo + logo text only (no header fields), strip image, then REWARD and OFFER
-  (OFFER only while an offer is active), Code 128 barcode of the member number. Everything else is
+- Apple storeCard front: logo (drawn 30pt tall, centered in a 50pt canvas so it lines up with the
+  logo text) + logo text, the member's first name top right, strip image, then REWARD and OFFER
+  (OFFER only while an offer is active), and a QR of the 8-digit member number. Everything else is
   in Pass Details (`backSections` in `lib/wallet/pass-content.ts`).
-- The strip (`lib/wallet/strip.ts`) is the design canvas: stamps (two rows above 6), the milestone gift,
+- The strip (`lib/wallet/strip.ts`) is the design canvas: stamps (two rows above 6), a gift on the
+  milestone stamp and on the last stamp (points: gift markers on the bar),
   and one line: progress, the offer banner, or "… ready! Show staff". Text is drawn as Inter outlines
   (`lib/wallet/strip-font.ts`, fonts in `lib/wallet/fonts`) because the server has no fonts. Google's
   hero image and the Card tab previews (`/api/wallet/image/preview`) use the same renderer.

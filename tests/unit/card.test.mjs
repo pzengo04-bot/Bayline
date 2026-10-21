@@ -1,10 +1,9 @@
-// Card v3 wording and rules: milestone position, the strip's one line, offer short text, barcode.
+// Card v3 wording and rules: milestone position, the strip's one line, offer short text.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { milestoneAt } from "../../lib/rewards.ts";
 import { stripLine, withArticle } from "../../lib/wallet/strip.ts";
 import { cardFront, offerShort, rewardsSummary } from "../../lib/wallet/pass-content.ts";
-import { code128c } from "../../lib/wallet/code128.ts";
 
 const stamps = (n, extra = {}) => ({ reward_type: "stamps", reward_text: "free bay hour", stamps: n, stamps_needed: 10, points: 0, points_needed: 0, ...extra });
 
@@ -55,8 +54,3 @@ test("offer short text: the venue's line, else the first sentence, max 40 charac
   assert.ok(long.length <= 40 && long.endsWith("…"), long);
 });
 
-test("Code 128 barcode for the member number", () => {
-  const bars = code128c("74985092");
-  // start + 4 digit pairs + checksum = 6 symbols of 11 modules, plus a 13-module stop.
-  assert.equal(bars.reduce((a, b) => a + b, 0), 6 * 11 + 13);
-});

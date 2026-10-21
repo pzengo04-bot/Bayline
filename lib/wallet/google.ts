@@ -84,7 +84,7 @@ export function loyaltyObject(cfg: Cfg, d: PassData) {
       balance: { string: progressValue(p) },
     },
     secondaryLoyaltyPoints: { label: "Reward", balance: { string: cardFront(v, p).fields[0].value } },
-    barcode: { type: "CODE_128", value: memberDigits(d.serial), alternateText: `Member ${member}` },
+    barcode: { type: "QR_CODE", value: memberDigits(d.serial), alternateText: `Member ${member}` },
     heroImage: {
       sourceUri: {
         uri: `${siteUrl()}/api/wallet/image/strip?serial=${d.serial}&d=3&v=${encodeURIComponent(d.updated_at)}`,

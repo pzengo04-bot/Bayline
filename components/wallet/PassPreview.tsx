@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Progress } from "@/lib/rewards";
-import { code128c } from "@/lib/wallet/code128";
+import QRCode from "qrcode";
 import { backSections, cardFront, memberDigits, memberNumber, offerShort, progressValue, type PassOffer, type PassVenue } from "@/lib/wallet/pass-content";
 
 export type PassLook = {
@@ -21,18 +21,18 @@ export type PassLook = {
 
 const SAMPLE_SERIAL = "5028d3c8-1004-4451-80d5-360c7f24f151";
 
-/** The member barcode (Code 128 of the member number), as the real pass shows it. */
-function Barcode({ height = 46 }: { height?: number }) {
-  const bars = code128c(memberDigits(SAMPLE_SERIAL));
-  const total = bars.reduce((a, b) => a + b, 0);
-  const starts = bars.map((_, i) => bars.slice(0, i).reduce((a, b) => a + b, 0));
-  const rects = bars.map((w, i) => (i % 2 === 0 ? <rect key={i} x={starts[i]} y={0} width={w} height={height} /> : null));
+/** The member QR code (the member number), small and square like the real pass. */
+function MemberQr({ size = 84 }: { size?: number }) {
+  const qr = QRCode.create(memberDigits(SAMPLE_SERIAL), { errorCorrectionLevel: "M" });
+  const n = qr.modules.size;
+  const rects = [];
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (qr.modules.get(y, x)) rects.push(<rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" />);
   return (
-    <div className="rounded-md bg-white px-3 pb-1 pt-2.5 text-center">
-      <svg width={total * 1.25} height={height * 0.8} viewBox={`0 0 ${total} ${height}`} preserveAspectRatio="none" aria-hidden="true" className="mx-auto block">
+    <div className="rounded-md bg-white px-2 pb-1 pt-2 text-center">
+      <svg width={size} height={size} viewBox={`-1 -1 ${n + 2} ${n + 2}`} aria-hidden="true" className="mx-auto block" shapeRendering="crispEdges">
         <g fill="#000">{rects}</g>
       </svg>
-      <p className="mt-0.5 text-[10px] font-medium text-black/75">Member {memberNumber(SAMPLE_SERIAL)}</p>
+      <p className="mt-0.5 text-[9px] font-medium text-black/75">Member {memberNumber(SAMPLE_SERIAL)}</p>
     </div>
   );
 }
@@ -98,12 +98,16 @@ export function ApplePassPreview({ look, side = "front" }: { look: PassLook; sid
   const fields = cardFront(look.venue, look.progress, look.offer ? { short: offerShort(look.offer) } : null).fields;
   return (
     <div className="w-full max-w-[320px] overflow-hidden rounded-[14px] shadow-[0_12px_30px_-12px_rgba(0,0,0,0.45)]" style={{ background: look.bg, color: look.fg }}>
-      <div className="flex h-12 items-center gap-1.5 px-3">
+      <div className="flex h-12 items-center gap-2 px-3">
         {look.logoUrl && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={look.logoUrl} alt="" className="h-7 max-w-[7rem] object-contain" />
+          <img src={look.logoUrl} alt="" className="h-[26px] max-w-[7rem] shrink-0 object-contain" />
         )}
-        {logoText && <span className="truncate text-[16px] font-semibold">{logoText}</span>}
+        {logoText && <span className="min-w-0 flex-1 truncate text-[16px] font-semibold">{logoText}</span>}
+        <div className="ml-auto shrink-0 text-right leading-tight">
+          <p className="text-[9px] font-semibold uppercase tracking-wide opacity-70">Member</p>
+          <p className="text-[14px]">{look.firstName}</p>
+        </div>
       </div>
       <Strip look={look} />
       <div className="flex gap-3 px-3 pt-2.5">
@@ -115,7 +119,7 @@ export function ApplePassPreview({ look, side = "front" }: { look: PassLook; sid
         ))}
       </div>
       <div className="flex justify-center px-3 pb-4 pt-4">
-        <Barcode />
+        <MemberQr />
       </div>
     </div>
   );
@@ -152,6 +156,7 @@ export function GooglePassPreview({ look, side = "front" }: { look: PassLook; si
         <span className="truncate text-sm font-medium">{look.venueName}</span>
       </div>
       <p className="px-4 pt-3 text-[22px] font-normal leading-tight">{look.venueName} Rewards</p>
+      <p className="px-4 pt-0.5 text-xs opacity-75">{look.firstName}</p>
       <div className="grid grid-cols-2 gap-2 px-4 pt-3">
         <div>
           <p className="text-[11px] opacity-75">{p.reward_type === "stamps" ? "Visits" : "Points"}</p>
@@ -163,7 +168,7 @@ export function GooglePassPreview({ look, side = "front" }: { look: PassLook; si
         </div>
       </div>
       <div className="flex justify-center px-4 pb-4 pt-4">
-        <Barcode />
+        <MemberQr />
       </div>
       <Strip look={look} google />
     </div>

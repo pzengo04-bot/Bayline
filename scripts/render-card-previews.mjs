@@ -6,7 +6,7 @@ import sharp from "sharp";
 import { stripSvg, STRIP_W, STRIP_H } from "../lib/wallet/strip.ts";
 import { outlineText } from "../lib/wallet/strip-font.ts";
 import { cardFront } from "../lib/wallet/pass-content.ts";
-import { code128c } from "../lib/wallet/code128.ts";
+import QRCode from "qrcode";
 
 const out = process.argv[2] ?? "card-previews";
 mkdirSync(out, { recursive: true });
@@ -36,14 +36,17 @@ for (const [name, v, base, milestone, offerShort] of states) {
   const t = (s, o) => outlineText.draw(s, o);
   const headerH = 56;
   const fieldsY = headerH + STRIP_H;
-  const barcodeY = fieldsY + 60;
-  const H = barcodeY + 112;
+  const barcodeY = fieldsY + 62;
+  const qrSize = 92;
+  const H = barcodeY + qrSize + 40;
 
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W * S}" height="${H * S}" viewBox="0 0 ${W} ${H}">
 <rect width="${W}" height="${H}" rx="14" fill="${v.bg}"/>`;
-  // Header: logo + logo text only.
-  const logoX = v.logo ? 16 + 34 + 8 : 16;
-  svg += t(v.logoText, { x: logoX, y: 35, size: 18, weight: 600, anchor: "start", fill: v.fg });
+  // Header: logo (30pt, centered in the 50pt row) + logo text, member name top right.
+  const logoX = v.logo ? 16 + 30 + 8 : 16;
+  svg += t(v.logoText, { x: logoX, y: 34, size: 18, weight: 600, anchor: "start", fill: v.fg });
+  svg += t("MEMBER", { x: W - 16, y: 22, size: 9, weight: 600, anchor: "end", fill: v.fg, opacity: 0.7 });
+  svg += t("Mia", { x: W - 16, y: 39, size: 15, weight: 600, anchor: "end", fill: v.fg });
   // Field row.
   front.fields.forEach((f, i) => {
     const x = i === 0 ? 16 : W - 16;
@@ -51,24 +54,20 @@ for (const [name, v, base, milestone, offerShort] of states) {
     svg += t(f.label, { x, y: fieldsY + 22, size: 10, weight: 600, anchor, fill: v.fg, opacity: 0.7 });
     svg += t(f.value, { x, y: fieldsY + 42, size: 15, weight: 600, anchor, fill: v.fg, maxWidth: front.fields.length === 1 ? W - 32 : W / 2 - 24 });
   });
-  // Barcode: Code 128 of the member number, with altText under it.
-  const bars = code128c("74985092");
-  const modules = bars.reduce((a, b) => a + b, 0);
-  const mod = 1.5;
-  const bw = modules * mod;
-  const bx = (W - bw) / 2;
-  svg += `<rect x="${bx - 14}" y="${barcodeY}" width="${bw + 28}" height="86" rx="6" fill="#fff"/>`;
-  let x = bx;
-  bars.forEach((w, i) => {
-    if (i % 2 === 0) svg += `<rect x="${x}" y="${barcodeY + 10}" width="${w * mod}" height="50" fill="#000"/>`;
-    x += w * mod;
-  });
-  svg += t("Member 7498 5092", { x: W / 2, y: barcodeY + 77, size: 11, weight: 600, anchor: "middle", fill: "#000", opacity: 0.8 });
+  // Barcode: a small square QR of the member number, with altText under it.
+  const qr = QRCode.create("74985092", { errorCorrectionLevel: "M" }).modules;
+  const cell = qrSize / qr.size;
+  const qx = (W - qrSize) / 2;
+  svg += `<rect x="${qx - 8}" y="${barcodeY}" width="${qrSize + 16}" height="${qrSize + 30}" rx="6" fill="#fff"/>`;
+  for (let y = 0; y < qr.size; y++) for (let x = 0; x < qr.size; x++) {
+    if (qr.get(y, x)) svg += `<rect x="${qx + x * cell}" y="${barcodeY + 8 + y * cell}" width="${cell + 0.05}" height="${cell + 0.05}" fill="#000"/>`;
+  }
+  svg += t("Member 7498 5092", { x: W / 2, y: barcodeY + qrSize + 22, size: 10, weight: 600, anchor: "middle", fill: "#000", opacity: 0.8 });
   svg += `</svg>`;
 
   const strip = await sharp(Buffer.from(stripSvg({ progress, offerShort, bg: v.bg, fg: v.fg, accent: v.accent }, outlineText, S))).png().toBuffer();
   const layers = [{ input: strip, top: headerH * S, left: 0 }];
-  if (v.logo) layers.push({ input: await sharp(v.logo, { density: 600 }).resize(34 * S, 34 * S, { fit: "inside" }).png().toBuffer(), top: 11 * S, left: 16 * S });
+  if (v.logo) layers.push({ input: await sharp(v.logo, { density: 600 }).resize(160 * S, 30 * S, { fit: "inside" }).png().toBuffer(), top: 14 * S, left: 16 * S });
   await sharp(Buffer.from(svg)).composite(layers).png().toFile(path.join(out, `${name}.png`));
   console.log("wrote", path.join(out, `${name}.png`));
 }

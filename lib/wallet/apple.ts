@@ -59,6 +59,25 @@ export function initialsSvg(name: string, bg: string, fg: string, size: number, 
   );
 }
 
+/**
+ * Apple's logo slot is up to 160×50 points and pins the image to the top-left, while the logo text
+ * sits centered in that 50pt row. Drawing the logo 30pt tall, centered on a full-height canvas, keeps
+ * it level with the text and gives it the same breathing room above as on the left.
+ */
+async function paddedLogo(logo: Buffer, scale: number) {
+  const art = await sharp(logo)
+    .resize(160 * scale, LOGO_ART_PT * scale, { fit: "inside", kernel: "lanczos3" })
+    .png()
+    .toBuffer({ resolveWithObject: true });
+  const h = 50 * scale;
+  return sharp({ create: { width: art.info.width, height: h, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+    .composite([{ input: art.data, top: Math.round((h - art.info.height) / 2), left: 0 }])
+    .png({ compressionLevel: 9 })
+    .toBuffer();
+}
+
+const LOGO_ART_PT = 30;
+
 /** What the strip image shows for this customer (shared with Google's hero image). */
 export function stripState(d: PassData) {
   return {
@@ -85,13 +104,7 @@ async function passImages(d: PassData) {
           .toBuffer()
       : await sharp(initialsSvg(v.name, v.card_bg, v.card_fg, icon)).png().toBuffer();
 
-    if (logo) {
-      // Apple's logo area is up to 160×50 points; render each density from the full-size source.
-      files[`logo${suffix}.png`] = await sharp(logo)
-        .resize(160 * scale, 50 * scale, { fit: "inside", kernel: "lanczos3" })
-        .png({ compressionLevel: 9 })
-        .toBuffer();
-    }
+    if (logo) files[`logo${suffix}.png`] = await paddedLogo(logo, scale);
 
     files[`strip${suffix}.png`] = await sharp(Buffer.from(stripSvg(stripState(d), outlineText, scale)))
       .resize(STRIP_W * scale, STRIP_H * scale)
@@ -134,9 +147,11 @@ export async function buildApplePass(d: PassData, opts: { voided?: boolean } = {
   );
   pass.type = "storeCard";
 
-  // Front: no header fields (the strip image shows progress and the offer banner), then REWARD and,
+  // Front: the strip image shows progress and the offer banner, then REWARD and,
   // while an offer is active, OFFER. REWARD alerts only when a reward becomes ready; the offer alert
   // rides on the back's offer field, which is always present (iPhone ignores fields that newly appear).
+  // Top right: the member's first name, small (no alert when it changes).
+  pass.headerFields.push({ key: "member_name", label: "MEMBER", value: d.first_name, textAlignment: "PKTextAlignmentRight" });
   const front = cardFront(v, p, d.offer ? { short: offerShort(d.offer) } : null);
   for (const f of front.fields) {
     const ready = f.key === "reward" && /ready!/i.test(f.value);
@@ -159,10 +174,10 @@ export async function buildApplePass(d: PassData, opts: { voided?: boolean } = {
       ...(section.key === "offer" && d.offer ? { changeMessage: "%@" } : {}),
     });
   }
-  // Slim Code 128 of the member number (staff find customers by phone; nothing needs the long card ID).
+  // A small square QR of the member number (8 digits keeps it the simplest, sparsest QR).
   pass.setBarcodes({
     message: memberDigits(d.serial),
-    format: "PKBarcodeFormatCode128",
+    format: "PKBarcodeFormatQR",
     messageEncoding: "iso-8859-1",
     altText: `Member ${member.number}`,
   });

@@ -55,14 +55,14 @@ test("dashboard stats, heatmap and staff desk respect venue boundaries", async (
   r = await as(db, "authenticated", b.id, `select add_visit($1, '+19145550002', 15) as j`, [vb.id]);
   assert.equal(r.rows[0].j.progress.points, 110);
   const dana = r.rows[0].j.customer_id;
-  r = await as(db, "authenticated", b.id, `select redeem_points_reward($1) as j`, [dana]);
+  r = await as(db, "authenticated", b.id, `select redeem_reward($1) as j`, [dana]);
   assert.equal(r.rows[0].j.points, 10, "redeeming spends 100 points");
-  assert.ok(await fails("authenticated", b.id, `select redeem_points_reward($1)`, [dana]), "can't redeem without enough points");
+  assert.ok(await fails("authenticated", b.id, `select redeem_reward($1)`, [dana]), "can't redeem without enough points");
 
   // Cross-venue attempts.
   assert.ok(await fails("authenticated", a.id, `select add_visit($1, '+19145550003', 10, 'X')`, [vb.id]), "A can't add visits at B");
   assert.ok(await fails("authenticated", a.id, `select lookup_customer($1, '+19145550002')`, [vb.id]), "A can't look up B customers");
-  assert.ok(await fails("authenticated", a.id, `select redeem_points_reward($1)`, [dana]), "A can't redeem at B");
+  assert.ok(await fails("authenticated", a.id, `select redeem_reward($1)`, [dana]), "A can't redeem at B");
   r = await as(db, "authenticated", a.id, `select * from customer_stats where venue_id = $1`, [vb.id]);
   assert.equal(r.rows.length, 0, "A sees no B stats");
   r = await as(db, "authenticated", a.id, `select * from visit_heatmap($1)`, [vb.id]);

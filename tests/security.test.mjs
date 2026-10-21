@@ -39,6 +39,8 @@ async function venueWithOwner(label) {
     ])
     .throwOnError();
 
+  await admin.from("taps").insert({ venue_id: venue.id, source: "nfc", result: "need_details" }).throwOnError();
+
   // Sign in without email: generate a magic-link token and redeem it.
   const { data: link, error: le } = await admin.auth.admin.generateLink({ type: "magiclink", email });
   if (le) throw le;
@@ -70,7 +72,7 @@ describe("venue data stays separate", () => {
   });
 
   test("owner of venue A cannot see venue B's customers, even by asking directly", async () => {
-    const { data, error } = await A.client.from("customers").select("*").eq("venue_id", B.venue.id);
+    const { data, error } = await A.client.from("customers").select("id, name").eq("venue_id", B.venue.id);
     assert.ifError(error);
     assert.deepEqual(data, []);
   });
@@ -90,9 +92,22 @@ describe("venue data stays separate", () => {
     assert.deepEqual(data, []);
   });
 
+  test("owner of venue A cannot see venue B's tap log", async () => {
+    const { data, error } = await A.client.from("taps").select("venue_id");
+    assert.ifError(error);
+    assert.ok(data.length > 0 && data.every((t) => t.venue_id === A.venue.id));
+  });
+
+  test("owners cannot read the tokens that identify a customer's phone or pass", async () => {
+    const { error: e1 } = await A.client.from("customers").select("return_token");
+    const { error: e2 } = await A.client.from("customers").select("apple_auth_token");
+    const { error: e3 } = await A.client.from("apple_registrations").select("push_token");
+    assert.ok(e1 && e2 && e3);
+  });
+
   test("anonymous visitors cannot read customers at all", async () => {
     const anon = createClient(URL, PUBLISHABLE, opts);
-    const { data, error } = await anon.from("customers").select("*");
+    const { data, error } = await anon.from("customers").select("id, name");
     assert.ok(error || data.length === 0);
   });
 });

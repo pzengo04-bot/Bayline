@@ -25,6 +25,10 @@ export type Venue = RewardSettings & {
   points_per_visit: number;
   stamps_per_day: number | null;
   pass_message: string | null;
+  is_demo: boolean;
+  open_hour: number | null;
+  close_hour: number | null;
+  offer_cooldown_days: number;
 };
 
 export type Access = {

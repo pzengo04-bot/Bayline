@@ -12,7 +12,8 @@ export async function AppHeader() {
 
   const items: NavItem[] = venue
     ? [
-        { href: "/dashboard", label: "Dashboard" },
+        { href: "/dashboard", label: "Home" },
+        { href: "/dashboard/customers", label: "Customers" },
         { href: "/dashboard/add-visit", label: "Add visit" },
         { href: "/dashboard/messages", label: "Messages" },
         ...(canEditRewards ? [{ href: "/dashboard/card", label: "Card" }] : []),

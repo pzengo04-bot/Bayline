@@ -2,7 +2,9 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { markOptedOut } from "@/app/dashboard/actions";
+import { LabelChip } from "@/components/app/LabelChip";
 import { Section } from "@/components/dashboard/Section";
+import { LABELS, type Label } from "@/lib/labels";
 import { formatDaysAgo, formatMoney } from "@/lib/format";
 import { formatPhone } from "@/lib/phone";
 import { progressText, type Progress } from "@/lib/rewards";
@@ -16,14 +18,22 @@ export type CustomerRow = {
   daysSinceLastVisit: number | null;
   progress: Progress;
   textConsent: boolean;
+  label: Label;
 };
 
 const PAGE = 25;
 
 /** Searchable list of every customer with visits, last visit, reward progress and text consent. */
-export function CustomersTable({ customers: initial, showSpend }: { customers: CustomerRow[]; showSpend: boolean }) {
+type Props = { customers: CustomerRow[]; showSpend: boolean; initialLabel?: string };
+
+const FILTERS: Label[] = ["slipping", "vip", "regular", "new", "occasional", "lapsed", "demo_guest"];
+
+export function CustomersTable({ customers: initial, showSpend, initialLabel }: Props) {
   const [customers, setCustomers] = useState(initial);
   const [query, setQuery] = useState("");
+  const [labelFilter, setLabelFilter] = useState<Label | null>(
+    FILTERS.includes(initialLabel as Label) ? (initialLabel as Label) : null,
+  );
   const [pending, start] = useTransition();
 
   const optOut = (c: CustomerRow) => {
@@ -38,9 +48,17 @@ export function CustomersTable({ customers: initial, showSpend }: { customers: C
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     const digits = q.replace(/\D/g, "");
-    if (!q) return customers;
-    return customers.filter((c) => c.name.toLowerCase().includes(q) || (digits.length >= 3 && c.phone.includes(digits)));
-  }, [customers, query]);
+    return customers.filter(
+      (c) =>
+        (!labelFilter || c.label === labelFilter) &&
+        (!q || c.name.toLowerCase().includes(q) || (digits.length >= 3 && c.phone.includes(digits))),
+    );
+  }, [customers, query, labelFilter]);
+  const counts = useMemo(() => {
+    const m = new Map<Label, number>();
+    customers.forEach((c) => m.set(c.label, (m.get(c.label) ?? 0) + 1));
+    return m;
+  }, [customers]);
 
   return (
     <Section
@@ -61,14 +79,35 @@ export function CustomersTable({ customers: initial, showSpend }: { customers: C
         placeholder="Search by name or phone"
         className="h-11 w-full rounded-xl border border-line bg-paper px-3 text-base focus:border-ink focus:outline-none"
       />
+      <div className="mt-3 flex flex-wrap gap-1.5" role="group" aria-label="Filter by label">
+        {FILTERS.filter((l) => counts.get(l)).map((l) => (
+          <button
+            key={l}
+            type="button"
+            aria-pressed={labelFilter === l}
+            onClick={() => {
+              setLabelFilter(labelFilter === l ? null : l);
+              setLimit(PAGE);
+            }}
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+              labelFilter === l ? "bg-ink text-white" : "bg-ink/[0.06] text-muted hover:text-ink"
+            }`}
+          >
+            {LABELS[l].name} · {counts.get(l)}
+          </button>
+        ))}
+      </div>
       {filtered.length === 0 ? (
-        <p className="mt-3 rounded-xl bg-paper p-4 text-sm text-muted">No customers match &ldquo;{query}&rdquo;.</p>
+        <p className="mt-3 rounded-xl bg-paper p-4 text-sm text-muted">No customers match{query ? <> &ldquo;{query}&rdquo;</> : " this filter"}.</p>
       ) : (
         <ul className="mt-3 divide-y divide-line/70 rounded-xl border border-line">
           {filtered.slice(0, limit).map((c) => (
             <li key={c.id} className="grid gap-1 px-3 py-3 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1.6fr)] sm:items-center sm:gap-4">
               <div className="min-w-0">
-                <p className="truncate font-medium">{c.name}</p>
+                <p className="flex items-center gap-2 font-medium">
+                  <span className="truncate">{c.name}</span>
+                  <LabelChip label={c.label} />
+                </p>
                 <p className="text-xs text-muted tabular-nums">{formatPhone(c.phone)}</p>
               </div>
               <p className="text-sm text-muted">

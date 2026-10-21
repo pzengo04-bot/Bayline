@@ -27,7 +27,9 @@ export default function CheckInPage({ params }: PageProps<"/v/[slug]">) {
 
 async function CheckIn({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { data } = await createAnonClient().rpc("get_checkin_venue", { p_slug: slug });
+  const { data, error } = await createAnonClient().rpc("get_checkin_venue", { p_slug: slug });
+  // A failed lookup is an outage, not a missing venue: surface it instead of showing "not found".
+  if (error) throw new Error(`Check-in venue lookup failed: ${error.code ?? ""} ${error.message}`);
   const venue = data as CheckInVenue | null;
   if (!venue) notFound();
 

@@ -162,13 +162,28 @@ try {
           visits.push({ customer_id: row.id, local, amount: amt, source: amt == null ? "qr" : pick(["staff", "staff", "qr"]) });
         });
       }
-      // Oldest first, so stamp rewards unlock in the right order.
+      // Oldest first. Staff redeem a full card a few minutes after the visit that fills it, so most
+      // regulars aren't sitting on unclaimed rewards.
       visits.sort((a, b) => (a.local < b.local ? -1 : 1));
+      const progress = new Map(); // customer -> stamps or points toward the next reward
       for (const vi of visits) {
-        await tx`
+        const [row] = await tx`
           insert into public.visits (venue_id, customer_id, visited_at, amount, source)
           values (${v.id}, ${vi.customer_id}, timezone(${v.timezone}::text, (${vi.local}::text)::timestamp),
-            ${vi.source === "staff" ? vi.amount : null}, ${vi.source})`;
+            ${vi.source === "staff" ? vi.amount : null}, ${vi.source})
+          returning visited_at, points`;
+        const isPoints = venue.reward_type === "points";
+        const have = (progress.get(vi.customer_id) ?? 0) + (isPoints ? row.points : 1);
+        const need = isPoints ? venue.points_needed : venue.stamps_needed;
+        if (have >= need && rand() < 0.85) {
+          await tx`
+            insert into public.rewards_redeemed (venue_id, customer_id, redeemed_at, reward_text, points_spent)
+            values (${v.id}, ${vi.customer_id}, ${row.visited_at}::timestamptz + interval '5 minutes',
+              ${venue.reward_text}, ${isPoints ? need : 0})`;
+          progress.set(vi.customer_id, isPoints ? have - need : 0);
+        } else {
+          progress.set(vi.customer_id, have);
+        }
       }
       if (venue.slug === "bayline-demo") {
         await tx`update public.venues set logo_url = ${await uploadDemoLogo(v.id)} where id = ${v.id}`;

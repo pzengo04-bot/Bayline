@@ -42,3 +42,13 @@ next-env.d.ts
 
 # keep the template committed
 !.env.example
+
+# wallet certificates and keys: never commit
+*.pem
+*.p12
+*.cer
+*.key
+*.csr
+*service-account*.json
+google-wallet*.json
+secrets/

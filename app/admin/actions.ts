@@ -5,6 +5,7 @@ import { requireAdmin } from "@/lib/auth";
 import { siteUrl } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createUserClient } from "@/lib/supabase/server";
+import { normalizePhone } from "@/lib/phone";
 import { parseRewardSettings, slugify, TIMEZONES, VENUE_TYPES } from "@/lib/venues";
 
 export type FormState = { status: "idle" | "ok" | "error"; message?: string };
@@ -50,6 +51,8 @@ export async function createVenue(_prev: FormState, form: FormData): Promise<For
   const type = String(form.get("type"));
   const timezone = String(form.get("timezone"));
   const ownerEmail = String(form.get("owner_email") ?? "").trim().toLowerCase();
+  const phoneRaw = String(form.get("owner_phone") ?? "").trim();
+  const phone = phoneRaw ? normalizePhone(phoneRaw) : null;
   const rewards = parseRewardSettings(form);
 
   if (!name || name.length > 80) return { status: "error", message: "Enter the venue name (80 characters max)." };
@@ -58,11 +61,21 @@ export async function createVenue(_prev: FormState, form: FormData): Promise<For
   if (!TIMEZONES.some((t) => t.value === timezone)) return { status: "error", message: "Pick a time zone." };
   if (!rewards.ok) return { status: "error", message: rewards.error };
   if (ownerEmail && !isEmail(ownerEmail)) return { status: "error", message: "Owner email doesn't look right." };
+  if (phoneRaw && !phone) return { status: "error", message: "Owner phone should be a 10-digit US number." };
+  const ppv = Number(form.get("points_per_visit"));
 
   const supabase = await createUserClient();
   const { data: venue, error } = await supabase
     .from("venues")
-    .insert({ name, slug, type, timezone, ...rewards.value })
+    .insert({
+      name,
+      slug,
+      type,
+      timezone,
+      phone,
+      ...rewards.value,
+      points_per_visit: Number.isInteger(ppv) && ppv >= 1 && ppv <= 10000 ? ppv : 10,
+    })
     .select("id")
     .single();
   if (error) {

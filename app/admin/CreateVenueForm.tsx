@@ -47,6 +47,7 @@ function VenueFields() {
     stamps_needed: 5,
     points_per_dollar: 1,
     points_needed: 500,
+    points_per_visit: 10,
     reward_text: "free bay hour",
   });
 
@@ -117,10 +118,16 @@ function VenueFields() {
 
       <RewardFields value={rewards} onChange={setRewards} />
 
-      <label className="block text-sm font-semibold">
-        Owner email <span className="font-normal text-muted">(they&apos;ll get an invite)</span>
-        <input name="owner_email" type="email" autoComplete="off" className={input} />
-      </label>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block text-sm font-semibold">
+          Owner email <span className="font-normal text-muted">(they&apos;ll get an invite)</span>
+          <input name="owner_email" type="email" autoComplete="off" className={input} />
+        </label>
+        <label className="block text-sm font-semibold">
+          Owner phone
+          <input name="owner_phone" type="tel" inputMode="tel" autoComplete="off" placeholder="(555) 555-5555" className={input} />
+        </label>
+      </div>
     </>
   );
 }

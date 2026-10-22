@@ -1,133 +1,124 @@
-import Link from "next/link";
-import { site } from "@/lib/site";
-import { Logo } from "@/components/ui/Logo";
+import Image from "next/image";
+import QRCode from "qrcode";
+import { DashboardPreview } from "@/components/landing/DashboardPreview";
+import { HeroPhone } from "@/components/landing/HeroPhone";
+import { RotatingLine } from "@/components/landing/RotatingLine";
+import { SiteFooter } from "@/components/site/SiteFooter";
+import { SiteHeader } from "@/components/site/SiteHeader";
+import { TrackLink } from "@/components/site/TrackLink";
 import { button, card } from "@/components/ui/styles";
-import { HeroVisual } from "@/components/landing/HeroVisual";
-import { VenueIcon } from "@/components/landing/VenueIcon";
+import { site } from "@/lib/site";
+import cafeCard from "@/public/marketing/cards/cafe-in-progress.png";
+import golfCard from "@/public/marketing/cards/golf-reward-ready.png";
+import barberCard from "@/public/marketing/cards/barber-in-progress.png";
 
-const venues = [
-  { icon: "golf", title: "Indoor golf & simulators", body: "Bays booked by the hour, peaks every evening." },
-  { icon: "paddle", title: "Pickleball & padel clubs", body: "Courts, open play and leagues." },
-  { icon: "bat", title: "Batting cages", body: "Cage rentals, lessons and team sessions." },
-  { icon: "clock", title: "Other time-slot venues", body: "If you sell time on a bay, court or lane, it fits." },
-] as const;
+const problems = [
+  { title: "You don't know who your regulars are", body: "Card payments and bookings don't tell you who comes every week and who came once." },
+  { title: "You don't notice when one stops coming", body: "A regular who drifts away just goes quiet. By the time you notice, they've found somewhere else." },
+  { title: "Punch cards get lost. Apps never get downloaded.", body: "Paper ends up in the wash, and nobody installs an app for a coffee or a haircut." },
+];
 
 const steps = [
   {
-    title: "Customers check in with their phone number",
-    body: "At the front desk or on their own phone. No app download, no plastic card.",
+    title: "Tap to join",
+    body: "Customers tap the stand at your counter (or scan the QR) and add your branded card to Apple or Google Wallet. No app, about 20 seconds.",
   },
   {
-    title: "They earn rewards for coming back",
-    body: "Simple and easy to explain, like 5 visits = a free bay hour. You set the rules.",
+    title: "Earn on every visit",
+    body: "Stamps that match your business (coffee cups, golf balls, scissors…), with optional halfway rewards and a head start for new members.",
   },
   {
-    title: "You see who's gone quiet and when bays sit empty",
-    body: "Then win customers back, or fill a slow Tuesday afternoon, with one tap.",
+    title: "Bring them back",
+    body: "Bayline spots regulars slipping away and slow hours, and sends offers straight to their lock screen with one tap.",
   },
 ];
 
 const benefits = [
-  {
-    title: "Know your regulars",
-    body: "See who comes most, what they spend, and when they usually play, without digging through booking exports.",
-  },
-  {
-    title: "Win back lapsed customers",
-    body: "Get a list of regulars who haven't been in for 3+ weeks and send them a personal offer in one tap.",
-  },
-  {
-    title: "Fill off-peak hours",
-    body: "A heatmap of every hour of the week shows exactly when bays sit empty, so you can promote those hours.",
-  },
-  {
-    title: "See the results in dollars",
-    body: "Every offer is tracked: who came back and how much they booked. No guessing whether it worked.",
-  },
+  { title: "Know your regulars", body: "Every customer labeled New, Regular, VIP or Slipping, based on how often they actually come in." },
+  { title: "Win back slipping regulars", body: "See who's away twice their usual time and send them an offer on their wallet card in one tap." },
+  { title: "Fill slow hours", body: "Find your quietest stretch of the week and invite your regulars in when you have room." },
+  { title: "The Monday Brief", body: "What happened last week and what to do this week, in plain language." },
+  { title: "Your brand on every card", body: "Your logo, your colors and your stamp icon, on every customer's phone." },
+  { title: "Front-desk arrivals", body: "See who just walked in and greet regulars by name.", soon: true },
 ];
 
-export default function Home() {
+const included = [
+  "Branded wallet card (Apple + Google)",
+  "NFC stand, yours to keep",
+  "Stamps or points",
+  "Custom stamp icons",
+  "Halfway rewards",
+  "Insights & the Monday Brief",
+  "Unlimited offers to wallet cards",
+];
+
+const faqs = [
+  { q: "Do customers need to download an app?", a: "No. They tap the stand or scan the QR code and add the card to Apple Wallet or Google Wallet, which are already on their phone." },
+  { q: "Does it work on Android?", a: "Yes. Android customers get the same card in Google Wallet." },
+  { q: "How long does setup take?", a: "About 10 minutes. We set it up with you: your logo, colors, reward and stand." },
+  { q: "Who owns the customer data?", a: "You do. We never sell it." },
+  { q: "Can customers turn off messages?", a: "Yes, anytime, right from the card in their wallet." },
+  { q: "What if I already use Square or a booking system?", a: "Bayline works alongside it. Integrations are coming." },
+];
+
+export default async function Home() {
+  const qr = await QRCode.toString(site.demoUrl, { type: "svg", margin: 1, color: { dark: "#0f1512", light: "#ffffff" } });
+
   return (
     <div className="flex flex-1 flex-col">
-      <header className="sticky top-0 z-20 border-b border-line/80 bg-paper/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-          <Link href="/" aria-label={`${site.name} home`}>
-            <Logo />
-          </Link>
-          <nav className="flex items-center gap-1 text-sm font-medium sm:gap-5">
-            <a href="#how-it-works" className="hidden text-muted hover:text-ink sm:inline">
-              How it works
-            </a>
-            <a href="#founding" className="hidden text-muted hover:text-ink sm:inline">
-              Founding offer
-            </a>
-            <Link href="/login" className="whitespace-nowrap px-2 text-muted hover:text-ink sm:px-0">
-              Venue login
-            </Link>
-            <Link href="/demo" className={button.small}>
-              Live demo
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <SiteHeader home />
 
       <main className="flex-1">
-        {/* Hero */}
-        <section className="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-10 sm:pt-16 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:pb-24">
+        {/* 1. Hero */}
+        <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-16 pt-10 sm:pt-16 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:pb-24">
           <div>
-            <p className="inline-flex items-center gap-2 rounded-full border border-ink/10 bg-white px-3 py-1 text-xs font-semibold text-muted">
-              <span className="size-1.5 rounded-full bg-accent-strong" />
-              For indoor golf & sports venues
-            </p>
-            <h1 className="mt-5 font-display text-[3.4rem] font-extrabold uppercase leading-[0.9] tracking-tight sm:text-7xl lg:text-[5.5rem]">
-              Fill your{" "}
+            <h1 className="font-display text-[3.4rem] font-extrabold uppercase leading-[0.9] tracking-tight sm:text-7xl lg:text-[5.5rem]">
+              Turn <span className="whitespace-nowrap">first-timers</span> into{" "}
               <span className="relative whitespace-nowrap">
                 <span className="absolute inset-x-[-0.08em] bottom-[0.06em] top-[0.52em] -z-10 bg-accent" />
-                empty bays.
+                regulars.
               </span>
-              <br />
-              Bring back your regulars.
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
-              {site.name} gives indoor golf and sports venues a simple rewards program customers join with their phone
-              number, plus a dashboard that shows who&apos;s drifting away and which hours sit empty.
+            <RotatingLine />
+            <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted">
+              A rewards card your customers tap to join, no app needed, and a weekly brief that tells you who&apos;s slipping away and
+              brings them back in one tap.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/demo" className={`${button.primary} h-12 px-6 text-base`}>
-                See the live demo <span aria-hidden="true">→</span>
-              </Link>
-              <a href={site.callUrl} className={`${button.secondary} h-12 px-6 text-base`}>
+              <TrackLink event="try_it_click" href="#try-it" className={`${button.primary} h-12 px-6 text-base`}>
+                Try it on your phone <span aria-hidden="true">→</span>
+              </TrackLink>
+              <TrackLink event="book_call_click" href={site.callUrl} className={`${button.secondary} h-12 px-6 text-base`}>
                 Book a 15-min call
-              </a>
+              </TrackLink>
             </div>
           </div>
-          <HeroVisual />
+          <HeroPhone />
         </section>
 
-        {/* Who it's for */}
+        {/* 2. The problem */}
         <section className="border-y border-line bg-white">
           <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
-            <SectionHeading eyebrow="Who it's for" title="Built for venues that sell time" />
-            <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {venues.map((v) => (
-                <div key={v.title} className="rounded-2xl border border-line bg-paper p-5">
-                  <VenueIcon name={v.icon} />
-                  <h3 className="mt-4 font-semibold">{v.title}</h3>
-                  <p className="mt-1 text-sm text-muted">{v.body}</p>
+            <SectionHeading eyebrow="The problem" title="Most businesses never hear from a first-time customer again." />
+            <div className="mt-10 grid gap-3 md:grid-cols-3">
+              {problems.map((p) => (
+                <div key={p.title} className="rounded-2xl border border-line bg-paper p-5 sm:p-6">
+                  <h3 className="text-lg font-semibold leading-snug">{p.title}</h3>
+                  <p className="mt-2 text-muted">{p.body}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* How it works */}
+        {/* 3. How it works */}
         <section id="how-it-works" className="scroll-mt-16">
           <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
             <SectionHeading eyebrow="How it works" title="Three steps. Nothing to install." />
             <ol className="mt-10 grid gap-3 lg:grid-cols-3">
               {steps.map((s, i) => (
                 <li key={s.title} className={`${card} flex gap-4 p-5 sm:p-6 lg:block`}>
-                  <span className="font-display text-5xl font-extrabold leading-none text-ink/15 lg:text-7xl">
+                  <span className="w-12 shrink-0 font-display text-5xl font-extrabold leading-none text-ink/50 lg:w-auto lg:text-7xl" aria-hidden="true">
                     0{i + 1}
                   </span>
                   <div>
@@ -140,89 +131,153 @@ export default function Home() {
           </div>
         </section>
 
-        {/* What owners get */}
+        {/* 4. What owners get */}
         <section className="bg-ink text-white">
           <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
-            <SectionHeading eyebrow="What owners get" title="Answers you can act on this week" inverted />
-            <div className="mt-10 grid gap-3 sm:grid-cols-2">
+            <SectionHeading eyebrow="What owners get" title="Know who's slipping. Bring them back." inverted />
+            <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {benefits.map((b) => (
                 <div key={b.title} className="rounded-2xl border border-white/10 bg-white/[0.04] p-6">
-                  <div className="flex items-center gap-3">
-                    <span className="h-5 w-1.5 rounded-full bg-accent" />
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="h-5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
                     <h3 className="font-display text-2xl font-bold uppercase tracking-wide">{b.title}</h3>
+                    {b.soon && <span className="rounded-full border border-white/25 px-2 py-0.5 text-xs font-semibold text-white/80">Coming soon</span>}
                   </div>
                   <p className="mt-3 text-white/70">{b.body}</p>
                 </div>
               ))}
             </div>
-            <div className="mt-10">
-              <Link href="/demo" className={`${button.accent} h-12 px-6 text-base`}>
-                Click through the demo <span aria-hidden="true">→</span>
-              </Link>
+          </div>
+        </section>
+
+        {/* 5. The card */}
+        <section className="scroll-mt-16">
+          <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
+            <SectionHeading eyebrow="The card" title="One card. Built around your business." />
+            {/* A swipeable row on phones, three across from tablet up. */}
+            <div className="-mx-4 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible sm:px-0">
+              {(
+                [
+                  [cafeCard, "Café", "A Corner Coffee card filling up with coffee cups, a gift on the halfway reward and a trophy on the last stamp."],
+                  [golfCard, "Indoor golf", "A Back Nine Golf card with every golf-ball stamp filled and a banner reading Free bay hour ready! Show staff."],
+                  [barberCard, "Barbershop", "A Sharp & Co. card with scissors stamps, two of six filled."],
+                ] as const
+              ).map(([src, label, alt]) => (
+                <figure key={label} className="w-[78%] shrink-0 snap-center sm:w-auto">
+                  <Image src={src} alt={alt} sizes="(min-width: 640px) 33vw, 100vw" className="h-auto w-full rounded-[14px] shadow-[0_18px_40px_-20px_rgba(15,21,18,0.45)]" />
+                  <figcaption className="mt-3 text-center text-sm font-semibold text-muted">{label}</figcaption>
+                </figure>
+              ))}
+            </div>
+            <ul className="mt-10 flex flex-wrap justify-center gap-2">
+              {["Your logo and colors", "Stamps that match your business", "Optional halfway reward", "Offers on the lock screen", "Works on iPhone and Android"].map((c) => (
+                <li key={c} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-medium">
+                  {c}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* 6. Try it on your phone */}
+        <section id="try-it" className="scroll-mt-16 border-y border-line bg-white">
+          <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] lg:items-center">
+            <div>
+              <SectionHeading eyebrow="Try it on your phone" title="Add a real Bayline card to your wallet." />
+              <div className="mt-8 hidden items-center gap-6 md:flex">
+                <div
+                  className="size-44 shrink-0 rounded-2xl border border-line bg-white p-2 [&>svg]:h-full [&>svg]:w-full"
+                  role="img"
+                  aria-label={`QR code linking to ${site.demoUrl}`}
+                  dangerouslySetInnerHTML={{ __html: qr }}
+                />
+                <p className="text-lg text-muted">Scan with your phone to add a real Bayline card to your wallet.</p>
+              </div>
+              <TrackLink event="try_it_click" href={site.demoUrl} className={`${button.accent} mt-8 h-14 w-full text-base md:hidden`}>
+                Add the demo card to my wallet
+              </TrackLink>
+              <p className="mt-6 text-muted">Then tap the link again to earn a stamp and watch your card update.</p>
+            </div>
+            <figure>
+              <DashboardPreview />
+              <figcaption className="mt-3 text-center text-sm text-muted">What you see as the owner. (Sample data.)</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        {/* 7. Pricing */}
+        <section id="pricing" className="scroll-mt-16">
+          <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
+            <SectionHeading eyebrow="Pricing" title="One plan. Everything included." />
+            <div className="mt-10 grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+              <div className={`${card} p-6 sm:p-8`}>
+                <p className="font-display text-6xl font-extrabold leading-none">
+                  $49<span className="text-2xl font-bold text-muted">/month</span>
+                </p>
+                <p className="mt-2 text-muted">per location · +$15/month for each extra location</p>
+                <ul className="mt-6 grid gap-2 sm:grid-cols-2">
+                  {included.map((i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-accent text-[11px] font-bold" aria-hidden="true">
+                        ✓
+                      </span>
+                      {i}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-6 text-sm text-muted">No setup fee · cancel anytime</p>
+              </div>
+              <div className="relative overflow-hidden rounded-3xl bg-accent p-6 sm:p-8">
+                <p className="text-sm font-semibold uppercase tracking-widest">Founding offer</p>
+                <h3 className="mt-3 font-display text-4xl font-extrabold uppercase leading-[0.95]">First 10 businesses</h3>
+                <p className="mt-3 text-lg">60 days free, and keep $49/month for life.</p>
+                <TrackLink event="book_call_click" href={site.callUrl} className={`${button.primary} mt-8 h-12 px-6 text-base`}>
+                  Book a 15-min call
+                </TrackLink>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Founding venue offer */}
-        <section id="founding" className="scroll-mt-16">
-          <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
-            <div className="relative overflow-hidden rounded-3xl bg-accent p-7 sm:p-12">
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute -right-10 -top-10 hidden h-64 w-64 rounded-full border-[28px] border-ink/[0.07] sm:block"
-              />
-              <p className="text-sm font-semibold uppercase tracking-widest">Founding partners</p>
-              <h2 className="mt-3 max-w-2xl font-display text-4xl font-extrabold uppercase leading-[0.95] sm:text-6xl">
-                Now accepting founding partner venues
-              </h2>
-              <p className="mt-4 max-w-xl text-lg">
-                Free 60-day pilot for our first 10 venues. We&apos;ll set it up with you and tune it to how your venue
-                actually runs.
-              </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a href={site.callUrl} className={`${button.primary} h-12 px-6 text-base`}>
-                  Book a 15-min call
-                </a>
-                <a href={`mailto:${site.email}?subject=Founding%20venue%20pilot`} className={`${button.secondary} h-12 px-6 text-base`}>
-                  Email us
-                </a>
-              </div>
+        {/* 8. FAQ */}
+        <section className="border-t border-line bg-white">
+          <div className="mx-auto max-w-3xl px-4 py-14 sm:py-20">
+            <SectionHeading eyebrow="FAQ" title="Questions owners ask" />
+            <div className="mt-8 divide-y divide-line rounded-2xl border border-line">
+              {faqs.map((f) => (
+                <details key={f.q} className="group px-5 py-4">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold [&::-webkit-details-marker]:hidden">
+                    {f.q}
+                    <span className="text-xl leading-none text-muted transition-transform group-open:rotate-45" aria-hidden="true">
+                      +
+                    </span>
+                  </summary>
+                  <p className="mt-2 text-muted">{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 9. Final CTA */}
+        <section className="bg-paper">
+          <div className="mx-auto max-w-6xl px-4 py-14 text-center sm:py-20">
+            <h2 className="mx-auto max-w-3xl font-display text-4xl font-extrabold uppercase leading-[0.95] sm:text-6xl">
+              Ready to turn <span className="whitespace-nowrap">first-timers</span> into regulars?
+            </h2>
+            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+              <TrackLink event="try_it_click" href="#try-it" className={`${button.primary} h-12 px-6 text-base`}>
+                Try it on your phone <span aria-hidden="true">→</span>
+              </TrackLink>
+              <TrackLink event="book_call_click" href={site.callUrl} className={`${button.secondary} h-12 px-6 text-base`}>
+                Book a 15-min call
+              </TrackLink>
             </div>
           </div>
         </section>
       </main>
 
-      {/* Contact / footer */}
-      <footer id="contact" className="bg-ink text-white">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:grid-cols-2">
-          <div>
-            <Logo inverted />
-            <p className="mt-4 max-w-sm text-white/70">{site.tagline}</p>
-          </div>
-          <div className="sm:text-right">
-            <p className="text-sm font-semibold uppercase tracking-widest text-white/50">Get in touch</p>
-            <a href={`mailto:${site.email}`} className="mt-3 block text-lg font-medium hover:text-accent">
-              {site.email}
-            </a>
-            <a href={site.phoneHref} className="mt-1 block text-lg font-medium hover:text-accent">
-              {site.phone}
-            </a>
-          </div>
-        </div>
-        <div className="border-t border-white/10">
-          <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-5 text-sm text-white/50 sm:flex-row sm:justify-between">
-            <p>© {site.name}</p>
-            <div className="flex gap-5">
-              <Link href="/demo" className="hover:text-white">
-                Live demo
-              </Link>
-              <Link href="/login" className="hover:text-white">
-                Venue login
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
@@ -230,10 +285,8 @@ export default function Home() {
 function SectionHeading({ eyebrow, title, inverted = false }: { eyebrow: string; title: string; inverted?: boolean }) {
   return (
     <div>
-      <p className={`text-sm font-semibold uppercase tracking-widest ${inverted ? "text-accent" : "text-accent-strong"}`}>
-        {eyebrow}
-      </p>
-      <h2 className="mt-2 font-display text-4xl font-extrabold uppercase leading-[0.95] sm:text-5xl">{title}</h2>
+      <p className={`text-sm font-semibold uppercase tracking-widest ${inverted ? "text-accent" : "text-accent-strong"}`}>{eyebrow}</p>
+      <h2 className="mt-2 max-w-3xl font-display text-4xl font-extrabold uppercase leading-[0.95] sm:text-5xl">{title}</h2>
     </div>
   );
 }

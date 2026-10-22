@@ -5,6 +5,7 @@ import { after } from "next/server";
 import { isToken, returnCookieName, RETURN_COOKIE_MAX_AGE } from "@/lib/customer-cookie";
 import { normalizePhone } from "@/lib/phone";
 import type { Progress } from "@/lib/rewards";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createAnonClient } from "@/lib/supabase/server";
 import { notifyPassChanged } from "@/lib/wallet/notify";
 
@@ -33,9 +34,10 @@ export async function tap(input: {
     if (!phone) return { status: "invalid_phone" };
   }
 
+  const fromSite = input.source === "site";
   const { data, error } = await createAnonClient().rpc("tap", {
     p_slug: input.slug,
-    p_source: input.source,
+    p_source: fromSite ? "web" : input.source,
     p_return_token: phone ? null : isToken(token) ? token : null,
     p_phone: phone,
     p_name: input.name?.trim().slice(0, 60) || null,
@@ -62,6 +64,11 @@ export async function tap(input: {
       path: "/",
       maxAge: RETURN_COOKIE_MAX_AGE,
     });
+    if (fromSite && r.status === "joined") {
+      after(async () => {
+        await createAdminClient().from("site_events").insert({ event: "demo_join_site", path: `/v/${input.slug}` });
+      });
+    }
     if (r.status !== "limit_reached") {
       const customerId = r.customer_id;
       const message = r.progress.reward_type === "stamps" ? "Stamp added" : "Points added";

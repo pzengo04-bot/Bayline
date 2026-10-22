@@ -2,7 +2,8 @@
 
 # Bayline
 
-Rewards and wallet cards for walk-in venues (golf sims, pickleball, cages). Live at https://getbayline.app
+Tap-to-join wallet rewards cards plus retention insights for any local business with repeat customers
+(cafés, barbershops, golf sims, gyms…). Live at https://getbayline.app
 (Vercel; the apex is primary and www redirects). Setup steps for every service are in `docs/SETUP.md`.
 
 ## Working here
@@ -54,3 +55,17 @@ Rewards and wallet cards for walk-in venues (golf sims, pickleball, cages). Live
   `/api/cron/expire-offers`, needs `CRON_SECRET`).
 - Google: class per venue, object per customer; offers also go out with `addMessage`, ending on the
   offer's end date. Real customers need Google publishing access (demo mode only allows test users).
+
+## Marketing site
+
+- Homepage `app/page.tsx` (sections: hero, problem, how it works, owners, the card, `#try-it`,
+  `#pricing`, FAQ, CTA); shared `components/site/` header, footer and `TrackLink`. `/support`,
+  `/privacy`, `/terms` use `LegalPage`; privacy and terms are drafts pending legal review
+  (`docs/LEGAL-REVIEW.md`). `/demo` redirects to `/#try-it` (next.config.ts).
+- Card images on the site are the approved renders in `public/marketing/cards/`, made with
+  `scripts/render-card-previews.mjs`; re-render them after a card design change.
+- Analytics: `site_events` table (server-only) via `POST /api/events` for `try_it_click` and
+  `book_call_click`, plus `demo_join_site` when someone joins the demo card from `?src=site`.
+- No fake testimonials, logos, stats or customer counts. Sample product data is labeled as sample.
+- Logo: `components/ui/Logo.tsx` uses the swirl mark plus wordmark until the official
+  `website-logo-for-*-bg.svg` files are added; favicon is `app/icon.svg`, touch icon `app/apple-icon.png`.

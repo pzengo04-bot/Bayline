@@ -20,9 +20,10 @@ const display = Barlow_Condensed({
 });
 
 export const metadata: Metadata = {
-  title: `${site.name}: rewards and customer insights for indoor golf and sports venues`,
+  metadataBase: new URL("https://getbayline.app"),
+  title: `${site.name}: turn first-timers into regulars`,
   description:
-    "Phone-number check-in, a simple rewards program, and a dashboard that shows who's gone quiet and when your bays sit empty.",
+    "A wallet rewards card customers tap to join, no app needed, plus insights that spot regulars slipping away and bring them back in one tap.",
 };
 
 export const viewport: Viewport = {

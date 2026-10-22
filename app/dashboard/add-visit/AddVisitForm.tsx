@@ -165,9 +165,6 @@ export function AddVisitForm({ rewardType, pointsPerDollar, rewardText }: Props)
               </p>
               <p className="text-sm text-muted">{lastVisitLabel(lookup.customer.last_visit_at)}</p>
             </div>
-            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${lookup.customer.text_consent ? "bg-accent/50" : "bg-paper text-muted"}`}>
-              {lookup.customer.text_consent ? "Texts OK" : "No texts"}
-            </span>
           </div>
           <div className="mt-3">
             <ProgressCard progress={lookup.customer.progress} />
@@ -185,9 +182,6 @@ export function AddVisitForm({ rewardType, pointsPerDollar, rewardText }: Props)
             First name
           </label>
           <input id="desk-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} required className={input} />
-          <p className="mt-2 text-xs text-muted">
-            They can opt in to text offers themselves next time they check in with the QR code.
-          </p>
         </div>
       )}
 

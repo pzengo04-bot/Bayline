@@ -15,11 +15,6 @@ export function GoneQuietList({ customers, valueFor }: Props) {
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">
               {c.name}
-              {!c.smsOptIn && (
-                <span className="ml-2 rounded-full bg-paper px-2 py-0.5 text-[11px] font-normal text-muted">
-                  no texts
-                </span>
-              )}
             </p>
             <p className="text-xs text-muted">
               Last seen {c.daysSinceLastVisit} days ago

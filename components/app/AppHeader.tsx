@@ -28,7 +28,7 @@ export async function AppHeader() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <Link href="/dashboard" aria-label="Dashboard home" className="shrink-0">
-              <Logo />
+              <Logo height={36} />
             </Link>
             {venue && access.venues.length > 1 && (
               <VenueSwitcher venues={access.venues.map(({ id, name }) => ({ id, name }))} currentId={venue.id} />
@@ -53,7 +53,7 @@ export function AppHeaderSkeleton() {
   return (
     <header className="border-b border-line bg-white">
       <div className="mx-auto h-[6.5rem] max-w-6xl px-4 pt-3">
-        <Logo />
+        <Logo height={36} />
       </div>
     </header>
   );

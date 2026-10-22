@@ -67,5 +67,7 @@ Tap-to-join wallet rewards cards plus retention insights for any local business 
 - Analytics: `site_events` table (server-only) via `POST /api/events` for `try_it_click` and
   `book_call_click`, plus `demo_join_site` when someone joins the demo card from `?src=site`.
 - No fake testimonials, logos, stats or customer counts. Sample product data is labeled as sample.
-- Logo: `components/ui/Logo.tsx` uses the swirl mark plus wordmark until the official
-  `website-logo-for-*-bg.svg` files are added; favicon is `app/icon.svg`, touch icon `app/apple-icon.png`.
+- Logo: official brand files live in `website/` (source). `components/ui/Logo.tsx` shows
+  `public/brand/logo-for-{light,dark}-bg.svg`: copies of `website-logo-for-*-bg.svg` with the viewBox
+  trimmed to the drawn area and the C2PA metadata removed. Favicon `app/icon1.svg` (+ `icon2.png`
+  48px fallback) and `app/apple-icon.png` come from `website-favicon*` and `website-apple-touch-icon-180.png`.

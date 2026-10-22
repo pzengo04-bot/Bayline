@@ -54,7 +54,7 @@ export function LoginForm({ linkError }: { linkError: boolean }) {
       </button>
       <p className="mt-6 text-center text-xs text-muted">
         Accounts are by invitation. Want {site.name} for your venue?{" "}
-        <Link href="/#founding" className="font-semibold text-ink underline underline-offset-2">
+        <Link href="/#pricing" className="font-semibold text-ink underline underline-offset-2">
           See the founding offer
         </Link>
       </p>

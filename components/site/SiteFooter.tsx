@@ -7,7 +7,7 @@ export function SiteFooter() {
     <footer className="bg-ink text-white">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-12 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <Logo inverted />
+          <Logo inverted height={44} />
           <p className="mt-4 max-w-sm text-white/70">{site.tagline}</p>
           <a href={`mailto:${site.email}`} className="mt-3 inline-flex min-h-11 items-center text-lg font-medium hover:text-accent">
             {site.email}

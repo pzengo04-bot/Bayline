@@ -28,9 +28,13 @@ export function HeatmapGrid({ grid, emptyKeys, block, emptyLegend, describe, rea
 
   return (
     <>
+      {/* Squares stay at least 24px wide (a comfortable tap); on narrow phones the grid scrolls inside its box. */}
+      <div className="-mx-1 overflow-x-auto px-1 pb-1">
       <div
         className="grid gap-[2px]"
-        style={{ gridTemplateColumns: `2.25rem repeat(${grid.hours.length}, minmax(0, 1fr))` }}
+        style={{
+          gridTemplateColumns: `2.25rem repeat(${grid.hours.length}, minmax(1.5rem, 1fr))`,
+        }}
         onMouseLeave={() => setHovered(null)}
       >
         <div />
@@ -66,6 +70,7 @@ export function HeatmapGrid({ grid, emptyKeys, block, emptyLegend, describe, rea
             })}
           </div>
         ))}
+      </div>
       </div>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-xs text-muted">

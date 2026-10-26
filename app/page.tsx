@@ -1,6 +1,4 @@
 import Image from "next/image";
-import QRCode from "qrcode";
-import { DashboardPreview } from "@/components/landing/DashboardPreview";
 import { HeroPhone } from "@/components/landing/HeroPhone";
 import { RotatingLine } from "@/components/landing/RotatingLine";
 import { SiteFooter } from "@/components/site/SiteFooter";
@@ -61,9 +59,7 @@ const faqs = [
   { q: "What if I already use Square or a booking system?", a: "Bayline works alongside it. Integrations are coming." },
 ];
 
-export default async function Home() {
-  const qr = await QRCode.toString(site.demoUrl, { type: "svg", margin: 1, color: { dark: "#0f1512", light: "#ffffff" } });
-
+export default function Home() {
   return (
     <div className="flex flex-1 flex-col">
       <SiteHeader home />
@@ -85,7 +81,7 @@ export default async function Home() {
               brings them back in one tap.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <TrackLink event="try_it_click" href="#try-it" className={`${button.primary} h-12 px-6 text-base`}>
+              <TrackLink event="try_it_click" href="/demo" className={`${button.primary} h-12 px-6 text-base`}>
                 Try it on your phone <span aria-hidden="true">→</span>
               </TrackLink>
               <TrackLink event="book_call_click" href={site.callUrl} className={`${button.secondary} h-12 px-6 text-base`}>
@@ -179,29 +175,19 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* 6. Try it on your phone */}
+        {/* 6. Try it: a teaser for the /demo page */}
         <section id="try-it" className="scroll-mt-16 border-y border-line bg-white">
-          <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] lg:items-center">
-            <div>
-              <SectionHeading eyebrow="Try it on your phone" title="Add a real Bayline card to your wallet." />
-              <div className="mt-8 hidden items-center gap-6 md:flex">
-                <div
-                  className="size-44 shrink-0 rounded-2xl border border-line bg-white p-2 [&>svg]:h-full [&>svg]:w-full"
-                  role="img"
-                  aria-label={`QR code linking to ${site.demoUrl}`}
-                  dangerouslySetInnerHTML={{ __html: qr }}
-                />
-                <p className="text-lg text-muted">Scan with your phone to add a real Bayline card to your wallet.</p>
+          <div className="mx-auto max-w-6xl px-4 py-10 sm:py-14">
+            <div className="flex flex-col items-start justify-between gap-6 rounded-3xl bg-ink p-6 text-white sm:flex-row sm:items-center sm:p-10">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-widest text-accent">See it for yourself</p>
+                <h2 className="mt-2 font-display text-4xl font-extrabold uppercase leading-[0.95] sm:text-5xl">Try it on your phone in 20 seconds</h2>
+                <p className="mt-3 max-w-xl text-white/70">Add a real Bayline card to your wallet, then click through the owner&apos;s dashboard.</p>
               </div>
-              <TrackLink event="try_it_click" href={site.demoUrl} className={`${button.accent} mt-8 h-14 w-full text-base md:hidden`}>
-                Add the demo card to my wallet
+              <TrackLink event="try_it_click" href="/demo" className={`${button.accent} h-12 shrink-0 px-6 text-base`}>
+                See the demo <span aria-hidden="true">→</span>
               </TrackLink>
-              <p className="mt-6 text-muted">Then tap the link again to earn a stamp and watch your card update.</p>
             </div>
-            <figure>
-              <DashboardPreview />
-              <figcaption className="mt-3 text-center text-sm text-muted">What you see as the owner. (Sample data.)</figcaption>
-            </figure>
           </div>
         </section>
 
@@ -266,7 +252,7 @@ export default async function Home() {
               Ready to turn <span className="whitespace-nowrap">first-timers</span> into regulars?
             </h2>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-              <TrackLink event="try_it_click" href="#try-it" className={`${button.primary} h-12 px-6 text-base`}>
+              <TrackLink event="try_it_click" href="/demo" className={`${button.primary} h-12 px-6 text-base`}>
                 Try it on your phone <span aria-hidden="true">→</span>
               </TrackLink>
               <TrackLink event="book_call_click" href={site.callUrl} className={`${button.secondary} h-12 px-6 text-base`}>

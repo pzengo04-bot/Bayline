@@ -17,18 +17,11 @@ export function SiteHeader({ home = false }: { home?: boolean }) {
           <a href={at("how-it-works")} className="hidden text-muted hover:text-ink md:inline">
             How it works
           </a>
-          <a href={at("pricing")} className="hidden text-muted hover:text-ink md:inline">
-            Pricing
-          </a>
-          <a href={at("try-it")} className="hidden text-muted hover:text-ink md:inline">
-            Try it
-          </a>
           <Link href="/login" className="whitespace-nowrap px-2 text-muted hover:text-ink sm:px-0">
             Venue login
           </Link>
-          <TrackLink event="try_it_click" href={at("try-it")} className={`${button.small} whitespace-nowrap`}>
-            <span className="sm:hidden">Try it</span>
-            <span className="hidden sm:inline">Try it on your phone</span>
+          <TrackLink event="try_it_click" href="/demo" className={`${button.small} whitespace-nowrap px-5`}>
+            Demo
           </TrackLink>
         </nav>
       </div>

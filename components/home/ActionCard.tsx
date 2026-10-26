@@ -1,10 +1,13 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { button } from "@/components/ui/styles";
 
-type Props =
+/** `actions` replaces the default buttons (the /demo page shows a simulated send instead). */
+type Props = (
   | { kind: "slipping"; count: number; demo?: boolean }
   | { kind: "slow"; window: string; demo?: boolean }
-  | { kind: "quiet"; demo?: boolean };
+  | { kind: "quiet"; demo?: boolean }
+) & { actions?: ReactNode };
 
 /** "This week's action": the single most valuable thing to do, with one button to do it. */
 export function ActionCard(props: Props) {
@@ -28,7 +31,9 @@ export function ActionCard(props: Props) {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent">This week&apos;s action</p>
       <p className="mt-2 font-display text-3xl font-bold uppercase leading-[1.02] sm:text-4xl">{headline}</p>
       <p className="mt-2 text-white/80">{body}</p>
-      {(href || props.demo) && (
+      {props.actions ? (
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row">{props.actions}</div>
+      ) : (href || props.demo) && (
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
           {href && (
             <Link href={href} className={`${button.accent} h-12 px-6 text-base`}>

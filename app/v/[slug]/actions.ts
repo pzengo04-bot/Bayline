@@ -34,7 +34,8 @@ export async function tap(input: {
     if (!phone) return { status: "invalid_phone" };
   }
 
-  const fromSite = input.source === "site";
+  // Joins that started on getbayline.app: the homepage (site) or the /demo page (demo).
+  const fromSite = input.source === "site" || input.source === "demo";
   const { data, error } = await createAnonClient().rpc("tap", {
     p_slug: input.slug,
     p_source: fromSite ? "web" : input.source,
@@ -66,7 +67,8 @@ export async function tap(input: {
     });
     if (fromSite && r.status === "joined") {
       after(async () => {
-        await createAdminClient().from("site_events").insert({ event: "demo_join_site", path: `/v/${input.slug}` });
+        const event = input.source === "demo" ? "demo_join" : "demo_join_site";
+        await createAdminClient().from("site_events").insert({ event, path: `/v/${input.slug}` });
       });
     }
     if (r.status !== "limit_reached") {

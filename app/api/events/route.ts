@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 // Marketing-site click events, sent with navigator.sendBeacon. Only known event names are stored,
 // with the page path; nothing about the visitor.
-const EVENTS = new Set(["try_it_click", "book_call_click"]);
+const EVENTS = new Set(["try_it_click", "book_call_click", "demo_view", "demo_button_click"]);
 
 export async function POST(request: NextRequest) {
   let body: { event?: unknown; path?: unknown };

@@ -37,7 +37,7 @@ async function Join({ params, searchParams }: Pick<PageProps<"/v/[slug]">, "para
   if (!venue) notFound();
 
   const hasCookie = isToken((await cookies()).get(returnCookieName(venue.id))?.value);
-  const src = typeof query.src === "string" && ["nfc", "qr", "site"].includes(query.src) ? query.src : "web";
+  const src = typeof query.src === "string" && ["nfc", "qr", "site", "demo"].includes(query.src) ? query.src : "web";
 
   return (
     <>

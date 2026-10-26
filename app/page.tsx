@@ -40,16 +40,6 @@ const benefits = [
   { title: "Front-desk arrivals", body: "See who just walked in and greet regulars by name.", soon: true },
 ];
 
-const included = [
-  "Branded wallet card (Apple + Google)",
-  "NFC stand, yours to keep",
-  "Stamps or points",
-  "Custom stamp icons",
-  "Halfway rewards",
-  "Insights & the Monday Brief",
-  "Unlimited offers to wallet cards",
-];
-
 const faqs = [
   { q: "Do customers need to download an app?", a: "No. They tap the stand or scan the QR code and add the card to Apple Wallet or Google Wallet, which are already on their phone." },
   { q: "Does it work on Android?", a: "Yes. Android customers get the same card in Google Wallet." },
@@ -191,36 +181,25 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 7. Pricing */}
-        <section id="pricing" className="scroll-mt-16">
+        {/* 7. Founding offer (the paid plan lives in lib/pricing.ts until pricing goes public) */}
+        <section id="founding" className="scroll-mt-16">
           <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
-            <SectionHeading eyebrow="Pricing" title="One plan. Everything included." />
-            <div className="mt-10 grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-              <div className={`${card} p-6 sm:p-8`}>
-                <p className="font-display text-6xl font-extrabold leading-none">
-                  $49<span className="text-2xl font-bold text-muted">/month</span>
-                </p>
-                <p className="mt-2 text-muted">per location · +$15/month for each extra location</p>
-                <ul className="mt-6 grid gap-2 sm:grid-cols-2">
-                  {included.map((i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-accent text-[11px] font-bold" aria-hidden="true">
-                        ✓
-                      </span>
-                      {i}
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-6 text-sm text-muted">No setup fee · cancel anytime</p>
-              </div>
-              <div className="relative overflow-hidden rounded-3xl bg-accent p-6 sm:p-8">
-                <p className="text-sm font-semibold uppercase tracking-widest">Founding offer</p>
-                <h3 className="mt-3 font-display text-4xl font-extrabold uppercase leading-[0.95]">First 10 businesses</h3>
-                <p className="mt-3 text-lg">60 days free, and keep $49/month for life.</p>
-                <TrackLink event="book_call_click" href={site.callUrl} className={`${button.primary} mt-8 h-12 px-6 text-base`}>
-                  Book a 15-min call
-                </TrackLink>
-              </div>
+            <div className="relative overflow-hidden rounded-3xl bg-accent p-7 sm:p-12">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-10 -top-10 hidden size-64 rounded-full border-[28px] border-ink/[0.07] sm:block"
+              />
+              <p className="text-sm font-semibold uppercase tracking-widest">Founding offer</p>
+              <h2 className="mt-3 max-w-2xl font-display text-4xl font-extrabold uppercase leading-[0.95] sm:text-6xl">
+                Be one of our first 10 businesses.
+              </h2>
+              <p className="mt-4 max-w-xl text-lg">
+                Free for 60 days. No setup fee, no contract, cancel anytime. We set everything up with you in person, including your
+                branded card and counter stand.
+              </p>
+              <TrackLink event="book_call_click" href={site.callUrl} className={`${button.primary} mt-8 h-12 px-6 text-base`}>
+                Book a 15-min call
+              </TrackLink>
             </div>
           </div>
         </section>

@@ -11,8 +11,8 @@ export default function TermsPage() {
       <p>These terms cover using {site.name}, as a business or as a customer with a card. By using it you agree to them.</p>
       <h2>For businesses</h2>
       <ul>
-        <li>The plan is $49/month per location (plus $15/month for each extra location), billed monthly. No setup fee.</li>
-        <li>You can cancel anytime; service continues to the end of the paid month.</li>
+        <li>Founding businesses get the first 60 days free. After that, the price is the one we agree with you in writing. No setup fee.</li>
+        <li>You can cancel anytime; service continues to the end of the paid period.</li>
         <li>You own your customer data. You&apos;re responsible for the offers you send and the rewards you promise.</li>
         <li>Send offers your customers would want. Don&apos;t use cards for anything unlawful or misleading.</li>
       </ul>

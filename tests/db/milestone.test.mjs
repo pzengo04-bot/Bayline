@@ -50,7 +50,9 @@ test("milestone, head start and card cycles", async () => {
   assert.equal(p.milestone.redeemed, false);
   assert.equal(p.milestone.ready, false);
 
-  // Next cycle: the milestone unlocks again at stamp 3.
+  // Next cycle: the milestone unlocks again at stamp 3. (A visit in the very same clock tick as
+  // the redemption would count toward the old card, so leave a moment, as real requests do.)
+  await new Promise((r) => setTimeout(r, 20));
   for (let i = 0; i < 3; i++) t = await tap();
   assert.equal(t.progress.milestone.ready, true);
 

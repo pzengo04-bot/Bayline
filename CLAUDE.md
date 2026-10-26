@@ -58,16 +58,25 @@ Tap-to-join wallet rewards cards plus retention insights for any local business 
 
 ## Marketing site
 
-- Homepage `app/page.tsx` (sections: hero, problem, how it works, owners, the card, `#try-it`,
-  `#pricing`, FAQ, CTA); shared `components/site/` header, footer and `TrackLink`. `/support`,
-  `/privacy`, `/terms` use `LegalPage`; privacy and terms are drafts pending legal review
-  (`docs/LEGAL-REVIEW.md`). `/demo` redirects to `/#try-it` (next.config.ts).
+- Homepage `app/page.tsx` (sections: hero, problem, how it works, owners, the card, `#try-it` teaser,
+  `#founding` offer, FAQ, CTA); shared `components/site/` header (nav: How it works · Venue login ·
+  Demo), footer and `TrackLink`/`track`. `/support`, `/privacy`, `/terms` use `LegalPage`; privacy
+  and terms are drafts pending legal review (`docs/LEGAL-REVIEW.md`).
+- `/demo` (`app/demo/page.tsx`): QR / "Add the demo card" to `/t/bayline-demo?src=demo`, then
+  `components/demo/DemoDashboard.tsx`, a clickable sample dashboard built from the real dashboard
+  components (labeled "Sample data"; Send offer opens a simulated lock-screen phone). It has a
+  `sampleOfferSlot` prop for the planned "Send me a sample offer" button.
+- Pricing isn't shown: the site only has the founding offer (60 days free). The paid plan lives in
+  `lib/pricing.ts` for when pricing goes public.
+- Phone mockups use `components/landing/PhoneFrame.tsx` (real 9:19.5 proportions).
 - Card images on the site are the approved renders in `public/marketing/cards/`, made with
   `scripts/render-card-previews.mjs`; re-render them after a card design change.
-- Analytics: `site_events` table (server-only) via `POST /api/events` for `try_it_click` and
-  `book_call_click`, plus `demo_join_site` when someone joins the demo card from `?src=site`.
+- Analytics: `site_events` table (server-only). Clicks and views via `POST /api/events`
+  (`try_it_click`, `book_call_click`, `demo_view`, `demo_button_click`); server-side
+  `demo_link_open` (the demo link opened from /demo's QR or button) and `demo_join` (joined from
+  `?src=demo`; older `?src=site` joins are `demo_join_site`). Each row has the page path.
 - No fake testimonials, logos, stats or customer counts. Sample product data is labeled as sample.
-- Logo: official brand files live in `website/` (source). `components/ui/Logo.tsx` shows
-  `public/brand/logo-for-{light,dark}-bg.svg`: copies of `website-logo-for-*-bg.svg` with the viewBox
-  trimmed to the drawn area and the C2PA metadata removed. Favicon `app/icon1.svg` (+ `icon2.png`
-  48px fallback) and `app/apple-icon.png` come from `website-favicon*` and `website-apple-touch-icon-180.png`.
+- Logo: `components/ui/Logo.tsx` shows `public/brand/logo-for-{light,dark}-bg.svg` (the official
+  logo with its viewBox trimmed to the drawn area and C2PA metadata removed). Favicon `app/icon1.svg`
+  (+ `icon2.png` 48px) and `app/apple-icon.png` are the official files. The full original brand set
+  (symbols, PNG exports, app icon) was in `website/`; recover it with `git show d31cf6f:website/<file>`.

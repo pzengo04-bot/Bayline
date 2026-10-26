@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
-import { markOptedOut } from "@/app/dashboard/actions";
+import { useMemo, useState } from "react";
 import { LabelChip } from "@/components/app/LabelChip";
 import { Section } from "@/components/dashboard/Section";
 import { LABELS, type Label } from "@/lib/labels";
@@ -29,20 +28,12 @@ type Props = { customers: CustomerRow[]; showSpend: boolean; initialLabel?: stri
 const FILTERS: Label[] = ["slipping", "vip", "regular", "new", "occasional", "lapsed", "demo_guest"];
 
 export function CustomersTable({ customers: initial, showSpend, initialLabel }: Props) {
-  const [customers, setCustomers] = useState(initial);
+  const customers = initial;
   const [query, setQuery] = useState("");
   const [labelFilter, setLabelFilter] = useState<Label | null>(
     FILTERS.includes(initialLabel as Label) ? (initialLabel as Label) : null,
   );
-  const [pending, start] = useTransition();
 
-  const optOut = (c: CustomerRow) => {
-    if (!window.confirm(`Mark ${c.name} as opted out of texts? They'll be left out of message exports.`)) return;
-    start(async () => {
-      const { ok } = await markOptedOut(c.id);
-      if (ok) setCustomers((list) => list.map((x) => (x.id === c.id ? { ...x, textConsent: false } : x)));
-    });
-  };
   const [limit, setLimit] = useState(PAGE);
 
   const filtered = useMemo(() => {
@@ -63,7 +54,7 @@ export function CustomersTable({ customers: initial, showSpend, initialLabel }: 
   return (
     <Section
       title="Customers"
-      subtitle={`${customers.length} total · ${customers.filter((c) => c.textConsent).length} opted in to texts`}
+      subtitle={`${customers.length} total`}
     >
       <label htmlFor="customer-search" className="sr-only">
         Search customers
@@ -117,23 +108,6 @@ export function CustomersTable({ customers: initial, showSpend, initialLabel }: 
               </p>
               <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                 <span className="text-xs text-muted">{progressText(c.progress)}</span>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                    c.textConsent ? "bg-accent/50 text-ink" : "bg-paper text-muted"
-                  }`}
-                >
-                  {c.textConsent ? "Texts OK" : "No texts"}
-                </span>
-                {c.textConsent && (
-                  <button
-                    type="button"
-                    disabled={pending}
-                    onClick={() => optOut(c)}
-                    className="text-[11px] font-medium text-muted underline underline-offset-2 hover:text-ink"
-                  >
-                    Opt out
-                  </button>
-                )}
               </div>
             </li>
           ))}

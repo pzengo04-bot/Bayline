@@ -41,8 +41,9 @@ async function addPerson(email: string, venueId: string, role: "owner" | "staff"
     emailNote = error ? `${email} already has a login; they can sign in at /login.` : `Login link sent to ${email}.`;
   }
 
-  const supabase = await createUserClient(); // admin RLS policy allows adding members
-  const { error } = await supabase
+  // The secret key: an upsert (to change someone's role) needs UPDATE, which signed-in users don't
+  // have on venue_members. Every caller has already passed requireAdmin().
+  const { error } = await admin
     .from("venue_members")
     .upsert({ user_id: userId, venue_id: venueId, role }, { onConflict: "user_id,venue_id" });
   if (error) throw new Error(`Couldn't add ${email} to the venue: ${error.message}`);

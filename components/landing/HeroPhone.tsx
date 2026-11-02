@@ -15,7 +15,7 @@ export function HeroPhone() {
           <div className="px-2.5 pt-3">
             <Image
               src={golfCard}
-              alt="A Back Nine Golf rewards card in Apple Wallet: six of ten golf-ball stamps filled, a trophy on the last stamp, and a banner reading Bonus stamp on any visit this week."
+              alt="A Fairway Sim Club rewards card in Apple Wallet: six of ten golf-ball stamps filled, a trophy on the last stamp, and a banner reading Bonus stamp on any visit this week."
               sizes="(min-width: 640px) 16rem, 15rem"
               priority
               className="h-auto w-full rounded-[10px] shadow-[0_10px_24px_-12px_rgba(0,0,0,0.45)]"
@@ -29,11 +29,11 @@ export function HeroPhone() {
         {/* Lock-screen notification, overlapping the top of the phone */}
         <div className="absolute left-1/2 top-0 z-20 flex w-[min(19.5rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-6 gap-3 rounded-2xl border border-line bg-surface-2/90 p-3 shadow-[0_18px_40px_-18px_rgba(0,0,0,0.7)] backdrop-blur">
           <span className="grid size-9 shrink-0 place-items-center rounded-[22%] bg-midnight text-[11px] font-bold text-blue" aria-hidden="true">
-            BN
+            FS
           </span>
           <div className="min-w-0 text-[13px] leading-snug">
             <p className="flex justify-between gap-2">
-              <span className="font-semibold">Back Nine Golf</span>
+              <span className="font-semibold">Fairway Sim Club</span>
               <span className="text-muted">now</span>
             </p>
             <p className="text-fg/80">Bonus stamp on any visit this week. See you on the course!</p>

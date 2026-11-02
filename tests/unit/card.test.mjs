@@ -61,11 +61,11 @@ test("pass model: alerts ride on always-present back fields, icons default by bu
   const { stampIconFor } = await import("../../lib/wallet/stamp-icons.ts");
   const base = {
     customer_id: "c", serial: "5028d3c8-1004-4451-80d5-360c7f24f151", first_name: "Mia", apple_auth_token: "", updated_at: "",
-    venue: { id: "v", name: "Corner Coffee", slug: "c", logo_url: null, card_bg: "#000000", card_fg: "#ffffff", card_accent: "#ffcc00", pass_message: null, reward_type: "stamps", reward_text: "free drink", type: "cafe" },
+    venue: { id: "v", name: "Juniper Lane Coffee", slug: "c", logo_url: null, card_bg: "#000000", card_fg: "#ffffff", card_accent: "#ffcc00", pass_message: null, reward_type: "stamps", reward_text: "free drink", type: "cafe" },
     progress: stamps(3, { reward_text: "free drink", stamps_needed: 8 }),
   };
   const quiet = passModel(base, { hasLogo: false });
-  assert.equal(quiet.logoText, "Corner Coffee");
+  assert.equal(quiet.logoText, "Juniper Lane Coffee");
   assert.equal(quiet.strip.icon, "coffee");
   assert.ok(quiet.back.every((f) => !f.changeMessage), "no alerts for a plain stamp");
   assert.deepEqual(quiet.header, [{ key: "member_name", label: "MEMBER", value: "Mia" }]);

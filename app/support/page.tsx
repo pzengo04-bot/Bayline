@@ -18,6 +18,13 @@ export default function SupportPage() {
       </ul>
       <h2>For businesses</h2>
       <p>Sign in to your dashboard from <a href="/login">Venue login</a>, or email us and we&apos;ll help you set up.</p>
+      <h2>Common questions</h2>
+      <p>
+        <strong>Can customers turn off messages?</strong> Yes, anytime, right from the card in their wallet.
+      </p>
+      <p>
+        <strong>What if I already use Square or a booking system?</strong> Bayline works alongside it. Integrations are coming.
+      </p>
     </LegalPage>
   );
 }

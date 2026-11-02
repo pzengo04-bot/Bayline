@@ -71,8 +71,10 @@ Tap-to-join wallet rewards cards plus retention insights for any local business 
 
 ## Marketing site
 
-- Homepage `app/page.tsx` (sections: hero, problem, how it works, owners, the card, `#try-it` teaser,
-  `#founding` offer, FAQ, CTA); shared `components/site/` header (nav: How it works · Venue login ·
+- Homepage `app/page.tsx`, five sections: hero, how it works, what you get, `#try-it` + `#founding`
+  cards side by side, FAQ (4). Keep paragraphs to two lines on desktop. Card styles live on /demo, the
+  extra FAQs on /support. Sample businesses are made up (Fairway Sim Club, Juniper Lane Coffee, Brass Comb
+  Barbers), never real ones; shared `components/site/` header (nav: How it works · Venue login ·
   Demo), footer and `TrackLink`/`track`. `/support`, `/privacy`, `/terms` use `LegalPage`; privacy
   and terms are drafts pending legal review (`docs/LEGAL-REVIEW.md`).
 - `/demo` (`app/demo/page.tsx`): QR / "Add the demo card" to `/t/bayline-demo?src=demo`, then

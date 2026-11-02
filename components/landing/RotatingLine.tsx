@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 
-const WORDS = ["indoor golf", "cafés", "barbershops", "fitness studios", "your business"];
+const WORDS = ["indoor golf", "cafés", "barbershops", "your business"];
 const STEP_MS = 1500;
 const MOTION = "(prefers-reduced-motion: reduce)";
 

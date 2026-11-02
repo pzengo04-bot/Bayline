@@ -16,7 +16,7 @@ import type { Label } from "@/lib/labels";
 // the shape of a golf-sim venue. It's built like the Phase 2a home (stats, this week's action,
 // customers, busy hours) so the real home can replace it later.
 
-const OFFER = "We miss you at Back Nine Golf! Come back this week for a bonus stamp on any visit.";
+const OFFER = "We miss you at Fairway Sim Club! Come back this week for a bonus stamp on any visit.";
 
 const customers: { name: string; label: Label; line: string; visits: number }[] = [
   { name: "Marcus T.", label: "slipping", line: "usually every 9 days · last seen 27 days ago", visits: 14 },
@@ -49,7 +49,7 @@ export function DemoDashboard({ sampleOfferSlot }: { sampleOfferSlot?: ReactNode
       <div className="flex flex-wrap items-end justify-between gap-2 pb-1">
         <div>
           <p className="text-sm font-medium text-muted">Golf simulators · 10 visits = free bay hour</p>
-          <p className="font-display text-3xl font-bold uppercase leading-none sm:text-4xl">Back Nine Golf</p>
+          <p className="font-display text-3xl font-bold uppercase leading-none sm:text-4xl">Fairway Sim Club</p>
         </div>
         <span className="rounded-full border border-line bg-surface-2 px-3 py-1 font-mono text-xs font-semibold text-muted">Sample data</span>
       </div>
@@ -121,11 +121,11 @@ export function DemoDashboard({ sampleOfferSlot }: { sampleOfferSlot?: ReactNode
             </div>
             <div className="mx-2 mt-5 flex gap-2 rounded-2xl bg-surface-2/85 p-2.5 text-[11px] leading-snug text-fg backdrop-blur">
               <span className="grid size-7 shrink-0 place-items-center rounded-[22%] bg-midnight text-[9px] font-bold text-blue" aria-hidden="true">
-                BN
+                FS
               </span>
               <div className="min-w-0">
                 <p className="flex justify-between gap-2">
-                  <span className="font-semibold">Back Nine Golf</span>
+                  <span className="font-semibold">Fairway Sim Club</span>
                   <span className="text-muted">now</span>
                 </p>
                 <p className="text-fg/80">{OFFER}</p>

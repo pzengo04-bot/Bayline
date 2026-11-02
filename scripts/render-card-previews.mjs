@@ -14,10 +14,10 @@ mkdirSync(out, { recursive: true });
 const S = 3; // @3x
 
 const venues = {
-  cafe: { name: "Corner Coffee", type: "cafe", reward_text: "free drink", card_bg: "#f6efe4", card_fg: "#2b1d14", card_accent: "#a8551e" },
+  cafe: { name: "Juniper Lane Coffee", type: "cafe", reward_text: "free drink", card_bg: "#f6efe4", card_fg: "#2b1d14", card_accent: "#a8551e" },
   // The golf sample uses the Bayline default colors new venues start with.
-  golf: { name: "Back Nine Golf", type: "golf_sim", reward_text: "free bay hour", card_bg: "#02070a", card_fg: "#f2f5f7", card_accent: "#0297de", card_reward: "#fc734d" },
-  barber: { name: "Sharp & Co.", type: "barbershop", reward_text: "free haircut", card_bg: "#1d3a5f", card_fg: "#ffffff", card_accent: "#f2c14e" },
+  golf: { name: "Fairway Sim Club", type: "golf_sim", reward_text: "free bay hour", card_bg: "#02070a", card_fg: "#f2f5f7", card_accent: "#0297de", card_reward: "#fc734d" },
+  barber: { name: "Brass Comb Barbers", type: "barbershop", reward_text: "free haircut", card_bg: "#1d3a5f", card_fg: "#ffffff", card_accent: "#f2c14e" },
 };
 const progress = (v, have, needed, extra = {}) => ({
   reward_type: "stamps", reward_text: v.reward_text, stamps: have, stamps_needed: needed, points: 0, points_needed: 0, ...extra,

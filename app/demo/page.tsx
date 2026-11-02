@@ -97,9 +97,9 @@ export default async function DemoPage() {
             <div className="-mx-4 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible sm:px-0">
               {(
                 [
-                  [cafeCard, "Café", "A Corner Coffee card filling up with coffee cups, a gift on the halfway reward and a trophy on the last stamp."],
-                  [golfCard, "Indoor golf", "A Back Nine Golf card with every golf-ball stamp filled and a banner reading Free bay hour ready! Show staff."],
-                  [barberCard, "Barbershop", "A Sharp & Co. card with scissors stamps, two of six filled."],
+                  [cafeCard, "Café", "A Juniper Lane Coffee card filling up with coffee cups, a gift on the halfway reward and a trophy on the last stamp."],
+                  [golfCard, "Indoor golf", "A Fairway Sim Club card with every golf-ball stamp filled and a banner reading Free bay hour ready! Show staff."],
+                  [barberCard, "Barbershop", "A Brass Comb Barbers card with scissors stamps, two of six filled."],
                 ] as const
               ).map(([src, label, alt]) => (
                 <figure key={label} className="w-[78%] shrink-0 snap-center sm:w-auto">

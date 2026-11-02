@@ -5,7 +5,7 @@ import { NoVenue } from "@/components/app/NoVenue";
 import { PageSkeleton } from "@/components/app/PageSkeleton";
 import { Section } from "@/components/dashboard/Section";
 import { card } from "@/components/ui/styles";
-import { requireVenue } from "@/lib/auth";
+import { requireOwnerVenue } from "@/lib/auth";
 import { getCustomerInsights, getCustomerStats, getHeatmap } from "@/lib/data";
 import { ymdInZone } from "@/lib/format";
 import { progressFor } from "@/lib/insights";
@@ -42,7 +42,7 @@ function change(now: number, before: number) {
 
 /** The Monday brief: last Monday-to-Sunday week in plain language, and what to do this week. */
 async function Brief() {
-  const { venue } = await requireVenue();
+  const { venue } = await requireOwnerVenue();
   if (!venue) return <NoVenue />;
   await connection();
   const today = ymdInZone(venue.timezone);

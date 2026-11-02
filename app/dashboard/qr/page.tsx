@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { NoVenue } from "@/components/app/NoVenue";
 import { PageSkeleton } from "@/components/app/PageSkeleton";
 import { Logo } from "@/components/ui/Logo";
-import { requireVenue } from "@/lib/auth";
+import { requireOwnerVenue } from "@/lib/auth";
 import { siteUrl } from "@/lib/env";
 import { programSummary } from "@/lib/rewards";
 import { PrintButton } from "./PrintButton";
@@ -17,7 +17,7 @@ export default function QrPage() {
 }
 
 async function QrSign() {
-  const { venue } = await requireVenue();
+  const { venue } = await requireOwnerVenue();
   if (!venue) return <NoVenue />;
 
   const url = `${siteUrl()}/t/${venue.slug}?src=qr`;

@@ -92,6 +92,7 @@ async function Customer({ params }: { params: PageProps<"/dashboard/customers/[i
       <section className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
         <ProfileActions
           card={card}
+          owner={owner}
           message={
             owner && walletName ? (
               <SendOfferButton

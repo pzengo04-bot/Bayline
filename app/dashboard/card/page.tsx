@@ -1,8 +1,7 @@
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { NoVenue } from "@/components/app/NoVenue";
 import { PageSkeleton } from "@/components/app/PageSkeleton";
-import { requireVenue } from "@/lib/auth";
+import { requireOwnerVenue } from "@/lib/auth";
 import { CardDesigner } from "./CardDesigner";
 
 export default function CardPage() {
@@ -14,9 +13,8 @@ export default function CardPage() {
 }
 
 async function Card() {
-  const { venue } = await requireVenue();
+  const { venue } = await requireOwnerVenue();
   if (!venue) return <NoVenue />;
-  if (venue.role === "staff") redirect("/dashboard");
   return (
     <div className="space-y-5">
       <div>

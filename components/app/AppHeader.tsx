@@ -13,14 +13,15 @@ export async function AppHeader() {
   const items: NavItem[] = venue
     ? [
         { href: "/dashboard/scan", label: "Scan" },
-        { href: "/dashboard", label: "Home" },
+        ...(owner ? [{ href: "/dashboard", label: "Home" }] : []),
         { href: "/dashboard/customers", label: "Customers" },
         ...(owner ? [{ href: "/dashboard/messages", label: "Messages" }] : []),
       ]
     : [];
   const settings: SettingsLink[] = [
     ...(owner ? [{ href: "/dashboard/card", label: "Card", hint: "Design, colors and rewards" }] : []),
-    ...(venue ? [{ href: "/dashboard/stand", label: "Stand", hint: "Counter stand and QR sign" }] : []),
+    ...(owner ? [{ href: "/dashboard/team", label: "Team", hint: "Invite staff, change roles" }] : []),
+    ...(owner ? [{ href: "/dashboard/stand", label: "Stand", hint: "Counter stand and QR sign" }] : []),
     ...(owner && venue.is_demo
       ? [{ href: "/dashboard/messages?audience=demo_guests&template=win_back&quick=1", label: "Demo: send to demo guests", hint: "Test an offer on demo cards" }]
       : []),
@@ -32,7 +33,7 @@ export async function AppHeader() {
       <div className="mx-auto max-w-6xl px-4 pt-3">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-            <Link href="/dashboard" aria-label="Dashboard home" className="shrink-0">
+            <Link href={owner ? "/dashboard" : "/dashboard/scan"} aria-label="Dashboard home" className="shrink-0">
               <Logo height={36} />
             </Link>
             {venue && access.venues.length > 1 && (

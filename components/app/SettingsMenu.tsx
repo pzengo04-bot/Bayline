@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { signOut } from "@/app/login/actions";
+import { signOut, signOutEverywhere } from "@/app/login/actions";
 
 export type SettingsLink = { href: string; label: string; hint?: string };
 
@@ -66,6 +66,16 @@ export function SettingsMenu({ links, email }: { links: SettingsLink[]; email: s
           <form action={signOut} className="border-t border-line">
             <button type="submit" role="menuitem" className="w-full px-4 py-3 text-left text-sm font-semibold text-muted hover:bg-surface-2 hover:text-fg">
               Sign out
+            </button>
+          </form>
+          <form
+            action={signOutEverywhere}
+            onSubmit={(e) => {
+              if (!confirm("Sign out on every phone and computer, including this one?")) e.preventDefault();
+            }}
+          >
+            <button type="submit" role="menuitem" className="w-full px-4 pb-3 pt-1 text-left text-sm font-semibold text-muted hover:bg-surface-2 hover:text-fg">
+              Sign out of all devices
             </button>
           </form>
         </div>

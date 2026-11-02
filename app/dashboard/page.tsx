@@ -11,7 +11,7 @@ import { SendOfferButton, type OfferDraft } from "@/components/home/SendOfferBut
 import { StatCards } from "@/components/home/StatCards";
 import { button, card } from "@/components/ui/styles";
 import { CARD_EVENT_COLUMNS, eventActor, eventText, isRewardEvent, timeAgo, type CardEvent } from "@/lib/activity";
-import { requireVenue } from "@/lib/auth";
+import { requireOwnerVenue } from "@/lib/auth";
 import { getCustomerInsights, getCustomerStats, getHeatmap, getHomeStats } from "@/lib/data";
 import { progressFor } from "@/lib/insights";
 import { rhythmLine } from "@/lib/labels";
@@ -33,7 +33,7 @@ export default function DashboardHome() {
 const firstName = (name: string) => name.split(" ")[0];
 
 async function Home() {
-  const { venue } = await requireVenue();
+  const { venue } = await requireOwnerVenue();
   if (!venue) return <NoVenue />;
   const owner = venue.role !== "staff";
 

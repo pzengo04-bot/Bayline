@@ -29,3 +29,21 @@ export async function signOut() {
   await supabase.auth.signOut();
   redirect("/login");
 }
+
+/** Ends every session for this login (phones, laptops, the installed app). */
+export async function signOutEverywhere() {
+  const supabase = await createUserClient();
+  await supabase.auth.signOut({ scope: "global" });
+  redirect("/login");
+}
+
+/** "Sign in with Google": only works for emails already invited (sign-ups are off in Supabase, and
+ * /auth/confirm turns away anyone without a venue). */
+export async function signInWithGoogle() {
+  const supabase = await createUserClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: `${siteUrl()}/auth/confirm`, queryParams: { prompt: "select_account" } },
+  });
+  redirect(error || !data.url ? "/login?error=google" : data.url);
+}

@@ -11,7 +11,8 @@ type Confirm = "redeem" | "milestone" | "remove" | "reset" | null;
 const btn = "flex h-12 items-center justify-center rounded-full px-4 text-sm font-semibold transition-colors disabled:opacity-40 disabled:pointer-events-none";
 
 /** Add stamp, Remove stamp, Redeem reward, Reset card (and Send message, passed in for owners). */
-export function ProfileActions({ card, message }: { card: CardStatus; message?: ReactNode }) {
+/** Staff (owner = false) get Add stamp and Redeem only. */
+export function ProfileActions({ card, message, owner = true }: { card: CardStatus; message?: ReactNode; owner?: boolean }) {
   const router = useRouter();
   const [confirm, setConfirm] = useState<Confirm>(null);
   const [flash, setFlash] = useState<{ ok: boolean; text: string } | null>(null);
@@ -54,7 +55,7 @@ export function ProfileActions({ card, message }: { card: CardStatus; message?: 
             Redeem {p.milestone.text}
           </button>
         )}
-        {stamps && (
+        {stamps && owner && (
           <>
             <button type="button" disabled={pending || p.stamps === 0} onClick={() => setConfirm("remove")} className={`${btn} border border-line bg-surface-2 hover:border-blue/60`}>
               Remove stamp

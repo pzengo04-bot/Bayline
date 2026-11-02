@@ -11,5 +11,7 @@ export async function selectVenue(form: FormData) {
   if (access.venues.some((v) => v.id === id)) {
     (await cookies()).set(VENUE_COOKIE, id, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 365 });
   }
-  redirect(String(form.get("next") ?? "/dashboard"));
+  // Only paths on this site (never another site's address).
+  const next = String(form.get("next") ?? "");
+  redirect(next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard");
 }

@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getCurrentVenue } from "@/lib/auth";
+import { getCurrentVenue, isOwner } from "@/lib/auth";
 import { getCustomerStats } from "@/lib/data";
 import { activeRegulars, goneQuiet, type CustomerStatsRow } from "@/lib/insights";
 import type { AudienceId } from "@/lib/messages";
@@ -18,6 +18,7 @@ function cell(value: string | number) {
 export async function GET(request: NextRequest) {
   const { venue } = await getCurrentVenue();
   if (!venue) return new NextResponse("No venue", { status: 404 });
+  if (!isOwner(venue)) return new NextResponse("Only owners can export", { status: 403 });
 
   const audience = (request.nextUrl.searchParams.get("audience") ?? "all") as AudienceId;
   const rows = await getCustomerStats(venue.id);

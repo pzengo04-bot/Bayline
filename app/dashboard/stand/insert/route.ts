@@ -1,5 +1,5 @@
 import { type NextRequest } from "next/server";
-import { getCurrentVenue } from "@/lib/auth";
+import { getCurrentVenue, isOwner } from "@/lib/auth";
 import { siteUrl } from "@/lib/env";
 import { standInsertPdf } from "@/lib/stand-insert";
 
@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
   const wanted = request.nextUrl.searchParams.get("venue");
   const venue = access.venues.find((v) => v.id === wanted) ?? current;
   if (!venue) return new Response("Pick a venue", { status: 400 });
+  if (!isOwner(venue)) return new Response("Only owners can print the stand insert", { status: 403 });
 
   const logo = venue.logo_url ? await fetch(venue.logo_url).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null) : null;
   const pdf = await standInsertPdf(

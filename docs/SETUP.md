@@ -42,22 +42,43 @@ Leave `NEXT_PUBLIC_SITE_URL=http://localhost:3000` as it is. Save the file.
    - Redirect URLs, add both:
      - `http://localhost:3000/**`
      - `https://getbayline.app/**`
-3. **Authentication → Emails → Templates**. Replace two templates so login links work even when an
+3. **Authentication → Sign In / Providers → Email**: set **Email OTP Expiration** to `900` seconds,
+   so login links expire after 15 minutes. (Each link already works only once.)
+4. **Authentication → Sessions**: leave **Time-box user sessions** and **Inactivity timeout** off. The
+   app keeps people signed in for 90 days per device with its own cookie.
+5. **Authentication → Emails → Templates**. Replace two templates so login links work even when an
    owner opens the email on a different device:
 
-   **Magic link** template, Message body:
+   **Magic link** template. Subject: `Your Bayline login link`. Message body:
    ```html
-   <h2>Your Bayline login link</h2>
-   <p><a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email">Log in to Bayline</a></p>
-   <p>This link works once and expires in 1 hour. If you didn't ask for it, ignore this email.</p>
+   <div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#02070a">
+     <h2 style="margin:0 0 12px">Your Bayline login link</h2>
+     <p style="margin:0 0 24px">Tap the button to log in to your venue. No password needed.</p>
+     <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email"
+        style="display:inline-block;background:#fc734d;color:#02070a;font-weight:700;font-size:18px;text-decoration:none;padding:16px 28px;border-radius:999px">Log in to Bayline</a>
+     <p style="margin:24px 0 0;font-size:13px;color:#5b6770">This link works once and expires in 15 minutes. If you didn't ask for it, ignore this email.</p>
+   </div>
    ```
 
-   **Invite user** template, Message body:
+   **Invite user** template. Subject: `You're invited to Bayline`. Message body:
    ```html
-   <h2>You're invited to Bayline</h2>
-   <p>You've been set up to see your venue's customers and rewards on Bayline.</p>
-   <p><a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=invite">Accept the invite and log in</a></p>
+   <div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#02070a">
+     <h2 style="margin:0 0 12px">You're invited to Bayline</h2>
+     <p style="margin:0 0 24px">You've been added to your venue's team on Bayline.</p>
+     <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=invite"
+        style="display:inline-block;background:#fc734d;color:#02070a;font-weight:700;font-size:18px;text-decoration:none;padding:16px 28px;border-radius:999px">Accept and log in</a>
+     <p style="margin:24px 0 0;font-size:13px;color:#5b6770">This link works once. If it expires, go to getbayline.app/login and enter your email.</p>
+   </div>
    ```
+6. **Sign in with Google** (optional second option, invited emails only):
+   - Google Cloud Console → **APIs & Services → Credentials → Create credentials → OAuth client ID**
+     (Web application). Authorized redirect URI: `https://<your-project>.supabase.co/auth/v1/callback`
+     (Supabase shows the exact one on the Google provider page). OAuth consent screen: app name
+     Bayline, support email peter@getbayline.app, then **Publish app**.
+   - Supabase → **Authentication → Sign In / Providers → Google**: enable, paste the client ID and
+     secret. Keep "Allow new users to sign up" **off** so only invited emails can sign in.
+   - Vercel → Environment Variables: `GOOGLE_SIGNIN` = `on`, then redeploy. The button appears on
+     /login. Anyone whose Google email isn't on a venue's team is turned away.
 
 ## 4. Email delivery (before inviting a real owner)
 
@@ -69,7 +90,7 @@ for testing with your own email, but real owners won't receive invites until you
    registrar. Wait until Resend shows the domain as verified.
 3. **API Keys → Create API key** (sending access). Copy it.
 4. In Supabase: **Authentication → Emails → SMTP Settings** → enable custom SMTP:
-   - Sender email: `peter@getbayline.app`, sender name: `Bayline`
+   - Sender email: `peter@getbayline.app`, sender name: `Bayline` (emails arrive from "Bayline <peter@getbayline.app>")
    - Host: `smtp.resend.com`, Port: `465`, Username: `resend`, Password: the Resend API key
 5. Save. Optionally raise **Authentication → Rate Limits → emails per hour**.
 

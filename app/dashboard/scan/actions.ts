@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
-import { requireVenue } from "@/lib/auth";
+import { isOwner, requireVenue } from "@/lib/auth";
 import { normalizePhone } from "@/lib/phone";
 import type { Progress } from "@/lib/rewards";
 import { createUserClient } from "@/lib/supabase/server";
@@ -138,6 +138,7 @@ export async function redeem(customerId: string, kind: "main" | "milestone" = "m
 export async function removeStamp(customerId: string): Promise<CardResult> {
   const { venue } = await requireVenue();
   if (!venue) return { ok: false, message: "No venue selected." };
+  if (!isOwner(venue)) return { ok: false, message: "Only owners can change stamps by hand." };
   const { data, error } = await (await createUserClient()).rpc("remove_stamp", { p_customer: customerId });
   if (error) return failure(error.message, "Couldn't remove the stamp. Try again.");
   changed(customerId);
@@ -148,6 +149,7 @@ export async function removeStamp(customerId: string): Promise<CardResult> {
 export async function resetCard(customerId: string): Promise<CardResult> {
   const { venue } = await requireVenue();
   if (!venue) return { ok: false, message: "No venue selected." };
+  if (!isOwner(venue)) return { ok: false, message: "Only owners can change stamps by hand." };
   const { data, error } = await (await createUserClient()).rpc("reset_card", { p_customer: customerId });
   if (error) return failure(error.message, "Couldn't reset the card. Try again.");
   changed(customerId);

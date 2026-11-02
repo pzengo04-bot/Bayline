@@ -1,9 +1,8 @@
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { NoVenue } from "@/components/app/NoVenue";
 import { PageSkeleton } from "@/components/app/PageSkeleton";
 import { Section } from "@/components/dashboard/Section";
-import { requireVenue } from "@/lib/auth";
+import { requireOwnerVenue } from "@/lib/auth";
 import { isFuture, ymdInZone } from "@/lib/format";
 import { getHeatmap } from "@/lib/data";
 import { loadOfferContext, planOffer } from "@/lib/offers";
@@ -35,9 +34,8 @@ type SendRow = {
 };
 
 async function Messages({ searchParams }: { searchParams: PageProps<"/dashboard/messages">["searchParams"] }) {
-  const { venue } = await requireVenue();
+  const { venue } = await requireOwnerVenue();
   if (!venue) return <NoVenue />;
-  if (venue.role === "staff") redirect("/dashboard");
   const params = await searchParams;
 
   const supabase = await createUserClient();

@@ -15,7 +15,7 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
         <Logo />
       </Link>
       <div className={`${card} mt-8 w-full max-w-sm p-6 sm:p-8`}>
-        <Suspense fallback={<LoginForm linkError={false} />}>
+        <Suspense fallback={<LoginForm error={null} google={false} />}>
           <LoginFormWithParams searchParams={searchParams} />
         </Suspense>
       </div>
@@ -25,5 +25,6 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
 
 async function LoginFormWithParams({ searchParams }: { searchParams: PageProps<"/login">["searchParams"] }) {
   const { error } = await searchParams;
-  return <LoginForm linkError={error === "link"} />;
+  // Google sign-in shows once the provider is set up in Supabase (docs/SETUP.md) and this is on in Vercel.
+  return <LoginForm error={typeof error === "string" ? error : null} google={process.env.GOOGLE_SIGNIN === "on"} />;
 }

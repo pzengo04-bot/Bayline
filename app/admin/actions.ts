@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { siteUrl } from "@/lib/env";
 import { geocodeAddress } from "@/lib/geocode";
+import { addPerson, isEmail } from "@/lib/team";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createUserClient } from "@/lib/supabase/server";
 import { normalizePhone } from "@/lib/phone";
@@ -14,41 +15,6 @@ import { getPassData } from "@/lib/wallet/data";
 import { voidGoogleObject } from "@/lib/wallet/google";
 
 export type FormState = { status: "idle" | "ok" | "error"; message?: string };
-
-const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
-
-/** Adds someone to a venue. New emails get an invite; existing logins get a login link. */
-async function addPerson(email: string, venueId: string, role: "owner" | "staff") {
-  const admin = createAdminClient();
-  const redirectTo = `${siteUrl()}/auth/confirm`;
-
-  let userId: string | undefined;
-  for (let page = 1; !userId; page++) {
-    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
-    if (error) throw error;
-    userId = data.users.find((u) => u.email?.toLowerCase() === email)?.id;
-    if (data.users.length < 200) break;
-  }
-
-  let emailNote: string;
-  if (!userId) {
-    const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo });
-    if (error) throw new Error(`Couldn't send the invite: ${error.message}`);
-    userId = data.user.id;
-    emailNote = `Invite sent to ${email}.`;
-  } else {
-    const { error } = await admin.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: redirectTo } });
-    emailNote = error ? `${email} already has a login; they can sign in at /login.` : `Login link sent to ${email}.`;
-  }
-
-  // The secret key: an upsert (to change someone's role) needs UPDATE, which signed-in users don't
-  // have on venue_members. Every caller has already passed requireAdmin().
-  const { error } = await admin
-    .from("venue_members")
-    .upsert({ user_id: userId, venue_id: venueId, role }, { onConflict: "user_id,venue_id" });
-  if (error) throw new Error(`Couldn't add ${email} to the venue: ${error.message}`);
-  return emailNote;
-}
 
 export async function createVenue(_prev: FormState, form: FormData): Promise<FormState> {
   await requireAdmin();

@@ -70,6 +70,15 @@ Tap-to-join wallet rewards cards plus retention insights for any local business 
 
 ## Dashboard
 
+- Login: email link (default) or Google when `GOOGLE_SIGNIN=on` (setup in docs/SETUP.md). `/auth/confirm`
+  turns away anyone not on a venue team, then `/dashboard/choose` sends staff to Scan, owners to
+  Home, or shows a picker. Session cookies last 90 days (`SESSION_COOKIE`, mirrored in `proxy.ts`).
+- Roles: owners get everything; staff get Scan and Customers (search, profile, add stamp, redeem).
+  Owner pages call `requireOwnerVenue()`. Team (`/dashboard/team`, `lib/team.ts`) invites, changes
+  roles and removes; removing calls `end_user_sessions` to sign them out everywhere.
+- Installable: `app/manifest.ts` (starts at /dashboard/choose), icons `public/app-icon-*.png`, and a
+  one-time Home Screen tip (`components/app/InstallTip.tsx`).
+
 - Tabs: Scan · Home · Customers · Messages (owners). The gear menu holds Card, Stand, the demo-only
   "send to demo guests" link and Admin. `/dashboard/add-visit` redirects to Scan.
 - Scan (`components/scan/`): camera via BarcodeDetector or jsQR, search fallback, big buttons; card

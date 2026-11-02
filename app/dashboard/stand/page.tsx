@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { NoVenue } from "@/components/app/NoVenue";
 import { PageSkeleton } from "@/components/app/PageSkeleton";
 import { card } from "@/components/ui/styles";
-import { requireVenue } from "@/lib/auth";
+import { requireOwnerVenue } from "@/lib/auth";
 import { siteUrl } from "@/lib/env";
 import { isoDaysAgo } from "@/lib/format";
 import { createUserClient } from "@/lib/supabase/server";
@@ -20,7 +20,7 @@ export default function StandPage() {
 }
 
 async function Stand() {
-  const { venue } = await requireVenue();
+  const { venue } = await requireOwnerVenue();
   if (!venue) return <NoVenue />;
 
   const nfcUrl = `${siteUrl()}/t/${venue.slug}`;

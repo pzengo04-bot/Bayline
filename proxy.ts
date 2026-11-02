@@ -10,6 +10,8 @@ export async function proxy(request: NextRequest) {
   if (!url || !key) return response;
 
   const supabase = createServerClient(url, key, {
+    // Same 90-day sign-in as lib/supabase/server.ts (the proxy can't import server-only modules).
+    cookieOptions: { maxAge: 60 * 60 * 24 * 90, sameSite: "lax", secure: process.env.NODE_ENV === "production" },
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll: (cookiesToSet, headers) => {
@@ -33,7 +35,7 @@ export async function proxy(request: NextRequest) {
   }
   if (signedIn && pathname === "/login") {
     const dashboard = request.nextUrl.clone();
-    dashboard.pathname = "/dashboard";
+    dashboard.pathname = "/dashboard/choose";
     dashboard.search = "";
     return NextResponse.redirect(dashboard);
   }

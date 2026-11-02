@@ -28,6 +28,7 @@ async function Customers({ searchParams }: { searchParams: PageProps<"/dashboard
   const { venue } = await requireVenue();
   if (!venue) return <NoVenue />;
   const { label } = await searchParams;
+  if (venue.role === "staff") return <StaffCustomers venueId={venue.id} timezone={venue.timezone} venue={venue} />;
 
   const [rows, overview, heatmapRows, insights] = await Promise.all([
     getCustomerStats(venue.id),
@@ -126,6 +127,34 @@ async function Customers({ searchParams }: { searchParams: PageProps<"/dashboard
           <VisitsHeatmap heatmap={buildVisitHeatmap(heatmapRows)} />
         </>
       )}
+    </div>
+  );
+}
+
+/** Staff see only the searchable list; each row opens the profile (add stamp, redeem). */
+async function StaffCustomers({ venueId, timezone, venue }: { venueId: string; timezone: string; venue: Parameters<typeof progressFor>[1] }) {
+  const [rows, insights] = await Promise.all([getCustomerStats(venueId), getCustomerInsights(venueId)]);
+  const labelOf = new Map(insights.map((i) => [i.id, i.label]));
+  const customers: CustomerRow[] = rows
+    .map((r) => {
+      const s = toSummary(r, timezone);
+      return {
+        id: r.id,
+        name: r.name,
+        phone: r.phone,
+        visits: r.visits,
+        spend: r.spend,
+        daysSinceLastVisit: r.last_visit_at ? s.daysSinceLastVisit : null,
+        progress: progressFor(r, venue),
+        textConsent: r.text_consent,
+        label: labelOf.get(r.id) ?? "occasional",
+      };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
+  return (
+    <div className="space-y-3">
+      <h1 className="font-display text-4xl font-bold uppercase leading-none">Customers</h1>
+      <CustomersTable customers={customers} showSpend={false} />
     </div>
   );
 }

@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AppHeader, AppHeaderSkeleton } from "@/components/app/AppHeader";
+import { InstallTip } from "@/components/app/InstallTip";
 import { site } from "@/lib/site";
 
-export const metadata: Metadata = { title: `Dashboard | ${site.name}`, robots: { index: false } };
+export const metadata: Metadata = {
+  title: `Dashboard | ${site.name}`,
+  robots: { index: false },
+  // iPhone Home Screen app: full screen, dark status bar, "Bayline" under the icon.
+  appleWebApp: { capable: true, title: site.name, statusBarStyle: "black" },
+};
 
 export default function DashboardLayout({ children }: LayoutProps<"/dashboard">) {
   return (
@@ -11,7 +17,10 @@ export default function DashboardLayout({ children }: LayoutProps<"/dashboard">)
       <Suspense fallback={<AppHeaderSkeleton />}>
         <AppHeader />
       </Suspense>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-16 pt-5 sm:pt-8 print:m-0 print:max-w-none print:p-0">{children}</main>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-16 pt-5 sm:pt-8 print:m-0 print:max-w-none print:p-0">
+        <InstallTip />
+        {children}
+      </main>
     </div>
   );
 }

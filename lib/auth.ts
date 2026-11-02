@@ -106,3 +106,12 @@ export async function requireVenue() {
   if (!venue && access.isAdmin) redirect("/admin");
   return { access, venue };
 }
+
+export const isOwner = (venue: { role: "owner" | "staff" | "admin" } | null) => Boolean(venue && venue.role !== "staff");
+
+/** Owner-only pages (Home, Messages, settings): staff go to Scan, their home. */
+export async function requireOwnerVenue() {
+  const r = await requireVenue();
+  if (r.venue && !isOwner(r.venue)) redirect("/dashboard/scan");
+  return r;
+}

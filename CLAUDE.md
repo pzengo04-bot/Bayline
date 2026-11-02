@@ -68,6 +68,10 @@ Tap-to-join wallet rewards cards plus retention insights for any local business 
   `sampleOfferSlot` prop for the planned "Send me a sample offer" button.
 - Pricing isn't shown: the site only has the founding offer (60 days free). The paid plan lives in
   `lib/pricing.ts` for when pricing goes public.
+- First-load intro: `components/site/IntroLoader.tsx`, an inline script in the root layout that only
+  runs on the marketing pages it lists (full once, logo-only for returning visitors, nothing again in
+  the same session; `?intro=1` forces it). The overlay is a `<bayline-intro>` custom element so React
+  skips it while hydrating `<body>`.
 - Phone mockups use `components/landing/PhoneFrame.tsx` (real 9:19.5 proportions).
 - Card images on the site are the approved renders in `public/marketing/cards/`, made with
   `scripts/render-card-previews.mjs`; re-render them after a card design change.

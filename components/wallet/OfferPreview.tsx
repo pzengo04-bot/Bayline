@@ -36,9 +36,9 @@ export function IphoneOfferPreview(p: Props) {
         </div>
       </div>
       <div className="rounded-2xl border border-line bg-white p-3">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Back of the card</p>
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-black/60">Back of the card</p>
         <p className="mt-2 text-[10px] font-semibold uppercase tracking-wide text-black/50">Latest offer</p>
-        <p className="text-sm">{text}</p>
+        <p className="text-sm text-black">{text}</p>
       </div>
     </div>
   );

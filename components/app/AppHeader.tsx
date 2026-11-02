@@ -1,26 +1,31 @@
 import Link from "next/link";
-import { signOut } from "@/app/login/actions";
 import { Logo } from "@/components/ui/Logo";
 import { getCurrentVenue } from "@/lib/auth";
 import { NavLinks, type NavItem } from "./NavLinks";
+import { SettingsMenu, type SettingsLink } from "./SettingsMenu";
 import { VenueSwitcher } from "./VenueSwitcher";
 
-/** Top bar for signed-in pages: venue, navigation and sign out. */
+/** Top bar for signed-in pages: venue, the four everyday tabs, and settings behind the gear. */
 export async function AppHeader() {
   const { access, venue } = await getCurrentVenue();
-  const canEditRewards = venue && venue.role !== "staff";
+  const owner = venue && venue.role !== "staff";
 
   const items: NavItem[] = venue
     ? [
+        { href: "/dashboard/scan", label: "Scan" },
         { href: "/dashboard", label: "Home" },
         { href: "/dashboard/customers", label: "Customers" },
-        { href: "/dashboard/add-visit", label: "Add visit" },
-        { href: "/dashboard/messages", label: "Messages" },
-        ...(canEditRewards ? [{ href: "/dashboard/card", label: "Card" }] : []),
-        { href: "/dashboard/stand", label: "Stand" },
+        ...(owner ? [{ href: "/dashboard/messages", label: "Messages" }] : []),
       ]
     : [];
-  if (access.isAdmin) items.push({ href: "/admin", label: "Admin" });
+  const settings: SettingsLink[] = [
+    ...(owner ? [{ href: "/dashboard/card", label: "Card", hint: "Design, colors and rewards" }] : []),
+    ...(venue ? [{ href: "/dashboard/stand", label: "Stand", hint: "Counter stand and QR sign" }] : []),
+    ...(owner && venue.is_demo
+      ? [{ href: "/dashboard/messages?audience=demo_guests&template=win_back&quick=1", label: "Demo: send to demo guests", hint: "Test an offer on demo cards" }]
+      : []),
+    ...(access.isAdmin ? [{ href: "/admin", label: "Admin" }] : []),
+  ];
 
   return (
     <header className="border-b border-line bg-surface-2 print:hidden">
@@ -34,12 +39,7 @@ export async function AppHeader() {
               <VenueSwitcher venues={access.venues.map(({ id, name }) => ({ id, name }))} currentId={venue.id} />
             )}
           </div>
-          <form action={signOut} className="flex items-center gap-3">
-            <span className="hidden max-w-[14rem] truncate text-sm text-muted md:inline">{access.user.email}</span>
-            <button type="submit" className="whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold text-muted hover:bg-surface-2 hover:text-fg">
-              Sign out
-            </button>
-          </form>
+          <SettingsMenu links={settings} email={access.user.email ?? ""} />
         </div>
         <div className="mt-3 pb-3">
           <NavLinks items={items} />

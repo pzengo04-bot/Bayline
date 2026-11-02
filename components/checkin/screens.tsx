@@ -33,13 +33,15 @@ function Badge({ children }: { children: ReactNode }) {
   );
 }
 
-type Result = { status: "joined" | "stamped" | "limit_reached"; firstName: string; progress: Progress; headStart?: number };
+type Result = { status: "joined" | "stamped" | "limit_reached" | "reward_ready"; firstName: string; progress: Progress; headStart?: number };
 
 const progressLine = (p: Progress) =>
   p.reward_type === "stamps" ? `${p.stamps} of ${p.stamps_needed}` : `${p.points} / ${p.points_needed} pts`;
 
 export function TapResultScreen({ result }: { result: Result }) {
   const { status, firstName, progress, headStart = 0 } = result;
+  // A tap on a card that's already full: no stamp, just the reward waiting.
+  if (status === "reward_ready") return <RewardReadyScreen firstName={firstName} progress={progress} again />;
   if (isRewardReady(progress) && status !== "limit_reached") return <RewardReadyScreen firstName={firstName} progress={progress} />;
 
   const heading =
@@ -73,13 +75,17 @@ export function TapResultScreen({ result }: { result: Result }) {
   );
 }
 
-export function RewardReadyScreen({ firstName, progress }: { firstName: string; progress: Progress }) {
+export function RewardReadyScreen({ firstName, progress, again = false }: { firstName: string; progress: Progress; again?: boolean }) {
   return (
     <div className="rounded-3xl bg-orange px-5 py-8 text-center text-midnight">
-      <p className="text-sm font-semibold uppercase tracking-widest">Reward ready</p>
+      <p className="text-sm font-semibold uppercase tracking-widest">{again ? "Your reward is ready" : "Reward ready"}</p>
       <p className="mt-3 font-display text-5xl font-extrabold uppercase leading-[0.9]">{progress.reward_text}</p>
-      <p className="mt-4 text-lg font-semibold">Show this screen to staff</p>
-      <p className="mt-1 text-sm">Nice one, {firstName}! Staff will redeem it and your card starts fresh.</p>
+      <p className="mt-4 text-lg font-semibold">{again ? "Your reward is ready — show your card to staff" : "Show this screen to staff"}</p>
+      <p className="mt-1 text-sm">
+        {again
+          ? `Your card is full, ${firstName}, so no new stamp today. Staff will redeem it and your card starts fresh.`
+          : `Nice one, ${firstName}! Staff will redeem it and your card starts fresh.`}
+      </p>
     </div>
   );
 }

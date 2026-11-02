@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { LabelChip } from "@/components/app/LabelChip";
 import { Section } from "@/components/dashboard/Section";
@@ -93,10 +94,13 @@ export function CustomersTable({ customers: initial, showSpend, initialLabel }: 
       ) : (
         <ul className="mt-3 divide-y divide-line/70 rounded-xl border border-line">
           {filtered.slice(0, limit).map((c) => (
-            <li key={c.id} className="grid gap-1 px-3 py-3 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1.6fr)] sm:items-center sm:gap-4">
+            <li key={c.id} className="relative grid gap-1 px-3 py-3 hover:bg-surface-2 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1.6fr)] sm:items-center sm:gap-4">
               <div className="min-w-0">
                 <p className="flex items-center gap-2 font-medium">
-                  <span className="truncate">{c.name}</span>
+                  {/* The whole row opens the profile. */}
+                  <Link href={`/dashboard/customers/${c.id}`} className="truncate after:absolute after:inset-0">
+                    {c.name}
+                  </Link>
                   <LabelChip label={c.label} />
                 </p>
                 <p className="text-xs text-muted tabular-nums">{formatPhone(c.phone)}</p>

@@ -76,11 +76,10 @@ async function Customers({ searchParams }: { searchParams: PageProps<"/dashboard
         <div className={`${card} p-6 text-center sm:p-10`}>
           <h2 className="font-display text-3xl font-bold uppercase">No check-ins yet</h2>
           <p className="mx-auto mt-2 max-w-md text-muted">
-            Print your QR sign and put it at the front desk. Customers scan it, enter their phone number, and show up
-            here.
+            Put your stand at the counter. Customers tap it, add the card to their wallet, and show up here.
           </p>
-          <Link href="/dashboard/qr" className={`${button.primary} mt-5`}>
-            Get your QR sign
+          <Link href="/dashboard/stand" className={`${button.primary} mt-5`}>
+            Set up your stand
           </Link>
         </div>
       ) : (
@@ -90,7 +89,7 @@ async function Customers({ searchParams }: { searchParams: PageProps<"/dashboard
             columns="sm:grid-cols-2 lg:grid-cols-4"
             items={[
               { label: "Active customers", value: String(overview.active_customers), note: "Visited in the last 60 days" },
-              { label: "Repeat visit rate", value: formatPercent(repeatRate), note: "Of active customers came 2+ times" },
+              { label: "Came back", value: formatPercent(repeatRate), note: "Of active customers came more than once" },
               { label: "Visits this month", value: String(overview.visits_this_month), note: `Check-ins in ${month}` },
               { label: "Rewards redeemed", value: String(overview.rewards_this_month), note: `Earned in ${month}` },
             ]}
@@ -117,7 +116,7 @@ async function Customers({ searchParams }: { searchParams: PageProps<"/dashboard
                     valueFor={(c) => (spend && c.spend > 0 ? formatMoney(c.spend) : `${c.visits} visits`)}
                   />
                   <Link href="/dashboard/messages?audience=gone_quiet&template=win_back" className={`${button.primary} mt-4 w-full`}>
-                    Draft a win-back message
+                    Send them an offer
                   </Link>
                 </>
               )}

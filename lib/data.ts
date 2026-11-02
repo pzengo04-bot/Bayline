@@ -61,10 +61,14 @@ export async function getCustomerInsights(venueId: string): Promise<CustomerInsi
   }
 }
 
+/** The last 7 days against the 7 before (venue time zone). Regulars are Regular + VIP labels. */
 export type HomeStats = {
-  month_customers: number;
-  month_returning: number;
   week_visits: number;
+  prev_visits: number;
+  regulars: number;
+  prev_regulars: number;
+  slipping: number;
+  prev_slipping: number;
   week_new: number;
   week_rewards: number;
   best_day: { date: string; visits: number } | null;

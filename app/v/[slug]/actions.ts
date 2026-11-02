@@ -10,7 +10,7 @@ import { createAnonClient } from "@/lib/supabase/server";
 import { notifyPassChanged } from "@/lib/wallet/notify";
 
 export type TapResult =
-  | { status: "joined" | "stamped" | "limit_reached"; firstName: string; progress: Progress; headStart?: number }
+  | { status: "joined" | "stamped" | "limit_reached" | "reward_ready"; firstName: string; progress: Progress; headStart?: number }
   | { status: "need_details" | "need_name" | "invalid_phone" | "venue_not_found" | "error" };
 
 /**
@@ -71,13 +71,14 @@ export async function tap(input: {
         await createAdminClient().from("site_events").insert({ event, path: `/v/${input.slug}` });
       });
     }
-    if (r.status !== "limit_reached") {
+    // A full card or the day's limit changes nothing on the pass.
+    if (r.status === "joined" || r.status === "stamped") {
       const customerId = r.customer_id;
       const message = r.progress.reward_type === "stamps" ? "Stamp added" : "Points added";
       after(() => notifyPassChanged([customerId], message));
     }
     return {
-      status: r.status as "joined" | "stamped" | "limit_reached",
+      status: r.status as "joined" | "stamped" | "limit_reached" | "reward_ready",
       firstName: r.first_name,
       progress: r.progress,
       headStart: r.status === "joined" ? (r.head_start ?? 0) : 0,

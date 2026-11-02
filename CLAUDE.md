@@ -32,9 +32,18 @@ Tap-to-join wallet rewards cards plus retention insights for any local business 
 - RLS everywhere; helpers in the `private` schema. New projects don't auto-grant, so migrations grant
   tables and columns explicitly (owners can't read customer tokens).
 - Progress comes from `private.customer_progress`: a card cycle runs from the last *main* reward
-  (`rewards_redeemed.kind`). Head-start stamps are `customers.bonus_stamps`, counted in the first
-  cycle only and never as visits. The optional milestone (`venues.milestone_text/at`) is redeemable
-  once per cycle with `redeem_reward(customer, 'milestone')`.
+  (`rewards_redeemed.kind`) or `customers.card_reset_at`, and counts visits with `visits.stamp`.
+  Head-start stamps are `customers.bonus_stamps`, counted on the very first card only and never as
+  visits. The optional milestone (`venues.milestone_text/at`) is redeemable once per cycle with
+  `redeem_reward(customer, 'milestone')`.
+- Stamp rules (all through `private.give_stamp`): one per day (`venues.stamps_per_day`, null on the
+  demo venue); a full card earns nothing more (a tap returns `reward_ready` and records the day's
+  visit with `stamp = false`); redeeming starts the card at 0 and records that day's visit without a
+  stamp. Staff use `stamp_customer`, `remove_stamp`, `reset_card`, `card_status`, `find_card`.
+- `card_events` logs every join, stamp, redemption and manual change, written only by triggers,
+  with `actor`/`actor_email` from `auth.uid()` (null source = the customer's own tap).
+- The pass QR holds `customers.card_code` (16 random hex characters), which `/dashboard/scan` looks
+  up; the "Member 8247 1930" under it is only for people to read.
 - Any change a pass shows must bump `customers.pass_updated_at` (triggers do this) and then call
   `notifyPassChanged` / `notifyVenuePassesChanged` to push to Apple and patch Google.
 
@@ -58,6 +67,18 @@ Tap-to-join wallet rewards cards plus retention insights for any local business 
   `/api/cron/expire-offers`, needs `CRON_SECRET`).
 - Google: class per venue, object per customer; offers also go out with `addMessage`, ending on the
   offer's end date. Real customers need Google publishing access (demo mode only allows test users).
+
+## Dashboard
+
+- Tabs: Scan · Home · Customers · Messages (owners). The gear menu holds Card, Stand, the demo-only
+  "send to demo guests" link and Admin. `/dashboard/add-visit` redirects to Scan.
+- Scan (`components/scan/`): camera via BarcodeDetector or jsQR, search fallback, big buttons; card
+  actions in `app/dashboard/scan/actions.ts` (shared with the customer profile
+  `/dashboard/customers/[id]`) push to wallets with `notifyPassChanged` in `after()`.
+- Home: `venue_home` (last 7 days vs the 7 before; regulars/slipping via `private.label_counts`,
+  which must match `customer_insights`), one Send offer with a preview (`SendOfferButton`), rewards
+  ready, slipping regulars, Recent activity from `card_events` (refreshes every 30s), and the Monday
+  brief at `/dashboard/brief` (`venue_week`).
 
 ## Brand and styling
 

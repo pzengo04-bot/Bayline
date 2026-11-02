@@ -47,7 +47,7 @@ export function TapFlow({ venue, hasCookie, source, wallet }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (result && (result.status === "joined" || result.status === "stamped" || result.status === "limit_reached")) {
+  if (result && (result.status === "joined" || result.status === "stamped" || result.status === "limit_reached" || result.status === "reward_ready")) {
     return (
       <div>
         <TapResultScreen result={result} />

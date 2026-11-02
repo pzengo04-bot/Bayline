@@ -4,8 +4,8 @@ import { useState, type ReactNode } from "react";
 import { LabelChip } from "@/components/app/LabelChip";
 import { HeatmapGrid } from "@/components/dashboard/HeatmapGrid";
 import { Section } from "@/components/dashboard/Section";
-import { StatGrid } from "@/components/dashboard/StatGrid";
 import { ActionCard } from "@/components/home/ActionCard";
+import { StatCards } from "@/components/home/StatCards";
 import { PhoneFrame } from "@/components/landing/PhoneFrame";
 import { Modal } from "@/components/ui/Modal";
 import { button } from "@/components/ui/styles";
@@ -54,11 +54,11 @@ export function DemoDashboard({ sampleOfferSlot }: { sampleOfferSlot?: ReactNode
         <span className="rounded-full border border-line bg-surface-2 px-3 py-1 font-mono text-xs font-semibold text-muted">Sample data</span>
       </div>
 
-      <StatGrid
+      <StatCards
         items={[
-          { label: "Customers this month", value: "84", note: "Visited in October" },
-          { label: "Returning rate", value: "62%", note: "Of this month's customers had been before" },
-          { label: "Slipping regulars", value: "6", note: "Away twice their usual time" },
+          { label: "Visits this week", value: 61, before: 53, note: "Check-ins in the last 7 days" },
+          { label: "Active regulars", value: 23, before: 21, note: "Coming back on their usual rhythm" },
+          { label: "Slipping", value: 6, before: 4, note: "Regulars away twice their usual time", upIsBad: true },
         ]}
       />
 

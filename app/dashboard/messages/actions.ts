@@ -17,7 +17,14 @@ export type SendResult =
 
 const AUDIENCES: OfferAudience[] = ["slipping", "regulars", "everyone", "demo_guests"];
 
-export async function sendOffer(input: { audience: string; message: string; short?: string; endsOn?: string }): Promise<SendResult> {
+/** customerIds narrows the audience to those people (the home page's per-row Send offer). */
+export async function sendOffer(input: {
+  audience: string;
+  message: string;
+  short?: string;
+  endsOn?: string;
+  customerIds?: string[];
+}): Promise<SendResult> {
   const { access, venue } = await requireVenue();
   if (!venue || venue.role === "staff") return { ok: false, message: "Only the venue owner can send offers." };
   const audience = input.audience as OfferAudience;
@@ -38,7 +45,8 @@ export async function sendOffer(input: { audience: string; message: string; shor
 
   // Recompute recipients now; never trust a list from the browser.
   const { customers } = await loadOfferContext(venue);
-  const plan = planOffer(venue, customers, audience);
+  const only = input.customerIds?.length ? new Set(input.customerIds) : null;
+  const plan = planOffer(venue, only ? customers.filter((c) => only.has(c.id)) : customers, audience);
   if (plan.deliver.length === 0) {
     return { ok: false, message: plan.matched ? "Nobody in this audience can get an offer right now." : "Nobody in this audience yet." };
   }

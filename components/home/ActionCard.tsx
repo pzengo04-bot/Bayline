@@ -2,11 +2,11 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { button } from "@/components/ui/styles";
 
-/** `actions` replaces the default buttons (the /demo page shows a simulated send instead). */
+/** `actions` replaces the default button (the home page opens a preview; /demo simulates a send). */
 type Props = (
-  | { kind: "slipping"; count: number; demo?: boolean }
-  | { kind: "slow"; window: string; demo?: boolean }
-  | { kind: "quiet"; demo?: boolean }
+  | { kind: "slipping"; count: number }
+  | { kind: "slow"; window: string }
+  | { kind: "quiet" }
 ) & { actions?: ReactNode };
 
 /** "This week's action": the single most valuable thing to do, with one button to do it. */
@@ -28,27 +28,19 @@ export function ActionCard(props: Props) {
 
   return (
     <section className="rounded-2xl border border-line bg-surface p-5 text-fg sm:p-6">
-      <p className="text-xs font-semibold uppercase tracking-widest text-blue">This week&apos;s action</p>
+      <p className="font-mono text-xs font-semibold uppercase tracking-widest text-blue">This week&apos;s action</p>
       <p className="mt-2 font-display text-3xl font-bold uppercase leading-[1.02] sm:text-4xl">{headline}</p>
       <p className="mt-2 text-fg/80">{body}</p>
       {props.actions ? (
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">{props.actions}</div>
-      ) : (href || props.demo) && (
-        <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-          {href && (
+      ) : (
+        href && (
+          <div className="mt-5">
             <Link href={href} className={`${button.accent} h-12 px-6 text-base`}>
-              Review &amp; send
+              Send offer
             </Link>
-          )}
-          {props.demo && (
-            <Link
-              href="/dashboard/messages?audience=demo_guests&template=win_back&quick=1"
-              className="inline-flex h-12 items-center justify-center rounded-full border border-fg/30 px-6 text-base font-semibold text-fg hover:bg-fg/10"
-            >
-              Send to demo guests now
-            </Link>
-          )}
-        </div>
+          </div>
+        )
       )}
     </section>
   );

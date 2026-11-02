@@ -121,7 +121,7 @@ export async function buildApplePass(d: PassData, opts: { voided?: boolean } = {
     });
   }
   for (const f of model.back) pass.backFields.push({ ...f, label: f.label.toUpperCase() });
-  // A small square QR of the member number (8 digits keeps it the simplest, sparsest QR).
+  // A small square QR of the random card code that the Scan page reads.
   pass.setBarcodes({ ...model.barcode, format: "PKBarcodeFormatQR", messageEncoding: "iso-8859-1" });
 
   return pass.getAsBuffer();

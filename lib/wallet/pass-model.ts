@@ -10,6 +10,8 @@ import type { StripState } from "./strip";
 export type PassData = {
   customer_id: string;
   serial: string;
+  /** The random code staff scan (the dashboard's Scan page looks cards up by it). */
+  card_code?: string;
   first_name: string;
   apple_auth_token: string;
   updated_at: string;
@@ -72,7 +74,8 @@ export function passModel(d: PassData, opts: { hasLogo: boolean; platform?: "app
       ...s,
       ...((s.key === "offer" && d.offer) || (s.key === "status" && ready) ? { changeMessage: "%@" } : {}),
     })),
-    barcode: { message: memberDigits(d.serial), altText: `Member ${member.number}` },
+    // The QR holds the random card code; the member number underneath is only for people to read.
+    barcode: { message: d.card_code ?? memberDigits(d.serial), altText: `Member ${member.number}` },
     strip: { progress: p, offerShort: short, bg: v.card_bg, fg: v.card_fg, accent: v.card_accent, reward: v.card_reward ?? v.card_accent, icon: stampIconFor(v) },
   };
 }

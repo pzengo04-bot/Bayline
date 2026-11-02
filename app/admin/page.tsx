@@ -4,7 +4,9 @@ import { selectVenue } from "@/app/dashboard/actions";
 import { PageSkeleton } from "@/components/app/PageSkeleton";
 import { Section } from "@/components/dashboard/Section";
 import { button, card } from "@/components/ui/styles";
+import { CopyLink } from "@/app/dashboard/stand/CopyLink";
 import { requireAdmin } from "@/lib/auth";
+import { siteUrl } from "@/lib/env";
 import { calendarDaysSince, formatDaysAgo } from "@/lib/format";
 import { programSummary } from "@/lib/rewards";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -88,6 +90,28 @@ async function Admin() {
                         </dd>
                       </div>
                     </dl>
+                    <div className="mt-3 space-y-2 border-t border-line pt-3">
+                      <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-muted">Setup</p>
+                      <div>
+                        <p className="mb-1 text-xs text-muted">NFC tag link (write this to the tag)</p>
+                        <CopyLink url={`${siteUrl()}/t/${v.slug}`} />
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <form action={selectVenue}>
+                          <input type="hidden" name="venueId" value={v.id} />
+                          <input type="hidden" name="next" value="/dashboard/card" />
+                          <button type="submit" className={button.small}>
+                            Design card
+                          </button>
+                        </form>
+                        <a href={`/dashboard/stand/insert?venue=${v.id}`} target="_blank" rel="noopener" className={`${button.secondary} h-9 px-4`}>
+                          Stand insert PDF (4×6)
+                        </a>
+                      </div>
+                      <p className="text-xs text-muted">
+                        {v.logo_url ? "Logo ✓" : "No logo yet"} · {v.address ? (v.latitude !== null ? "Address and map location ✓" : "Address saved, location not found") : "No address yet"}
+                      </p>
+                    </div>
                     {v.is_demo && <ClearDemoGuests venueId={v.id} count={guestCount(v.id)} />}
                     <div className="mt-3 border-t border-line pt-3">
                       {team.length === 0 ? (

@@ -7,7 +7,6 @@ import { card } from "@/components/ui/styles";
 import { requireVenue } from "@/lib/auth";
 import { siteUrl } from "@/lib/env";
 import { isoDaysAgo } from "@/lib/format";
-import { programSummary } from "@/lib/rewards";
 import { createUserClient } from "@/lib/supabase/server";
 import { PrintButton } from "../qr/PrintButton";
 import { CopyLink } from "./CopyLink";
@@ -52,7 +51,12 @@ async function Stand() {
           <h1 className="font-display text-4xl font-bold uppercase leading-none">Stand</h1>
           <p className="mt-1 text-sm text-muted">Your NFC tag link and a 4×6&quot; insert for a standard acrylic sign holder.</p>
         </div>
-        <PrintButton />
+        <div className="flex flex-wrap gap-2">
+          <a href={`/dashboard/stand/insert?venue=${venue.id}`} target="_blank" rel="noopener" className="inline-flex h-11 items-center rounded-full bg-orange px-5 text-sm font-semibold text-midnight hover:bg-orange-hover">
+            Download PDF (4×6)
+          </a>
+          <PrintButton />
+        </div>
       </div>
 
       <div className="grid items-start gap-5 print:block lg:grid-cols-[minmax(0,1fr)_auto]">
@@ -102,25 +106,17 @@ async function Stand() {
                 <p className="font-display text-[11cqw] font-extrabold uppercase leading-none">{venue.name}</p>
               )}
             </div>
-            <p className="mt-[7cqw] font-display text-[10cqw] font-extrabold uppercase leading-[0.95]">
-              Tap or scan
-              <br />
-              to join rewards
-            </p>
-            <p className="mt-[3cqw] text-[4.4cqw] text-midnight/65">{programSummary(venue)}</p>
+            <p className="mt-[7cqw] font-display text-[10cqw] font-extrabold uppercase leading-[0.95]">Tap your phone here</p>
+            <p className="mt-[2cqw] text-[5.5cqw]">for a free rewards card</p>
             <div
               className="mt-[7cqw] w-[52cqw] rounded-[3cqw] border-[0.8cqw] border-midnight p-[3cqw] [&_svg]:h-auto [&_svg]:w-full"
               dangerouslySetInnerHTML={{ __html: svg }}
               role="img"
               aria-label="QR code to join rewards"
             />
-            <p className="mt-[5cqw] flex items-center gap-[2cqw] text-[4cqw] font-semibold">
-              <svg viewBox="0 0 24 24" className="size-[6cqw]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-                <path d="M6 8.5a6 6 0 0 1 0 7M9.5 6a10 10 0 0 1 0 12M13 3.5a14 14 0 0 1 0 17" />
-              </svg>
-              Hold your phone here
-            </p>
-            <p className="mt-auto mb-[6cqw] text-[3.4cqw] text-midnight/65">No app needed · Adds a card to your wallet</p>
+            <p className="mt-[5cqw] text-[3.6cqw] text-midnight/65">Or scan the code with your camera.</p>
+            <p className="mt-[1.5cqw] text-[3cqw] text-midnight/65">No app needed. Adds a card to Apple or Google Wallet.</p>
+            <p className="mt-auto mb-[4cqw] text-[2.6cqw] text-midnight/65">Powered by Bayline</p>
           </div>
         </div>
       </div>

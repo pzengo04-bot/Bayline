@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { siteUrl } from "@/lib/env";
+import { geocodeAddress } from "@/lib/geocode";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createUserClient } from "@/lib/supabase/server";
 import { normalizePhone } from "@/lib/phone";
@@ -58,6 +59,8 @@ export async function createVenue(_prev: FormState, form: FormData): Promise<For
   const phoneRaw = String(form.get("owner_phone") ?? "").trim();
   const phone = phoneRaw ? normalizePhone(phoneRaw) : null;
   const rewards = parseRewardSettings(form);
+  const address = String(form.get("address") ?? "").trim().slice(0, 160) || null;
+  const staffEmails = [...new Set(String(form.get("staff_emails") ?? "").split(/[\s,;]+/).map((e) => e.trim().toLowerCase()).filter(Boolean))];
 
   if (!name || name.length > 80) return { status: "error", message: "Enter the venue name (80 characters max)." };
   if (!slug) return { status: "error", message: "Enter a web address for the check-in page." };
@@ -66,6 +69,8 @@ export async function createVenue(_prev: FormState, form: FormData): Promise<For
   if (!rewards.ok) return { status: "error", message: rewards.error };
   if (ownerEmail && !isEmail(ownerEmail)) return { status: "error", message: "Owner email doesn't look right." };
   if (phoneRaw && !phone) return { status: "error", message: "Owner phone should be a 10-digit US number." };
+  const badStaff = staffEmails.find((e) => !isEmail(e));
+  if (badStaff) return { status: "error", message: `Staff email “${badStaff}” doesn't look right.` };
   const ppv = Number(form.get("points_per_visit"));
 
   const supabase = await createUserClient();
@@ -79,6 +84,9 @@ export async function createVenue(_prev: FormState, form: FormData): Promise<For
       phone,
       ...rewards.value,
       points_per_visit: Number.isInteger(ppv) && ppv >= 1 && ppv <= 10000 ? ppv : 10,
+      head_start_stamps: rewards.ok && rewards.value.reward_type === "stamps" && form.get("welcome_stamp") === "on" ? 1 : 0,
+      address,
+      ...(address ? await geocodeAddress(address) : null),
     })
     .select("id")
     .single();
@@ -89,16 +97,19 @@ export async function createVenue(_prev: FormState, form: FormData): Promise<For
     };
   }
 
-  let note = "No owner invited yet.";
-  if (ownerEmail) {
+  const notes: string[] = [];
+  for (const [email, role] of [...(ownerEmail ? [[ownerEmail, "owner"] as const] : []), ...staffEmails.map((e) => [e, "staff"] as const)]) {
     try {
-      note = await addPerson(ownerEmail, venue.id, "owner");
+      notes.push(await addPerson(email, venue.id, role));
     } catch (e) {
-      note = (e as Error).message;
+      notes.push((e as Error).message);
     }
   }
   revalidatePath("/admin");
-  return { status: "ok", message: `${name} created at /v/${slug}. ${note}` };
+  return {
+    status: "ok",
+    message: `${name} created. NFC link: ${siteUrl()}/t/${slug}. ${notes.join(" ") || "No one invited yet."} Next: Design card and Stand PDF in its setup list.`,
+  };
 }
 
 export async function invitePerson(_prev: FormState, form: FormData): Promise<FormState> {

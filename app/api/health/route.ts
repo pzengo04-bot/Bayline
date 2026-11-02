@@ -96,14 +96,21 @@ async function googleStatus() {
       body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion }),
     });
     let issuerAccess: number | null = null;
+    // Each venue's class and its review status: "approved" classes can be saved by any Google account
+    // once the issuer has publishing access; "underReview"/"draft" ones only by test users.
+    let classes: Record<string, string> | null = null;
     if (res.ok) {
       // Listing classes only works if the service account was added as a user on the issuer account.
       const { access_token } = (await res.json()) as { access_token: string };
       const list = await fetch(
-        `https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass?issuerId=${encodeURIComponent(cfg.issuerId)}&maxResults=1`,
+        `https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass?issuerId=${encodeURIComponent(cfg.issuerId)}&maxResults=100`,
         { headers: { Authorization: `Bearer ${access_token}` } },
       );
       issuerAccess = list.status;
+      if (list.ok) {
+        const body = (await list.json()) as { resources?: { issuerName?: string; reviewStatus?: string }[] };
+        classes = Object.fromEntries((body.resources ?? []).map((c) => [c.issuerName ?? "?", c.reviewStatus ?? "unknown"]));
+      }
     }
     return {
       configured: true,
@@ -111,6 +118,7 @@ async function googleStatus() {
       issuerId: cfg.issuerId,
       tokenOk: res.ok,
       issuerAccess: issuerAccess === 200 ? "ok" : issuerAccess,
+      classes,
     };
   } catch (e) {
     return { configured: true, error: (e as Error).message };

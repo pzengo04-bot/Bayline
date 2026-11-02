@@ -118,10 +118,26 @@ function VenueFields() {
 
       <RewardFields value={rewards} onChange={setRewards} />
 
+      {rewards.reward_type === "stamps" && (
+        <label className="flex items-center gap-3 text-sm font-semibold">
+          <input type="checkbox" name="welcome_stamp" defaultChecked className="size-5 accent-[var(--blue)]" />
+          Welcome stamp <span className="font-normal text-muted">(new members start with 1 stamp)</span>
+        </label>
+      )}
+
+      <label className="block text-sm font-semibold">
+        Venue address <span className="font-normal text-muted">(shown on the card; saves the map location)</span>
+        <input name="address" maxLength={160} autoComplete="off" placeholder="123 Main St, Springfield, NJ 07081" className={input} />
+      </label>
+
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block text-sm font-semibold">
           Owner email <span className="font-normal text-muted">(they&apos;ll get an invite)</span>
           <input name="owner_email" type="email" autoComplete="off" className={input} />
+        </label>
+        <label className="block text-sm font-semibold sm:col-span-2">
+          Staff emails <span className="font-normal text-muted">(optional, comma separated; each gets an invite)</span>
+          <input name="staff_emails" autoComplete="off" placeholder="sam@example.com, alex@example.com" className={input} />
         </label>
         <label className="block text-sm font-semibold">
           Owner phone

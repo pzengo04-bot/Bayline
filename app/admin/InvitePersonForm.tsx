@@ -18,18 +18,18 @@ export function InvitePersonForm({ venueId }: { venueId: string }) {
           type="email"
           required
           placeholder="Invite by email"
-          className="h-9 min-w-0 flex-1 rounded-full border border-line bg-white px-3 text-sm focus:border-ink focus:outline-none"
+          className="h-9 min-w-0 flex-1 rounded-full border border-line bg-surface-2 px-3 text-sm focus:border-blue focus:outline-none"
         />
-        <select name="role" defaultValue="owner" aria-label="Role" className="h-9 rounded-full border border-line bg-white px-3 text-sm">
+        <select name="role" defaultValue="owner" aria-label="Role" className="h-9 rounded-full border border-line bg-surface-2 px-3 text-sm">
           <option value="owner">Owner</option>
           <option value="staff">Staff</option>
         </select>
-        <button type="submit" disabled={pending} className="h-9 rounded-full bg-ink px-4 text-sm font-semibold text-white disabled:opacity-50">
+        <button type="submit" disabled={pending} className="h-9 rounded-full bg-blue px-4 text-sm font-semibold text-midnight disabled:opacity-50">
           {pending ? "Sending…" : "Invite"}
         </button>
       </div>
       {state.status !== "idle" && (
-        <p className={`mt-2 text-xs ${state.status === "ok" ? "text-accent-strong" : "text-red-700"}`}>{state.message}</p>
+        <p className={`mt-2 text-xs ${state.status === "ok" ? "text-blue" : "text-red-400"}`}>{state.message}</p>
       )}
     </form>
   );

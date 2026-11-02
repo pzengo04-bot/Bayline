@@ -3,13 +3,13 @@
 export type Label = "demo_guest" | "new" | "vip" | "regular" | "slipping" | "lapsed" | "occasional";
 
 export const LABELS: Record<Label, { name: string; className: string; hint: string }> = {
-  vip: { name: "VIP", className: "bg-accent text-ink", hint: "Top 10% by visits in the last 90 days" },
-  regular: { name: "Regular", className: "bg-ink/[0.07] text-ink", hint: "3+ visits, coming back on rhythm" },
-  slipping: { name: "Slipping", className: "bg-amber-100 text-amber-900", hint: "Away more than twice their usual time" },
-  new: { name: "New", className: "bg-sky-100 text-sky-900", hint: "First visit in the last 30 days" },
-  occasional: { name: "Occasional", className: "bg-paper text-muted", hint: "1–2 visits, not new" },
-  lapsed: { name: "Lapsed", className: "bg-paper text-muted", hint: "Not seen in 120+ days" },
-  demo_guest: { name: "Demo guest", className: "bg-ink text-white", hint: "Joined the demo card" },
+  vip: { name: "VIP", className: "bg-blue text-midnight", hint: "Top 10% by visits in the last 90 days" },
+  regular: { name: "Regular", className: "bg-fg/10 text-fg", hint: "3+ visits, coming back on rhythm" },
+  slipping: { name: "Slipping", className: "bg-amber-400/15 text-amber-300", hint: "Away more than twice their usual time" },
+  new: { name: "New", className: "bg-blue/15 text-blue", hint: "First visit in the last 30 days" },
+  occasional: { name: "Occasional", className: "bg-fg/5 text-muted", hint: "1–2 visits, not new" },
+  lapsed: { name: "Lapsed", className: "bg-fg/5 text-muted", hint: "Not seen in 120+ days" },
+  demo_guest: { name: "Demo guest", className: "bg-fg/5 text-muted ring-1 ring-inset ring-line", hint: "Joined the demo card" },
 };
 
 export type CustomerInsight = {

@@ -15,7 +15,10 @@ export type StripState = {
   offerShort?: string | null;
   bg: string;
   fg: string;
+  /** Filled stamps and the points bar. */
   accent: string;
+  /** Reward stamps and markers, and the banner line (offers, ready rewards). Defaults to the accent. */
+  reward?: string;
 };
 
 export type TextOpts = {
@@ -35,7 +38,7 @@ export type TextFn = {
 };
 
 /** Bump when the drawing changes, so cached strip images (Google, Card tab) are fetched again. */
-export const STRIP_VERSION = 4;
+export const STRIP_VERSION = 5;
 
 /** Apple's storeCard strip, in points. Content stays inside the middle 123pt so it survives either crop. */
 export const STRIP_W = 375;
@@ -106,6 +109,7 @@ export function stripSvg(s: StripState, text: TextFn, scale = 1, width = STRIP_W
   const p = s.progress;
   const m = p.milestone;
   const line = stripLine(s);
+  const reward = s.reward ?? s.accent;
   const marginX = 24;
   let body = "";
 
@@ -114,15 +118,15 @@ export function stripSvg(s: StripState, text: TextFn, scale = 1, width = STRIP_W
   if (line.kind === "progress") {
     body += text.draw(line.text, { x: W / 2, y: lineY, size: 16, weight: 600, anchor: "middle", fill: s.fg, opacity: 0.9, maxWidth: W - marginX * 2 });
   } else {
-    const ink = onColor(s.accent, s.bg, s.fg);
+    const ink = onColor(reward, s.bg, s.fg);
     const icon = line.kind === "offer" ? 18 : 0;
     const size = 15;
     const maxText = W - marginX * 2 - 28 - (icon ? icon + 6 : 0);
     const tw = Math.min(text.width(line.text, size, 700), maxText);
     const bw = tw + 28 + (icon ? icon + 6 : 0);
     const bx = (W - bw) / 2;
-    body += `<rect x="${bx}" y="${lineY - 21}" width="${bw}" height="31" rx="15.5" fill="${s.accent}"/>`;
-    if (icon) body += gift(bx + 14 + icon / 2, lineY - 5.5, icon, ink, s.accent);
+    body += `<rect x="${bx}" y="${lineY - 21}" width="${bw}" height="31" rx="15.5" fill="${reward}"/>`;
+    if (icon) body += gift(bx + 14 + icon / 2, lineY - 5.5, icon, ink, reward);
     body += text.draw(line.text, { x: bx + 14 + (icon ? icon + 6 : 0), y: lineY, size, weight: 700, anchor: "start", fill: ink, maxWidth: maxText });
   }
 
@@ -132,8 +136,8 @@ export function stripSvg(s: StripState, text: TextFn, scale = 1, width = STRIP_W
     const markerR = 13;
     const barW = W - marginX * 2 - markerR; // room for the reward marker at the end
     const barY = 70;
-    // Reward markers read in the accent color, or the text color if the accent is too faint.
-    const mark = contrastRatio(s.accent, s.bg) >= 2 ? s.accent : s.fg;
+    // Reward markers read in the reward color, or the text color if it's too faint.
+    const mark = contrastRatio(reward, s.bg) >= 2 ? reward : s.fg;
     body += text.draw(String(p.points), { x: barX, y: 54, size: 30, weight: 700, anchor: "start", fill: s.accent });
     const nw = text.width(String(p.points), 30, 700);
     body += text.draw(`of ${p.points_needed} pts`, { x: barX + nw + 6, y: 54, size: 15, weight: 600, anchor: "start", fill: s.fg, opacity: 0.7 });
@@ -143,15 +147,15 @@ export function stripSvg(s: StripState, text: TextFn, scale = 1, width = STRIP_W
       const gx = barX + barW * pct(at);
       const reached = p.points >= at;
       return (
-        `<circle cx="${gx}" cy="${barY + 6}" r="${markerR}" fill="${reached ? s.accent : s.bg}" stroke="${reached ? s.bg : mark}" stroke-width="2"/>` +
-        iconSvg(paths, gx, barY + 6, 15, reached ? onColor(s.accent, s.bg, s.fg) : mark)
+        `<circle cx="${gx}" cy="${barY + 6}" r="${markerR}" fill="${reached ? reward : s.bg}" stroke="${reached ? s.bg : mark}" stroke-width="2"/>` +
+        iconSvg(paths, gx, barY + 6, 15, reached ? onColor(reward, s.bg, s.fg) : mark)
       );
     };
     if (m && m.at > 0 && m.at < p.points_needed) body += marker(m.at, REWARD_ICONS.gift);
     body += marker(p.points_needed, REWARD_ICONS.trophy);
   } else {
     const n = Math.max(2, Math.min(p.stamps_needed, 20));
-    const mark = contrastRatio(s.accent, s.bg) >= 2 ? s.accent : s.fg;
+    const mark = contrastRatio(reward, s.bg) >= 2 ? reward : s.fg;
     const rows = n > 6 ? 2 : 1;
     const perRow = Math.ceil(n / rows);
     const zoneTop = 18;
@@ -181,9 +185,10 @@ export function stripSvg(s: StripState, text: TextFn, scale = 1, width = STRIP_W
       // The golf ball's dimples cover the whole stamp: the stamp circle is the ball.
       const stampIconSize = s.icon === "golf" ? size * 0.82 : iconSize;
       if (earned) {
-        // Filled: the card visibly fills up.
-        body += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${s.accent}"/>`;
-        body += iconSvg(paths ?? STAMP_ICONS[s.icon ?? "check"].paths, cx, cy, paths ? iconSize : stampIconSize, onColor(s.accent, s.bg, s.fg));
+        // Filled: the card visibly fills up. Reward stamps fill in the reward color.
+        const fill = paths ? reward : s.accent;
+        body += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}"/>`;
+        body += iconSvg(paths ?? STAMP_ICONS[s.icon ?? "check"].paths, cx, cy, paths ? iconSize : stampIconSize, onColor(fill, s.bg, s.fg));
       } else if (paths) {
         body += `<circle cx="${cx}" cy="${cy}" r="${r - stroke / 2}" fill="none" stroke="${mark}" stroke-width="${stroke}"/>`;
         body += iconSvg(paths, cx, cy, iconSize, mark);

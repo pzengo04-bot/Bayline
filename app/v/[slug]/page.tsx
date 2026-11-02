@@ -20,7 +20,7 @@ type JoinVenue = RewardSettings & { id: string; name: string; slug: string; logo
 export default function JoinPage({ params, searchParams }: PageProps<"/v/[slug]">) {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 pb-8 pt-8">
-      <Suspense fallback={<div className="mx-auto mt-2 h-20 w-48 animate-pulse rounded-xl bg-ink/5" />}>
+      <Suspense fallback={<div className="mx-auto mt-2 h-20 w-48 animate-pulse rounded-xl bg-surface-2" />}>
         <Join params={params} searchParams={searchParams} />
       </Suspense>
       <p className="mt-auto pt-10 text-center text-xs text-muted">Rewards by {site.name}</p>
@@ -42,7 +42,7 @@ async function Join({ params, searchParams }: Pick<PageProps<"/v/[slug]">, "para
   return (
     <>
       <VenueHeading name={venue.name} logoUrl={venue.logo_url} cardBg={venue.card_bg} />
-      <p className="mt-2 text-center text-sm font-medium text-accent-strong">{programSummary(venue)}</p>
+      <p className="mt-2 text-center text-sm font-medium text-blue">{programSummary(venue)}</p>
       <div className="mt-8">
         <TapFlow
           venue={{ id: venue.id, slug: venue.slug, name: venue.name }}

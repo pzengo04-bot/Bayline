@@ -27,8 +27,8 @@ export function HeroPhone() {
         </PhoneFrame>
 
         {/* Lock-screen notification, overlapping the top of the phone */}
-        <div className="absolute left-1/2 top-0 z-20 flex w-[min(19.5rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-6 gap-3 rounded-2xl border border-white/60 bg-white/90 p-3 shadow-[0_18px_40px_-18px_rgba(15,21,18,0.5)] backdrop-blur">
-          <span className="grid size-9 shrink-0 place-items-center rounded-[22%] bg-ink text-[11px] font-bold text-accent" aria-hidden="true">
+        <div className="absolute left-1/2 top-0 z-20 flex w-[min(19.5rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-6 gap-3 rounded-2xl border border-line bg-surface-2/90 p-3 shadow-[0_18px_40px_-18px_rgba(0,0,0,0.7)] backdrop-blur">
+          <span className="grid size-9 shrink-0 place-items-center rounded-[22%] bg-midnight text-[11px] font-bold text-blue" aria-hidden="true">
             BN
           </span>
           <div className="min-w-0 text-[13px] leading-snug">
@@ -36,15 +36,15 @@ export function HeroPhone() {
               <span className="font-semibold">Back Nine Golf</span>
               <span className="text-muted">now</span>
             </p>
-            <p className="text-ink/80">Bonus stamp on any visit this week. See you on the course!</p>
+            <p className="text-fg/80">Bonus stamp on any visit this week. See you on the course!</p>
           </div>
         </div>
 
         {/* Owner's side */}
-        <div className="absolute -bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-ink py-2 pl-3 pr-2 text-sm text-white shadow-lg sm:left-auto sm:right-[-3.5rem] sm:translate-x-0">
+        <div className="absolute -bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full border border-line bg-surface py-2 pl-3 pr-2 text-sm text-fg shadow-lg sm:left-auto sm:right-[-3.5rem] sm:translate-x-0">
           <span className="size-2 rounded-full bg-[#f59e0b]" aria-hidden="true" />
           6 regulars slipping
-          <span className="rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-ink">Send offer</span>
+          <span className="rounded-full bg-blue px-2.5 py-1 text-xs font-semibold text-midnight">Send offer</span>
         </div>
       </div>
     </div>

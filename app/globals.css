@@ -1,40 +1,70 @@
 @import "tailwindcss";
 
 :root {
-  --ink: #0f1512;
-  --paper: #f6f5f0;
-  --card: #ffffff;
-  --line: #e3e1d8;
-  --muted: #5b625d;
-  --accent: #c4f04a; /* turf lime: fills with ink text, or text on ink */
-  --accent-strong: #3d6a00; /* same hue, dark enough for text on light backgrounds */
-  color-scheme: light;
+  --midnight: #02070a; /* page background */
+  --surface: #0a1218; /* cards, nav, panels */
+  --surface-2: #111c24; /* raised cards, inputs, hover states */
+  --border: #1c2a33; /* hairlines and dividers */
+  --text: #f2f5f7;
+  --muted: #8a99a3; /* secondary text and labels (6.9:1 on midnight) */
+  --blue: #0297de; /* the brand: logo, links, icons, charts, stamps. Midnight text on it, never white */
+  --blue-hover: #33abe5;
+  --orange: #fc734d; /* accent only: the main CTA, the founding offer, the odd key number. Midnight text on it */
+  --orange-hover: #fd8a6a;
+  color-scheme: dark;
 }
 
 @theme inline {
-  --color-ink: var(--ink);
-  --color-paper: var(--paper);
-  --color-card: var(--card);
-  --color-line: var(--line);
+  --color-midnight: var(--midnight);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--border);
+  --color-fg: var(--text);
   --color-muted: var(--muted);
-  --color-accent: var(--accent);
-  --color-accent-strong: var(--accent-strong);
+  --color-blue: var(--blue);
+  --color-blue-hover: var(--blue-hover);
+  --color-orange: var(--orange);
+  --color-orange-hover: var(--orange-hover);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-display: var(--font-display);
 }
 
 body {
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--midnight);
+  color: var(--text);
 }
 
 ::selection {
-  background: var(--accent);
-  color: var(--ink);
+  background: var(--blue);
+  color: var(--midnight);
 }
 
 :focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--blue);
   outline-offset: 2px;
+}
+
+/* The hero's glow: orange core rising from the bottom center, through blue into midnight, with faint
+   vertical lines over it. Sits behind the hero content. */
+.hero-aurora {
+  background:
+    radial-gradient(40% 50% at 50% 100%, rgb(252 115 77 / 0.55), rgb(252 115 77 / 0) 70%),
+    radial-gradient(75% 75% at 50% 100%, rgb(2 151 222 / 0.34), rgb(2 151 222 / 0.1) 55%, rgb(2 7 10 / 0) 80%);
+}
+.hero-aurora::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, rgb(242 245 247 / 0.045) 0 1px, transparent 1px 32px);
+  mask-image: linear-gradient(to top, black, transparent 75%);
+}
+
+/* Cards that lift with a soft blue glow on hover. */
+.glow-hover {
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.glow-hover:hover {
+  border-color: rgb(2 151 222 / 0.45);
+  box-shadow: 0 0 0 1px rgb(2 151 222 / 0.15), 0 12px 40px -12px rgb(2 151 222 / 0.35);
 }

@@ -8,7 +8,7 @@ import { isStampIcon } from "@/lib/wallet/stamp-icons";
 
 // The strip image for the Card tab previews, drawn by the same code as real passes. Signed-in venue
 // users only. ?s= is base64url JSON of the pass model's strip: { p: Progress, o: offer short text,
-// bg, fg, ac, ic: stamp icon, g: Google width }.
+// bg, fg, ac, rw: reward color, ic: stamp icon, g: Google width }.
 const HEX = /^#[0-9a-f]{6}$/i;
 const str = (v: unknown, max: number) => (typeof v === "string" ? v.slice(0, max) : "");
 const int = (v: unknown, lo: number, hi: number) => Math.max(lo, Math.min(hi, Math.round(Number(v) || 0)));
@@ -40,6 +40,7 @@ function parse(raw: string): { state: StripState; google: boolean } | null {
       bg: j.bg as string,
       fg: j.fg as string,
       accent: j.ac as string,
+      reward: typeof j.rw === "string" && HEX.test(j.rw) ? j.rw : undefined,
       icon: isStampIcon(j.ic) ? j.ic : "check",
     },
     google: Boolean(j.g),

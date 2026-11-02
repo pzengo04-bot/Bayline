@@ -45,13 +45,13 @@ export function DemoDashboard({ sampleOfferSlot }: { sampleOfferSlot?: ReactNode
   const [sent, setSent] = useState(false);
 
   return (
-    <div className="space-y-3 rounded-3xl border border-line bg-paper p-3 sm:p-5">
+    <div className="space-y-3 rounded-3xl border border-line bg-surface-2 p-3 sm:p-5">
       <div className="flex flex-wrap items-end justify-between gap-2 pb-1">
         <div>
           <p className="text-sm font-medium text-muted">Golf simulators · 10 visits = free bay hour</p>
           <p className="font-display text-3xl font-bold uppercase leading-none sm:text-4xl">Back Nine Golf</p>
         </div>
-        <span className="rounded-full bg-ink px-3 py-1 text-xs font-semibold text-white">Sample data</span>
+        <span className="rounded-full border border-line bg-surface-2 px-3 py-1 font-mono text-xs font-semibold text-muted">Sample data</span>
       </div>
 
       <StatGrid
@@ -104,8 +104,8 @@ export function DemoDashboard({ sampleOfferSlot }: { sampleOfferSlot?: ReactNode
             describe={(d, i) => `${DAYS[d]} ${formatHour(HOURS[i])}: ${COUNTS[d][i]} check-ins`}
             readout={(d, i) => `${COUNTS[d][i]} check-ins`}
           />
-          <p className="mt-4 flex items-center gap-2 rounded-xl bg-paper px-3 py-2.5 text-sm">
-            <span className="size-3 shrink-0 rounded-[3px] bg-accent ring-2 ring-inset ring-ink" aria-hidden="true" />
+          <p className="mt-4 flex items-center gap-2 rounded-xl bg-midnight px-3 py-2.5 text-sm">
+            <span className="size-3 shrink-0 rounded-[3px] bg-orange ring-2 ring-inset ring-fg" aria-hidden="true" />
             Quietest window: <strong>Tuesday 12–3pm</strong>
           </p>
         </Section>
@@ -113,14 +113,14 @@ export function DemoDashboard({ sampleOfferSlot }: { sampleOfferSlot?: ReactNode
 
       <Modal open={sent} onClose={() => setSent(false)} title="Offer sent">
         <p className="text-sm text-muted">Simulated: this is what Marcus, Dana and the other 4 see on their lock screen.</p>
-        <div className="mt-4 flex justify-center text-white">
-          <PhoneFrame className="w-[13.5rem]" screen="linear-gradient(160deg,#1d3557,#457b9d 55%,#a8dadc)">
-            <div className="text-center text-white">
+        <div className="mt-4 flex justify-center text-fg">
+          <PhoneFrame className="w-[13.5rem]" screen="linear-gradient(160deg,#02070a,#0b3a55 55%,#0297de)">
+            <div className="text-center text-fg">
               <p className="font-display text-5xl font-semibold leading-none">9:41</p>
-              <p className="mt-1 text-[11px] text-white/75">Tuesday, October 21</p>
+              <p className="mt-1 text-[11px] text-fg/75">Tuesday, October 21</p>
             </div>
-            <div className="mx-2 mt-5 flex gap-2 rounded-2xl bg-white/85 p-2.5 text-[11px] leading-snug text-ink backdrop-blur">
-              <span className="grid size-7 shrink-0 place-items-center rounded-[22%] bg-ink text-[9px] font-bold text-accent" aria-hidden="true">
+            <div className="mx-2 mt-5 flex gap-2 rounded-2xl bg-surface-2/85 p-2.5 text-[11px] leading-snug text-fg backdrop-blur">
+              <span className="grid size-7 shrink-0 place-items-center rounded-[22%] bg-midnight text-[9px] font-bold text-blue" aria-hidden="true">
                 BN
               </span>
               <div className="min-w-0">
@@ -128,7 +128,7 @@ export function DemoDashboard({ sampleOfferSlot }: { sampleOfferSlot?: ReactNode
                   <span className="font-semibold">Back Nine Golf</span>
                   <span className="text-muted">now</span>
                 </p>
-                <p className="text-ink/80">{OFFER}</p>
+                <p className="text-fg/80">{OFFER}</p>
               </div>
             </div>
           </PhoneFrame>

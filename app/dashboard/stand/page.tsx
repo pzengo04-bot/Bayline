@@ -26,7 +26,7 @@ async function Stand() {
 
   const nfcUrl = `${siteUrl()}/t/${venue.slug}`;
   const qrUrl = `${nfcUrl}?src=qr`;
-  const svg = await QRCode.toString(qrUrl, { type: "svg", margin: 0, errorCorrectionLevel: "M", color: { dark: "#0f1512", light: "#ffffff" } });
+  const svg = await QRCode.toString(qrUrl, { type: "svg", margin: 0, errorCorrectionLevel: "M", color: { dark: "#02070a", light: "#ffffff" } });
 
   const since = isoDaysAgo(30);
   const supabase = await createUserClient();
@@ -83,14 +83,14 @@ async function Stand() {
             </dl>
           </section>
           <p className="text-sm text-muted">
-            Need a full-page sign instead? <Link href="/dashboard/qr" className="font-semibold text-ink underline underline-offset-2">Letter-size QR sign</Link>
+            Need a full-page sign instead? <Link href="/dashboard/qr" className="font-semibold text-blue underline underline-offset-2">Letter-size QR sign</Link>
           </p>
         </div>
 
         {/* The insert: 4in × 6in when printed; scaled preview on screen. */}
-        <div className="mx-auto w-[18rem] max-w-full shadow-[0_20px_50px_-25px_rgba(15,21,18,0.4)] print:w-auto print:max-w-none print:shadow-none">
+        <div className="mx-auto w-[18rem] max-w-full shadow-[0_20px_50px_-25px_rgba(0,0,0,0.8)] print:w-auto print:max-w-none print:shadow-none">
           <div
-            className="@container relative flex aspect-[4/6] flex-col items-center bg-white text-center text-ink print:h-[6in] print:w-[4in] print:aspect-auto"
+            className="@container relative flex aspect-[4/6] flex-col items-center bg-white text-center text-midnight print:h-[6in] print:w-[4in] print:aspect-auto"
             style={{ printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}
           >
             <div className="h-[4cqw] w-full" style={{ background: venue.card_bg }} />
@@ -107,9 +107,9 @@ async function Stand() {
               <br />
               to join rewards
             </p>
-            <p className="mt-[3cqw] text-[4.4cqw] text-muted">{programSummary(venue)}</p>
+            <p className="mt-[3cqw] text-[4.4cqw] text-midnight/65">{programSummary(venue)}</p>
             <div
-              className="mt-[7cqw] w-[52cqw] rounded-[3cqw] border-[0.8cqw] border-ink p-[3cqw] [&_svg]:h-auto [&_svg]:w-full"
+              className="mt-[7cqw] w-[52cqw] rounded-[3cqw] border-[0.8cqw] border-midnight p-[3cqw] [&_svg]:h-auto [&_svg]:w-full"
               dangerouslySetInnerHTML={{ __html: svg }}
               role="img"
               aria-label="QR code to join rewards"
@@ -120,7 +120,7 @@ async function Stand() {
               </svg>
               Hold your phone here
             </p>
-            <p className="mt-auto mb-[6cqw] text-[3.4cqw] text-muted">No app needed · Adds a card to your wallet</p>
+            <p className="mt-auto mb-[6cqw] text-[3.4cqw] text-midnight/65">No app needed · Adds a card to your wallet</p>
           </div>
         </div>
       </div>

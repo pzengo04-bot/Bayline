@@ -21,6 +21,8 @@ export type PassData = {
     card_bg: string;
     card_fg: string;
     card_accent: string;
+    /** Null: same as the accent. */
+    card_reward?: string | null;
     pass_message: string | null;
     reward_type: "stamps" | "points";
     reward_text: string;
@@ -71,6 +73,6 @@ export function passModel(d: PassData, opts: { hasLogo: boolean; platform?: "app
       ...((s.key === "offer" && d.offer) || (s.key === "status" && ready) ? { changeMessage: "%@" } : {}),
     })),
     barcode: { message: memberDigits(d.serial), altText: `Member ${member.number}` },
-    strip: { progress: p, offerShort: short, bg: v.card_bg, fg: v.card_fg, accent: v.card_accent, icon: stampIconFor(v) },
+    strip: { progress: p, offerShort: short, bg: v.card_bg, fg: v.card_fg, accent: v.card_accent, reward: v.card_reward ?? v.card_accent, icon: stampIconFor(v) },
   };
 }

@@ -44,6 +44,9 @@ Tap-to-join wallet rewards cards plus retention insights for any local business 
   logo text) + logo text, the member's first name top right, strip image, then REWARD and OFFER
   (OFFER only while an offer is active), and a QR of the 8-digit member number. Everything else is
   in Pass Details (`backSections` in `lib/wallet/pass-content.ts`).
+- Card colors per venue: `card_bg`, `card_fg`, `card_accent` (stamps, points bar) and `card_reward`
+  (reward stamps and markers, the offer/ready banner; null = same as the accent, which older venues
+  have). New venues default to the Bayline palette: midnight, blue stamps, orange rewards.
 - The strip (`lib/wallet/strip.ts`) is the design canvas: stamps (two rows above 6), a gift on the
   milestone stamp and on the last stamp (points: gift markers on the bar),
   and one line: progress, the offer banner, or "… ready! Show staff". Text is drawn as Inter outlines
@@ -55,6 +58,16 @@ Tap-to-join wallet rewards cards plus retention insights for any local business 
   `/api/cron/expire-offers`, needs `CRON_SECRET`).
 - Google: class per venue, object per customer; offers also go out with `addMessage`, ending on the
   offer's end date. Real customers need Google publishing access (demo mode only allows test users).
+
+## Brand and styling
+
+- Dark everywhere (marketing site, dashboard, join pages). Palette tokens in `app/globals.css`:
+  midnight (page), surface / surface-2 (cards, inputs), line (borders), fg (text), muted, blue (the
+  brand: logo, links, icons, charts, stamps) and orange (accent only: the main CTA, the founding
+  offer, reward moments). Blue and orange fills always take midnight text (light text fails AA).
+- `button.primary` is the orange CTA, `button.accent` / `button.small` blue, `button.secondary` an
+  outlined surface. `.hero-aurora` is the hero glow, `.glow-hover` the blue card hover.
+- Printed pages (`/dashboard/qr`, `/dashboard/stand`) stay white with midnight ink.
 
 ## Marketing site
 
@@ -80,7 +93,9 @@ Tap-to-join wallet rewards cards plus retention insights for any local business 
   `demo_link_open` (the demo link opened from /demo's QR or button) and `demo_join` (joined from
   `?src=demo`; older `?src=site` joins are `demo_join_site`). Each row has the page path.
 - No fake testimonials, logos, stats or customer counts. Sample product data is labeled as sample.
-- Logo: `components/ui/Logo.tsx` shows `public/brand/logo-for-{light,dark}-bg.svg` (the official
-  logo with its viewBox trimmed to the drawn area and C2PA metadata removed). Favicon `app/icon1.svg`
-  (+ `icon2.png` 48px) and `app/apple-icon.png` are the official files. The full original brand set
+- Logo: `components/ui/Logo.tsx` shows `public/brand/logo-for-dark-bg.svg` (blue swirl, light
+  wordmark) or, with `onLight`, the all-midnight `logo-for-light-bg.svg` (the official logo, viewBox
+  trimmed, C2PA metadata removed). Favicon `app/icon1.svg` (blue on midnight; `icon2.png` 48px and
+  `app/apple-icon.png` are rendered from it). Social image `app/opengraph-image.png` comes from
+  `scripts/render-og-image.mjs` (run it with `--import ./tests/unit/register.mjs`). The full original brand set
   (symbols, PNG exports, app icon) was in `website/`; recover it with `git show d31cf6f:website/<file>`.

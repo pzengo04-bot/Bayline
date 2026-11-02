@@ -79,6 +79,14 @@ test("schema, taps, rewards and row level security", async () => {
   await as(db, "authenticated", a.id, `update venues set card_bg = '#123456' where id = $1`, [va.id]);
   const after = (await db.query(`select pass_updated_at from customers where id=$1`, [mike.id])).rows[0].pass_updated_at;
   ok(after > before, "redesign marks passes as updated");
+  await new Promise((res) => setTimeout(res, 20));
+  await as(db, "authenticated", a.id, `update venues set card_reward = '#e8590c' where id = $1`, [va.id]);
+  const afterReward = (await db.query(`select pass_updated_at from customers where id=$1`, [mike.id])).rows[0].pass_updated_at;
+  ok(afterReward > after, "owners can set the reward color, and it redraws passes");
+  const { rows: [fresh] } = await db.query(
+    `insert into venues (name, slug, type) values ('Fresh', 'fresh-colors', 'cafe') returning card_bg, card_fg, card_accent, card_reward`,
+  );
+  ok(fresh.card_bg === "#02070a" && fresh.card_accent === "#0297de" && fresh.card_reward === "#fc734d", "new venues start on the Bayline palette");
 
   // Points venue: taps earn points per visit, staff amounts earn per dollar.
   r = await tap(`'test-cages', 'qr', null, '+19145550199', 'Dana'`);

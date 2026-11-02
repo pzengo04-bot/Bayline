@@ -8,7 +8,7 @@ export function NoVenue() {
       <h1 className="font-display text-3xl font-bold uppercase">No venue yet</h1>
       <p className="mt-2 text-muted">
         Your login isn&apos;t linked to a venue. Email{" "}
-        <a href={`mailto:${site.email}`} className="font-semibold text-ink underline underline-offset-2">
+        <a href={`mailto:${site.email}`} className="font-semibold text-fg underline underline-offset-2">
           {site.email}
         </a>{" "}
         and we&apos;ll set you up.

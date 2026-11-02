@@ -67,7 +67,7 @@ async function Customers({ searchParams }: { searchParams: PageProps<"/dashboard
           </p>
           <h1 className="font-display text-4xl font-bold uppercase leading-none sm:text-5xl">{venue.name}</h1>
         </div>
-        <Link href={`/v/${venue.slug}`} className="text-sm font-semibold text-accent-strong underline underline-offset-2">
+        <Link href={`/v/${venue.slug}`} className="text-sm font-semibold text-blue underline underline-offset-2">
           Open check-in page
         </Link>
       </div>

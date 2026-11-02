@@ -40,7 +40,7 @@ export function RotatingLine() {
             {WORDS.map((w, n) => (
               <span
                 key={w}
-                className={`col-start-1 row-start-1 justify-self-start whitespace-nowrap rounded bg-accent px-1.5 transition-all duration-500 ease-out ${
+                className={`col-start-1 row-start-1 justify-self-start whitespace-nowrap rounded bg-blue/15 px-1.5 text-blue transition-all duration-500 ease-out ${
                   n === i ? "translate-y-0 opacity-100" : n < i ? "invisible -translate-y-3 opacity-0" : "invisible translate-y-3 opacity-0"
                 }`}
               >

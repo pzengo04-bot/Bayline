@@ -95,7 +95,7 @@ async function Messages({ searchParams }: { searchParams: PageProps<"/dashboard/
       />
       <Section title="Sent" subtitle="Who came back since each offer">
         {(sends ?? []).length === 0 ? (
-          <p className="rounded-xl bg-paper p-4 text-sm text-muted">No offers sent yet.</p>
+          <p className="rounded-xl bg-midnight p-4 text-sm text-muted">No offers sent yet.</p>
         ) : (
           <ul className="divide-y divide-line/70 rounded-xl border border-line">
             {(sends as SendRow[]).map((s) => (
@@ -116,7 +116,7 @@ async function Messages({ searchParams }: { searchParams: PageProps<"/dashboard/
         )}
         <p className="mt-3 text-xs text-muted">
           Prefer your own texting tool?{" "}
-          <a href="/dashboard/messages/export?audience=all" className="font-semibold text-ink underline underline-offset-2">
+          <a href="/dashboard/messages/export?audience=all" className="font-semibold text-fg underline underline-offset-2">
             Export list
           </a>{" "}
           (customers who agreed to texts).

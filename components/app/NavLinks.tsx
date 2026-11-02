@@ -17,7 +17,7 @@ export function NavLinks({ items }: { items: NavItem[] }) {
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${
-              active ? "bg-ink text-white" : "text-muted hover:bg-ink/[0.06] hover:text-ink"
+              active ? "bg-blue/15 text-blue" : "text-muted hover:bg-surface-2 hover:text-fg"
             }`}
           >
             {item.label}

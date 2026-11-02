@@ -14,9 +14,12 @@ import { introSwirlPath, introWordmarkPath } from "./intro-logo";
 
 const pages = ["/", "/demo", "/support", "/privacy", "/terms"];
 
-const ink = "#0f1512";
-const lime = "#c6f432"; // the logo's swirl
-const cream = "#f4f2ec"; // the logo's wordmark
+// The brand palette (app/globals.css), inlined because this runs before any CSS loads.
+const midnight = "#02070a";
+const blue = "#0297de"; // the logo's swirl and the stamps
+const orange = "#fc734d"; // the reward stamp
+const text = "#f2f5f7"; // the logo's wordmark
+const surface = "#0a1218";
 
 const check = `<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`;
 const gift = `<svg viewBox="0 0 24 24"><path d="M4 11h16v9H4zM3 7h18v4H3zM12 7v13M12 7C10.5 4 7 3.5 7 5.5S10 7 12 7zm0 0c1.5-3 5-3.5 5-1.5S14 7 12 7z"/></svg>`;
@@ -38,25 +41,26 @@ const markup = `<bayline-intro id="bli" aria-hidden="true"><div class="lg">
 ).join("")}</div></div></bayline-intro>`;
 
 const css = `
-#bli{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:${ink};will-change:transform,opacity}
+#bli{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:${midnight};will-change:transform,opacity}
 #bli .lg{display:flex;flex-direction:column;align-items:center}
 #bli svg{display:block;overflow:visible}
 #bli .sw{width:76px}
-#bli .sw .d{fill:none;stroke:${lime};stroke-width:26;stroke-dasharray:13600;stroke-dashoffset:13600;animation:bli-draw .5s cubic-bezier(.65,0,.35,1) forwards}
-#bli .sw .f{fill:${lime};fill-rule:evenodd;opacity:0;animation:bli-in .3s .32s ease-out forwards}
-#bli .wm{width:112px;margin-top:14px;fill:${cream};opacity:0;transform:translateY(8px);animation:bli-up .35s .3s cubic-bezier(.2,.7,.2,1) forwards}
-#bli .cd{margin-top:32px;width:min(264px,76vw);padding:16px;border-radius:18px;background:#18201b;box-shadow:inset 0 0 0 1px rgba(244,242,236,.08),0 24px 48px -24px #000;opacity:0;transform:translateY(28px);animation:bli-up .4s .52s cubic-bezier(.2,.8,.2,1) forwards}
+#bli .sw .d{fill:none;stroke:${blue};stroke-width:26;stroke-dasharray:13600;stroke-dashoffset:13600;animation:bli-draw .5s cubic-bezier(.65,0,.35,1) forwards}
+#bli .sw .f{fill:${blue};fill-rule:evenodd;opacity:0;animation:bli-in .3s .32s ease-out forwards}
+#bli .wm{width:112px;margin-top:14px;fill:${text};opacity:0;transform:translateY(8px);animation:bli-up .35s .3s cubic-bezier(.2,.7,.2,1) forwards}
+#bli .cd{margin-top:32px;width:min(264px,76vw);padding:16px;border-radius:18px;background:${surface};box-shadow:inset 0 0 0 1px #1c2a33,0 24px 48px -24px rgba(2,151,222,.35);opacity:0;transform:translateY(28px);animation:bli-up .4s .52s cubic-bezier(.2,.8,.2,1) forwards}
 #bli .hd{display:flex;justify-content:space-between;margin-bottom:16px}
-#bli .hd i{display:block;width:44%;height:8px;border-radius:4px;background:rgba(244,242,236,.22)}
-#bli .hd i+i{width:18%;background:rgba(244,242,236,.12)}
+#bli .hd i{display:block;width:44%;height:8px;border-radius:4px;background:rgba(242,245,247,.22)}
+#bli .hd i+i{width:18%;background:rgba(242,245,247,.12)}
 #bli .st{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-#bli .sl{position:relative;z-index:0;aspect-ratio:1;border-radius:50%;background:rgba(244,242,236,.05);box-shadow:inset 0 0 0 1.5px rgba(244,242,236,.14)}
-#bli .sl b{position:absolute;inset:0;display:grid;place-items:center;border-radius:50%;background:${lime};transform:scale(0);animation:bli-pop .3s cubic-bezier(.3,.7,.4,1) forwards}
-#bli .sl svg{width:48%;fill:none;stroke:${ink};stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
-#bli .rw{background:none;box-shadow:inset 0 0 0 2px ${lime}}
-#bli .rw>svg{position:absolute;inset:26%;width:48%;stroke:${lime};stroke-width:2}
+#bli .sl{position:relative;z-index:0;aspect-ratio:1;border-radius:50%;background:rgba(242,245,247,.04);box-shadow:inset 0 0 0 1.5px rgba(242,245,247,.14)}
+#bli .sl b{position:absolute;inset:0;display:grid;place-items:center;border-radius:50%;background:${blue};transform:scale(0);animation:bli-pop .3s cubic-bezier(.3,.7,.4,1) forwards}
+#bli .sl svg{width:48%;fill:none;stroke:${midnight};stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+#bli .rw{background:none;box-shadow:inset 0 0 0 2px ${orange}}
+#bli .rw b{background:${orange}}
+#bli .rw>svg{position:absolute;inset:26%;width:48%;stroke:${orange};stroke-width:2}
 #bli .rw b svg{stroke-width:2.2}
-#bli .rw:after{content:"";position:absolute;inset:-40%;z-index:-1;border-radius:50%;background:radial-gradient(closest-side,rgba(198,244,50,.6),rgba(198,244,50,0));opacity:0;transform:scale(.5);animation:bli-glow .8s ${(rewardAt + 0.12).toFixed(3)}s ease-out forwards}
+#bli .rw:after{content:"";position:absolute;inset:-40%;z-index:-1;border-radius:50%;background:radial-gradient(closest-side,rgba(252,115,77,.65),rgba(252,115,77,0));opacity:0;transform:scale(.5);animation:bli-glow .8s ${(rewardAt + 0.12).toFixed(3)}s ease-out forwards}
 #bli.q .cd{display:none}
 #bli.q .sw .d{animation-duration:.4s}
 #bli.q .sw .f{animation-duration:.2s;animation-delay:.22s}

@@ -81,7 +81,8 @@ export async function saveCard(_prev: SaveState, form: FormData): Promise<SaveSt
   const card_bg = String(form.get("card_bg"));
   const card_fg = String(form.get("card_fg"));
   const card_accent = String(form.get("card_accent"));
-  if (![card_bg, card_fg, card_accent].every((c) => HEX.test(c))) return { status: "error", message: "Pick valid colors." };
+  const card_reward = String(form.get("card_reward"));
+  if (![card_bg, card_fg, card_accent, card_reward].every((c) => HEX.test(c))) return { status: "error", message: "Pick valid colors." };
 
   const ppv = Number(form.get("points_per_visit"));
   const points_per_visit = Number.isInteger(ppv) && ppv >= 1 && ppv <= 10000 ? ppv : 10;
@@ -132,7 +133,7 @@ export async function saveCard(_prev: SaveState, form: FormData): Promise<SaveSt
   const supabase = await createUserClient();
   const { data, error } = await supabase
     .from("venues")
-    .update({ ...rewards.value, card_bg, card_fg, card_accent, points_per_visit, phone, open_hour, close_hour, offer_cooldown_days, logo_text, address, website, milestone_text, milestone_at, head_start_stamps, stamp_icon })
+    .update({ ...rewards.value, card_bg, card_fg, card_accent, card_reward, points_per_visit, phone, open_hour, close_hour, offer_cooldown_days, logo_text, address, website, milestone_text, milestone_at, head_start_stamps, stamp_icon })
     .eq("id", venue.id)
     .select("id");
   if (error || !data?.length) return { status: "error", message: error?.message ?? "Couldn't save. Try again." };

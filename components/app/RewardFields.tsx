@@ -8,7 +8,7 @@ type Props = {
 };
 
 const input =
-  "mt-1.5 h-11 w-full rounded-xl border border-line bg-white px-3 text-base focus:border-ink focus:outline-none";
+  "mt-1.5 h-11 w-full rounded-xl border border-line bg-surface-2 px-3 text-base focus:border-blue focus:outline-none";
 
 /** Reward type + numbers. Controlled, and also posts as regular form fields. */
 export function RewardFields({ value, onChange }: Props) {
@@ -28,7 +28,7 @@ export function RewardFields({ value, onChange }: Props) {
             <label
               key={type}
               className={`cursor-pointer rounded-xl border p-3 text-sm ${
-                value.reward_type === type ? "border-ink bg-ink text-white" : "border-line bg-white hover:border-ink/40"
+                value.reward_type === type ? "border-blue bg-blue text-midnight" : "border-line bg-surface-2 hover:border-blue/60"
               }`}
             >
               <input
@@ -40,7 +40,7 @@ export function RewardFields({ value, onChange }: Props) {
                 className="sr-only"
               />
               <span className="block font-semibold">{label}</span>
-              <span className={`mt-0.5 block text-xs ${value.reward_type === type ? "text-white/70" : "text-muted"}`}>{hint}</span>
+              <span className={`mt-0.5 block text-xs ${value.reward_type === type ? "text-midnight/80" : "text-muted"}`}>{hint}</span>
             </label>
           ))}
         </div>

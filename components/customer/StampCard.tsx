@@ -4,7 +4,7 @@ type Props = { stamps: number; total: number; rewardLabel: string };
 export function StampCard({ stamps, total, rewardLabel }: Props) {
   const remaining = total - stamps;
   return (
-    <div className="rounded-2xl bg-ink p-4 text-white">
+    <div className="rounded-2xl border border-line bg-surface p-4 text-fg">
       <div className="flex justify-between gap-2">
         {Array.from({ length: total }, (_, i) => {
           const filled = i < stamps;
@@ -12,7 +12,7 @@ export function StampCard({ stamps, total, rewardLabel }: Props) {
             <div
               key={i}
               className={`grid aspect-square flex-1 place-items-center rounded-full border-2 text-sm font-bold ${
-                filled ? "border-accent bg-accent text-ink" : "border-white/25 text-white/40"
+                filled ? "border-blue bg-blue text-midnight" : "border-fg/25 text-fg/40"
               }`}
             >
               {i === total - 1 && !filled ? "★" : filled ? "✓" : i + 1}
@@ -24,7 +24,7 @@ export function StampCard({ stamps, total, rewardLabel }: Props) {
         <strong className="font-semibold">
           {stamps} of {total} visits
         </strong>
-        <span className="text-white/75">
+        <span className="text-fg/75">
           {remaining > 0
             ? ` — ${remaining} more for a ${rewardLabel}`
             : ` — you've earned a ${rewardLabel}!`}

@@ -17,6 +17,7 @@ type Props = {
     card_bg: string;
     card_fg: string;
     card_accent: string;
+    card_reward: string | null;
     logo_url: string | null;
     phone: string | null;
     open_hour: number | null;
@@ -35,12 +36,13 @@ type Props = {
 
 const SAMPLE_OFFER_END = "2026-10-28T23:59:00-04:00";
 
+// The first is the Bayline default (the database default for new venues).
 const PRESETS = [
-  { bg: "#0f1512", fg: "#ffffff", accent: "#c4f04a" },
-  { bg: "#14365d", fg: "#ffffff", accent: "#f2c14e" },
-  { bg: "#1f6b3a", fg: "#ffffff", accent: "#ffffff" },
-  { bg: "#f6f5f0", fg: "#0f1512", accent: "#d9480f" },
-  { bg: "#7a1f2b", fg: "#ffffff", accent: "#ffd6a5" },
+  { bg: "#02070a", fg: "#f2f5f7", accent: "#0297de", reward: "#fc734d" },
+  { bg: "#14365d", fg: "#ffffff", accent: "#f2c14e", reward: "#f2c14e" },
+  { bg: "#1f6b3a", fg: "#ffffff", accent: "#ffffff", reward: "#ffffff" },
+  { bg: "#f6f5f0", fg: "#0f1512", accent: "#d9480f", reward: "#d9480f" },
+  { bg: "#7a1f2b", fg: "#ffffff", accent: "#ffd6a5", reward: "#ffd6a5" },
 ];
 
 const pickerPaths = (key: StampIcon) => {
@@ -55,7 +57,7 @@ function ColorField({ label, name, value, onChange }: { label: string; name: str
   return (
     <label className="block text-sm font-semibold">
       {label}
-      <span className="mt-1.5 flex h-11 items-center gap-2 rounded-xl border border-line bg-white pl-1.5 pr-3">
+      <span className="mt-1.5 flex h-11 items-center gap-2 rounded-xl border border-line bg-surface-2 pl-1.5 pr-3">
         <input type="color" name={name} value={value} onChange={(e) => onChange(e.target.value)} className="size-8 cursor-pointer rounded-lg border-0 bg-transparent p-0" />
         <span className="font-mono text-sm uppercase text-muted">{value}</span>
       </span>
@@ -72,7 +74,12 @@ export function CardDesigner({ venueName, initial }: Props) {
     reward_text: initial.reward_text,
     points_per_visit: initial.points_per_visit,
   });
-  const [colors, setColors] = useState({ bg: initial.card_bg, fg: initial.card_fg, accent: initial.card_accent });
+  const [colors, setColors] = useState({
+    bg: initial.card_bg,
+    fg: initial.card_fg,
+    accent: initial.card_accent,
+    reward: initial.card_reward ?? initial.card_accent,
+  });
   const [logoUrl, setLogoUrl] = useState(initial.logo_url);
   const [logoMsg, setLogoMsg] = useState<string | null>(null);
   const [view, setView] = useState<"apple" | "google">("apple");
@@ -131,6 +138,7 @@ export function CardDesigner({ venueName, initial }: Props) {
     bg: colors.bg,
     fg: colors.fg,
     accent: colors.accent,
+    reward: colors.reward,
     firstName: "Mike",
     progress: sample,
     venue: {
@@ -192,7 +200,7 @@ export function CardDesigner({ venueName, initial }: Props) {
               )}
             </div>
             <p className="mt-1.5 text-xs text-muted">A wide logo on a transparent background works best. Max 2 MB.</p>
-            {logoMsg && <p className="mt-1 text-sm text-red-700">{logoMsg}</p>}
+            {logoMsg && <p className="mt-1 text-sm text-red-400">{logoMsg}</p>}
             <label className="mt-3 block text-sm font-semibold">
               Text next to logo <span className="font-normal text-muted">(optional, iPhone; e.g. your name beside a symbol)</span>
               <input
@@ -200,7 +208,7 @@ export function CardDesigner({ venueName, initial }: Props) {
                 maxLength={24}
                 value={details.logoText}
                 onChange={(e) => setDetails((d) => ({ ...d, logoText: e.target.value }))}
-                className="mt-1.5 h-11 w-full rounded-xl border border-line bg-white px-3 text-base font-normal focus:border-ink focus:outline-none"
+                className="mt-1.5 h-11 w-full rounded-xl border border-line bg-surface-2 px-3 text-base font-normal focus:border-blue focus:outline-none"
               />
             </label>
           </div>
@@ -217,15 +225,17 @@ export function CardDesigner({ venueName, initial }: Props) {
                   className="flex size-9 items-center justify-center rounded-full border border-line"
                   style={{ background: p.bg }}
                 >
-                  <span className="size-3 rounded-full" style={{ background: p.accent }} />
+                  <span className="size-2.5 rounded-full" style={{ background: p.accent }} />
+                  {p.reward !== p.accent && <span className="-ml-0.5 size-2.5 rounded-full" style={{ background: p.reward }} />}
                 </button>
               ))}
             </div>
           </div>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <ColorField label="Background" name="card_bg" value={colors.bg} onChange={(bg) => setColors((c) => ({ ...c, bg }))} />
             <ColorField label="Text" name="card_fg" value={colors.fg} onChange={(fg) => setColors((c) => ({ ...c, fg }))} />
             <ColorField label="Stamps" name="card_accent" value={colors.accent} onChange={(accent) => setColors((c) => ({ ...c, accent }))} />
+            <ColorField label="Rewards" name="card_reward" value={colors.reward} onChange={(reward) => setColors((c) => ({ ...c, reward }))} />
           </div>
           <fieldset>
             <legend className="text-sm font-semibold">Stamp icon</legend>
@@ -239,13 +249,13 @@ export function CardDesigner({ venueName, initial }: Props) {
                   aria-label={STAMP_ICONS[key].label}
                   title={STAMP_ICONS[key].label}
                   onClick={() => setStampIcon(key)}
-                  className={`grid aspect-square place-items-center rounded-xl border ${stampIcon === key ? "border-ink bg-ink" : "border-line bg-white hover:border-ink/40"}`}
+                  className={`grid aspect-square place-items-center rounded-xl border ${stampIcon === key ? "border-blue bg-blue" : "border-line bg-surface-2 hover:border-blue/60"}`}
                 >
                   <svg
                     viewBox="0 0 24 24"
                     className="size-6"
                     aria-hidden="true"
-                    dangerouslySetInnerHTML={{ __html: iconSvg(pickerPaths(key), 12, 12, 24, stampIcon === key ? "#ffffff" : "#0f1512") }}
+                    dangerouslySetInnerHTML={{ __html: iconSvg(pickerPaths(key), 12, 12, 24, stampIcon === key ? "#02070a" : "#f2f5f7") }}
                   />
                 </button>
               ))}
@@ -253,12 +263,12 @@ export function CardDesigner({ venueName, initial }: Props) {
             <p className="mt-1.5 text-xs text-muted">Each visit fills one in. The milestone shows a gift and the last stamp a trophy.</p>
           </fieldset>
           {textContrast < 4.5 && (
-            <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            <p className="rounded-xl bg-amber-400/10 px-3 py-2 text-sm text-amber-200">
               The text color is hard to read on this background (contrast {textContrast.toFixed(1)}:1, aim for 4.5 or more).
             </p>
           )}
           {accentContrast < 2 && (
-            <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">Filled stamps will be hard to see on this background.</p>
+            <p className="rounded-xl bg-amber-400/10 px-3 py-2 text-sm text-amber-200">Filled stamps will be hard to see on this background.</p>
           )}
         </section>
 
@@ -273,7 +283,7 @@ export function CardDesigner({ venueName, initial }: Props) {
                 name="milestone_on"
                 checked={milestone.on}
                 onChange={(e) => setMilestone((m) => ({ ...m, on: e.target.checked }))}
-                className="size-4 accent-[var(--ink)]"
+                className="size-4 accent-[var(--blue)]"
               />
               Add a milestone reward
             </label>
@@ -288,7 +298,7 @@ export function CardDesigner({ venueName, initial }: Props) {
                     value={milestone.text}
                     onChange={(e) => setMilestone((m) => ({ ...m, text: e.target.value }))}
                     placeholder="free pitcher"
-                    className="mt-1 h-11 w-full rounded-xl border border-line bg-white px-3 text-base text-ink focus:border-ink focus:outline-none"
+                    className="mt-1 h-11 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-fg focus:border-blue focus:outline-none"
                   />
                 </label>
                 <label className="block text-xs text-muted">
@@ -298,7 +308,7 @@ export function CardDesigner({ venueName, initial }: Props) {
                       name="milestone_at"
                       value={msAt}
                       onChange={(e) => setMilestone((m) => ({ ...m, at: Number(e.target.value) }))}
-                      className="mt-1 h-11 w-full rounded-xl border border-line bg-white px-3 text-base text-ink"
+                      className="mt-1 h-11 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-fg"
                     >
                       {Array.from({ length: Math.max(0, stampsGoal - 2) }, (_, i) => i + 2).map((n) => (
                         <option key={n} value={n}>
@@ -315,13 +325,13 @@ export function CardDesigner({ venueName, initial }: Props) {
                       max={pointsGoal - 1}
                       value={msAt}
                       onChange={(e) => setMilestone((m) => ({ ...m, at: Number(e.target.value) }))}
-                      className="mt-1 h-11 w-full rounded-xl border border-line bg-white px-3 text-base text-ink focus:border-ink focus:outline-none"
+                      className="mt-1 h-11 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-fg focus:border-blue focus:outline-none"
                     />
                   )}
                 </label>
               </div>
             )}
-            <p className="mt-3 rounded-lg bg-paper px-3 py-2 text-sm">{costLine}</p>
+            <p className="mt-3 rounded-lg bg-midnight px-3 py-2 text-sm">{costLine}</p>
           </div>
 
           {rewards.reward_type === "stamps" && (
@@ -332,7 +342,7 @@ export function CardDesigner({ venueName, initial }: Props) {
                   name="head_start_on"
                   checked={headStart.on}
                   onChange={(e) => setHeadStart((h) => ({ ...h, on: e.target.checked }))}
-                  className="size-4 accent-[var(--ink)]"
+                  className="size-4 accent-[var(--blue)]"
                 />
                 Give new members a head start
               </label>
@@ -342,7 +352,7 @@ export function CardDesigner({ venueName, initial }: Props) {
                   {[1, 2].map((n) => (
                     <label
                       key={n}
-                      className={`cursor-pointer rounded-full px-3 py-1.5 text-sm font-semibold ${headStart.n === n ? "bg-ink text-white" : "bg-ink/[0.06] text-muted"}`}
+                      className={`cursor-pointer rounded-full px-3 py-1.5 text-sm font-semibold ${headStart.n === n ? "bg-blue text-midnight" : "bg-surface-2 text-muted"}`}
                     >
                       <input type="radio" name="head_start_stamps" value={n} checked={headStart.n === n} onChange={() => setHeadStart({ on: true, n })} className="sr-only" />
                       {n} free stamp{n === 1 ? "" : "s"}
@@ -372,7 +382,7 @@ export function CardDesigner({ venueName, initial }: Props) {
                   <select
                     name={name}
                     defaultValue={value ?? ""}
-                    className="mt-1 h-11 w-full rounded-xl border border-line bg-white px-3 text-base text-ink"
+                    className="mt-1 h-11 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-fg"
                   >
                     <option value="">Not set</option>
                     {hours.map((h) => (
@@ -396,7 +406,7 @@ export function CardDesigner({ venueName, initial }: Props) {
                 min={1}
                 max={60}
                 defaultValue={initial.offer_cooldown_days}
-                className="h-11 w-20 rounded-xl border border-line bg-white px-3 text-base text-ink focus:border-ink focus:outline-none"
+                className="h-11 w-20 rounded-xl border border-line bg-surface-2 px-3 text-base text-fg focus:border-blue focus:outline-none"
               />
               days
             </span>
@@ -417,14 +427,14 @@ export function CardDesigner({ venueName, initial }: Props) {
                 value={details[name]}
                 onChange={(e) => setDetails((d) => ({ ...d, [name]: e.target.value }))}
                 placeholder={placeholder}
-                className="mt-1.5 h-11 w-full rounded-xl border border-line bg-white px-3 text-base font-normal focus:border-ink focus:outline-none"
+                className="mt-1.5 h-11 w-full rounded-xl border border-line bg-surface-2 px-3 text-base font-normal focus:border-blue focus:outline-none"
               />
             </label>
           ))}
         </section>
 
         {state.status !== "idle" && (
-          <p className={`rounded-xl px-3 py-2.5 text-sm ${state.status === "ok" ? "bg-accent/40" : "bg-red-50 text-red-800"}`}>{state.message}</p>
+          <p className={`rounded-xl px-3 py-2.5 text-sm ${state.status === "ok" ? "bg-blue/15" : "bg-red-500/10 text-red-300"}`}>{state.message}</p>
         )}
         <button type="submit" disabled={pending} className={`${button.primary} w-full sm:w-auto`}>
           {pending ? "Saving…" : "Save card"}
@@ -445,7 +455,7 @@ export function CardDesigner({ venueName, initial }: Props) {
               role="tab"
               aria-selected={view === id}
               onClick={() => setView(id)}
-              className={`flex-1 rounded-full px-2 py-1.5 text-xs font-semibold ${view === id ? "bg-ink text-white" : "bg-ink/[0.06] text-muted hover:text-ink"}`}
+              className={`flex-1 rounded-full px-2 py-1.5 text-xs font-semibold ${view === id ? "bg-blue text-midnight" : "bg-surface-2 text-muted hover:text-fg"}`}
             >
               {label}
             </button>
@@ -459,14 +469,14 @@ export function CardDesigner({ venueName, initial }: Props) {
                 type="button"
                 aria-pressed={side === sd}
                 onClick={() => setSide(sd)}
-                className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${side === sd ? "bg-ink text-white" : "bg-ink/[0.06] text-muted hover:text-ink"}`}
+                className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${side === sd ? "bg-blue text-midnight" : "bg-surface-2 text-muted hover:text-fg"}`}
               >
                 {sd}
               </button>
             ))}
           </div>
           <label className="flex items-center gap-1.5 text-xs text-muted">
-            <input type="checkbox" checked={withOffer} onChange={(e) => setWithOffer(e.target.checked)} className="accent-[var(--ink)]" />
+            <input type="checkbox" checked={withOffer} onChange={(e) => setWithOffer(e.target.checked)} className="accent-[var(--blue)]" />
             Show with an offer
           </label>
         </div>
@@ -483,13 +493,13 @@ export function CardDesigner({ venueName, initial }: Props) {
               type="button"
               aria-pressed={sampleState === id}
               onClick={() => setSampleState(id)}
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${sampleState === id ? "bg-ink text-white" : "bg-ink/[0.06] text-muted hover:text-ink"}`}
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${sampleState === id ? "bg-blue text-midnight" : "bg-surface-2 text-muted hover:text-fg"}`}
             >
               {label}
             </button>
           ))}
         </div>
-        <div className="flex justify-center rounded-3xl bg-[#e9e8e3] px-4 py-8">
+        <div className="flex justify-center rounded-3xl bg-surface-2 px-4 py-8">
           {view === "apple" ? <ApplePassPreview look={look} side={side} /> : <GooglePassPreview look={look} side={side} />}
         </div>
         <p className="mt-3 text-center text-xs text-muted">

@@ -14,7 +14,7 @@ type Props = {
   wallet: { apple: boolean; google: boolean };
 };
 
-const input = "mt-1.5 h-14 w-full rounded-xl border border-line bg-white px-4 text-lg focus:border-ink focus:outline-none";
+const input = "mt-1.5 h-14 w-full rounded-xl border border-line bg-surface-2 px-4 text-lg focus:border-blue focus:outline-none";
 
 export function TapFlow({ venue, hasCookie, source, wallet }: Props) {
   const [result, setResult] = useState<TapResult | null>(null);
@@ -95,9 +95,9 @@ export function TapFlow({ venue, hasCookie, source, wallet }: Props) {
         autoComplete="given-name"
         maxLength={60}
         required={needName}
-        className={`${input} ${needName ? "border-ink" : ""}`}
+        className={`${input} ${needName ? "border-blue" : ""}`}
       />
-      {needName && <p className="mt-1.5 text-sm font-medium text-accent-strong">New here! Add your first name to join.</p>}
+      {needName && <p className="mt-1.5 text-sm font-medium text-blue">New here! Add your first name to join.</p>}
       <label htmlFor="phone" className="mt-4 block text-sm font-semibold">
         Phone number
       </label>
@@ -113,9 +113,9 @@ export function TapFlow({ venue, hasCookie, source, wallet }: Props) {
           setNeedName(false);
         }}
         placeholder="(555) 555-5555"
-        className={`${input} font-mono tracking-wide placeholder:text-ink/20`}
+        className={`${input} font-mono tracking-wide placeholder:text-fg/20`}
       />
-      {message && <p className="mt-3 text-sm font-medium text-red-700">{message}</p>}
+      {message && <p className="mt-3 text-sm font-medium text-red-400">{message}</p>}
       <button
         type="submit"
         disabled={pending || digits.length !== 10 || (needName && !name.trim())}

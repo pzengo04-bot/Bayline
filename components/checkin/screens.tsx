@@ -9,7 +9,7 @@ export function VenueHeading({ name, logoUrl, cardBg }: { name: string; logoUrl?
     <div className="flex flex-col items-center text-center">
       {logoUrl ? (
         // Logos are designed for the wallet card, so show them on the card color.
-        <span className="inline-flex max-w-[80%] items-center justify-center rounded-2xl px-5 py-3" style={{ background: cardBg ?? "var(--ink)" }}>
+        <span className="inline-flex max-w-[80%] items-center justify-center rounded-2xl px-5 py-3" style={{ background: cardBg ?? "var(--surface-2)" }}>
           {/* Small uploaded PNGs from our own storage; a plain <img> keeps the page light. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={logoUrl} alt="" className="h-10 w-auto max-w-full object-contain" />
@@ -24,8 +24,8 @@ export function VenueHeading({ name, logoUrl, cardBg }: { name: string; logoUrl?
 
 function Badge({ children }: { children: ReactNode }) {
   return (
-    <p className="flex items-center justify-center gap-2 text-sm font-semibold text-accent-strong">
-      <span className="grid size-5 place-items-center rounded-full bg-accent text-[11px] text-ink" aria-hidden="true">
+    <p className="flex items-center justify-center gap-2 text-sm font-semibold text-blue">
+      <span className="grid size-5 place-items-center rounded-full bg-blue text-[11px] text-midnight" aria-hidden="true">
         ✓
       </span>
       {children}
@@ -67,7 +67,7 @@ export function TapResultScreen({ result }: { result: Result }) {
         <ProgressCard progress={progress} />
       </div>
       {isRewardReady(progress) && (
-        <p className="mt-4 rounded-xl bg-accent px-3 py-2.5 text-sm font-semibold">Reward ready: show staff.</p>
+        <p className="mt-4 rounded-xl bg-orange px-3 py-2.5 text-sm font-semibold text-midnight">Reward ready: show staff.</p>
       )}
     </div>
   );
@@ -75,7 +75,7 @@ export function TapResultScreen({ result }: { result: Result }) {
 
 export function RewardReadyScreen({ firstName, progress }: { firstName: string; progress: Progress }) {
   return (
-    <div className="rounded-3xl bg-accent px-5 py-8 text-center text-ink">
+    <div className="rounded-3xl bg-orange px-5 py-8 text-center text-midnight">
       <p className="text-sm font-semibold uppercase tracking-widest">Reward ready</p>
       <p className="mt-3 font-display text-5xl font-extrabold uppercase leading-[0.9]">{progress.reward_text}</p>
       <p className="mt-4 text-lg font-semibold">Show this screen to staff</p>

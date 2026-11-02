@@ -10,7 +10,7 @@ import { lookupCustomer, redeemReward, saveVisit, type LookupResult, type SaveVi
 
 type Props = { rewardType: RewardType; pointsPerDollar: number; rewardText: string };
 
-const input = "mt-1.5 h-12 w-full rounded-xl border border-line bg-white px-3 text-lg focus:border-ink focus:outline-none";
+const input = "mt-1.5 h-12 w-full rounded-xl border border-line bg-surface-2 px-3 text-lg focus:border-blue focus:outline-none";
 
 function lastVisitLabel(iso: string | null) {
   if (!iso) return "No visits yet";
@@ -83,7 +83,7 @@ export function AddVisitForm({ rewardType, pointsPerDollar, rewardText }: Props)
     </>
   );
   const redeemedNote = redeemed && (
-    <p className="mt-3 rounded-xl bg-accent/40 px-3 py-2 text-sm">
+    <p className="mt-3 rounded-xl bg-blue/15 px-3 py-2 text-sm">
       {redeemed === "main" ? "Reward redeemed. Their card starts over." : "Milestone reward redeemed. Their stamps keep counting."}
     </p>
   );
@@ -94,14 +94,14 @@ export function AddVisitForm({ rewardType, pointsPerDollar, rewardText }: Props)
     return (
       <div className={`${card} p-5 sm:p-6`}>
         {ready && !redeemed ? (
-          <div className="rounded-2xl bg-accent p-4 text-center">
+          <div className="rounded-2xl bg-orange p-4 text-center text-midnight">
             <p className="text-sm font-semibold uppercase tracking-widest">Reward ready</p>
             <p className="mt-1 font-display text-3xl font-bold uppercase">{ready}</p>
             <p className="mt-1 text-sm">Give {saved.name.split(" ")[0]} their reward, then tap Redeem.</p>
           </div>
         ) : (
-          <p className="flex items-center gap-2 font-semibold text-accent-strong">
-            <span className="grid size-5 place-items-center rounded-full bg-accent text-[11px] text-ink">✓</span>
+          <p className="flex items-center gap-2 font-semibold text-blue">
+            <span className="grid size-5 place-items-center rounded-full bg-blue text-[11px] text-midnight">✓</span>
             Visit saved for {saved.name}
           </p>
         )}
@@ -109,7 +109,7 @@ export function AddVisitForm({ rewardType, pointsPerDollar, rewardText }: Props)
           <ProgressCard progress={p} />
         </div>
         {redeemedNote}
-        {error && <p className="mt-3 text-sm font-medium text-red-700">{error}</p>}
+        {error && <p className="mt-3 text-sm font-medium text-red-400">{error}</p>}
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
           {redeemButtons(saved.customerId, p, "sm:flex-1")}
           <button type="button" onClick={reset} className={`${button.primary} sm:flex-1`}>
@@ -175,7 +175,7 @@ export function AddVisitForm({ rewardType, pointsPerDollar, rewardText }: Props)
       )}
 
       {lookup?.status === "new" && (
-        <div className="mt-4 rounded-xl bg-paper p-4">
+        <div className="mt-4 rounded-xl bg-midnight p-4">
           <p className="text-sm font-semibold">New customer</p>
           <p className="text-sm text-muted">This number isn&apos;t in your rewards yet. Add their first name to sign them up.</p>
           <label htmlFor="desk-name" className="mt-3 block text-sm font-semibold">
@@ -203,12 +203,12 @@ export function AddVisitForm({ rewardType, pointsPerDollar, rewardText }: Props)
             />
           </div>
           {points && preview > 0 && (
-            <p className="mt-1.5 text-sm text-accent-strong">+{Math.floor(preview * pointsPerDollar)} points toward a {rewardText}</p>
+            <p className="mt-1.5 text-sm text-blue">+{Math.floor(preview * pointsPerDollar)} points toward a {rewardText}</p>
           )}
         </>
       )}
 
-      {error && <p className="mt-3 text-sm font-medium text-red-700">{error}</p>}
+      {error && <p className="mt-3 text-sm font-medium text-red-400">{error}</p>}
 
       {lookup && lookup.status !== "error" && (
         <div className="mt-5 flex gap-2">

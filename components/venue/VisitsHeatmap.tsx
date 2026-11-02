@@ -34,10 +34,10 @@ export function VisitsHeatmap({ heatmap }: { heatmap: VisitHeatmap }) {
         describe={(d, i) => `${grid.rows[d].day} ${formatHour(grid.hours[i])}: ${plural(counts[d][i])}`}
         readout={(d, i) => plural(counts[d][i])}
       />
-      <p className="mt-4 flex items-center gap-2 rounded-xl bg-paper px-3 py-2.5 text-sm">
+      <p className="mt-4 flex items-center gap-2 rounded-xl bg-midnight px-3 py-2.5 text-sm">
         {range ? (
           <>
-            <span className="size-3 shrink-0 rounded-[3px] bg-accent ring-2 ring-inset ring-ink" aria-hidden="true" />
+            <span className="size-3 shrink-0 rounded-[3px] bg-orange ring-2 ring-inset ring-fg" aria-hidden="true" />
             <span>
               Quietest stretch: <strong>{range}</strong>. A good time to offer a deal.
             </span>

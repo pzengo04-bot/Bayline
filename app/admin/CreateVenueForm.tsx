@@ -7,7 +7,7 @@ import type { RewardSettings } from "@/lib/rewards";
 import { slugify, TIMEZONES, VENUE_TYPES } from "@/lib/venues";
 import { createVenue, type FormState } from "./actions";
 
-const input = "mt-1.5 h-11 w-full rounded-xl border border-line bg-white px-3 text-base focus:border-ink focus:outline-none";
+const input = "mt-1.5 h-11 w-full rounded-xl border border-line bg-surface-2 px-3 text-base focus:border-blue focus:outline-none";
 
 export function CreateVenueForm() {
   const [state, action, pending] = useActionState<FormState, FormData>(createVenue, { status: "idle" });
@@ -26,7 +26,7 @@ export function CreateVenueForm() {
     >
       <VenueFields key={formKey} />
       {state.status !== "idle" && (
-        <p className={`rounded-xl px-3 py-2.5 text-sm ${state.status === "ok" ? "bg-accent/40" : "bg-red-50 text-red-800"}`}>
+        <p className={`rounded-xl px-3 py-2.5 text-sm ${state.status === "ok" ? "bg-blue/15" : "bg-red-500/10 text-red-300"}`}>
           {state.message}
         </p>
       )}
@@ -70,7 +70,7 @@ function VenueFields() {
         </label>
         <label className="block text-sm font-semibold">
           Check-in address
-          <div className="mt-1.5 flex h-11 items-center rounded-xl border border-line bg-white pl-3 focus-within:border-ink">
+          <div className="mt-1.5 flex h-11 items-center rounded-xl border border-line bg-surface-2 pl-3 focus-within:border-blue">
             <span className="shrink-0 text-sm text-muted">/v/</span>
             <input
               name="slug"

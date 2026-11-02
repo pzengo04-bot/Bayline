@@ -87,7 +87,7 @@ async function Home() {
             />
           </div>
           <p className="pt-1 text-center text-sm text-muted">
-            <Link href="/dashboard/customers" className="font-semibold text-ink underline underline-offset-2">
+            <Link href="/dashboard/customers" className="font-semibold text-fg underline underline-offset-2">
               All customers, regulars and busy hours
             </Link>
           </p>

@@ -4,9 +4,9 @@ import type { ReactNode } from "react";
  * An iPhone outline at real proportions (9:19.5): bezel, Dynamic Island and status bar. Set the
  * width with `className`; the height follows. `screen` is the background behind the content.
  */
-export function PhoneFrame({ children, className = "", screen = "#efeee9" }: { children: ReactNode; className?: string; screen?: string }) {
+export function PhoneFrame({ children, className = "", screen = "#000000" }: { children: ReactNode; className?: string; screen?: string }) {
   return (
-    <div className={`aspect-[9/19.5] rounded-[2.75rem] bg-ink p-[0.55rem] shadow-[0_40px_80px_-30px_rgba(15,21,18,0.55)] ${className}`}>
+    <div className={`aspect-[9/19.5] rounded-[2.75rem] bg-[#1b2731] p-[0.55rem] shadow-[0_40px_80px_-30px_rgba(2,151,222,0.35)] ring-1 ring-[#2a3a46] ${className}`}>
       <div className="relative h-full overflow-hidden rounded-[2.25rem]" style={{ background: screen }}>
         <div className="absolute left-1/2 top-2.5 z-10 h-[1.6rem] w-[32%] -translate-x-1/2 rounded-full bg-black" aria-hidden="true" />
         <div className="flex items-center justify-between px-6 pt-3.5 text-[12px] font-semibold" aria-hidden="true">

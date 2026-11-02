@@ -46,7 +46,7 @@ async function Admin() {
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
         <Section title={`Venues (${access.venues.length})`} subtitle="Customer counts and last check-in">
           {access.venues.length === 0 ? (
-            <p className="rounded-xl bg-paper p-4 text-sm text-muted">No venues yet. Create the first one.</p>
+            <p className="rounded-xl bg-midnight p-4 text-sm text-muted">No venues yet. Create the first one.</p>
           ) : (
             <ul className="space-y-3">
               {access.venues.map((v) => {
@@ -99,7 +99,7 @@ async function Admin() {
                             return (
                               <li key={m.user_id} className="flex flex-wrap items-center gap-x-2">
                                 <span className="truncate">{u?.email ?? "unknown user"}</span>
-                                <span className="rounded-full bg-paper px-2 py-0.5 text-[11px] capitalize text-muted">{m.role}</span>
+                                <span className="rounded-full bg-midnight px-2 py-0.5 text-[11px] capitalize text-muted">{m.role}</span>
                                 {!u?.last_sign_in_at && <span className="text-[11px] text-muted">invite pending</span>}
                               </li>
                             );

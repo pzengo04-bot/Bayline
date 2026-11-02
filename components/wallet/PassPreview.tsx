@@ -14,6 +14,7 @@ export type PassLook = {
   bg: string;
   fg: string;
   accent: string;
+  reward: string;
   firstName: string;
   /** Includes the milestone, if any. */
   progress: Progress;
@@ -42,6 +43,7 @@ function model(look: PassLook, platform: "apple" | "google"): PassModel {
         card_bg: look.bg,
         card_fg: look.fg,
         card_accent: look.accent,
+        card_reward: look.reward,
         pass_message: look.venue.pass_message ?? null,
       },
       progress: look.progress,
@@ -79,7 +81,7 @@ function useDebounced<T>(value: T, ms: number) {
 /** The strip image, drawn by the server with the same renderer and data as real passes. */
 function Strip({ m, google = false }: { m: PassModel; google?: boolean }) {
   const s = m.strip;
-  const payload = JSON.stringify({ p: s.progress, o: s.offerShort, bg: s.bg, fg: s.fg, ac: s.accent, ic: s.icon, g: google ? 1 : 0 });
+  const payload = JSON.stringify({ p: s.progress, o: s.offerShort, bg: s.bg, fg: s.fg, ac: s.accent, rw: s.reward, ic: s.icon, g: google ? 1 : 0 });
   const src = useDebounced(`/api/wallet/image/preview?v=${STRIP_VERSION}&s=${base64url(payload)}`, 250);
   return (
     // eslint-disable-next-line @next/next/no-img-element

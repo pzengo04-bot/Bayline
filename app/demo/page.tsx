@@ -24,7 +24,7 @@ const steps = [
 ];
 
 export default async function DemoPage() {
-  const qr = await QRCode.toString(site.demoUrl, { type: "svg", margin: 1, color: { dark: "#0f1512", light: "#ffffff" } });
+  const qr = await QRCode.toString(site.demoUrl, { type: "svg", margin: 1, color: { dark: "#02070a", light: "#ffffff" } });
 
   return (
     <div className="flex flex-1 flex-col">
@@ -41,7 +41,7 @@ export default async function DemoPage() {
 
         {/* 2. Try it on your phone */}
         <section className="mx-auto max-w-6xl px-4 pb-14">
-          <div className="grid gap-8 rounded-3xl bg-ink p-6 text-white sm:p-10 md:grid-cols-[auto_minmax(0,1fr)] md:items-center">
+          <div className="grid gap-8 rounded-3xl border border-line bg-surface p-6 sm:p-10 md:grid-cols-[auto_minmax(0,1fr)] md:items-center">
             <div className="hidden md:block">
               <div
                 className="size-60 rounded-2xl bg-white p-3 lg:size-72 [&>svg]:h-full [&>svg]:w-full"
@@ -51,7 +51,7 @@ export default async function DemoPage() {
               />
             </div>
             <div>
-              <p className="text-sm font-semibold uppercase tracking-widest text-accent">Try it on your phone</p>
+              <p className="font-mono text-sm font-semibold uppercase tracking-widest text-blue">Try it on your phone</p>
               <p className="mt-3 hidden font-display text-3xl font-bold uppercase leading-tight md:block">
                 Scan with your phone camera to add a real Bayline card to Apple or Google Wallet.
               </p>
@@ -64,8 +64,8 @@ export default async function DemoPage() {
               <ol className="mt-8 space-y-3">
                 {steps.map((s, i) => (
                   <li key={s} className="flex items-center gap-3">
-                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-accent font-display text-lg font-bold text-ink">{i + 1}</span>
-                    <span className="text-white/85">{s}</span>
+                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-blue font-display text-lg font-bold text-midnight">{i + 1}</span>
+                    <span className="text-fg">{s}</span>
                   </li>
                 ))}
               </ol>
@@ -74,9 +74,9 @@ export default async function DemoPage() {
         </section>
 
         {/* 3. The owner dashboard */}
-        <section className="border-y border-line bg-white">
+        <section className="border-y border-line bg-surface/40">
           <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
-            <p className="text-sm font-semibold uppercase tracking-widest text-accent-strong">What the owner sees</p>
+            <p className="font-mono text-sm font-semibold uppercase tracking-widest text-blue">What the owner sees</p>
             <h2 className="mt-2 max-w-3xl font-display text-4xl font-extrabold uppercase leading-[0.95] sm:text-5xl">
               Who&apos;s slipping, and one tap to bring them back.
             </h2>
@@ -90,7 +90,7 @@ export default async function DemoPage() {
         {/* 4. Card styles */}
         <section>
           <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
-            <p className="text-sm font-semibold uppercase tracking-widest text-accent-strong">Card styles</p>
+            <p className="font-mono text-sm font-semibold uppercase tracking-widest text-blue">Card styles</p>
             <h2 className="mt-2 max-w-3xl font-display text-4xl font-extrabold uppercase leading-[0.95] sm:text-5xl">
               Your logo, your colors, stamps that match your business.
             </h2>
@@ -103,7 +103,7 @@ export default async function DemoPage() {
                 ] as const
               ).map(([src, label, alt]) => (
                 <figure key={label} className="w-[78%] shrink-0 snap-center sm:w-auto">
-                  <Image src={src} alt={alt} sizes="(min-width: 640px) 33vw, 78vw" className="h-auto w-full rounded-[14px] shadow-[0_18px_40px_-20px_rgba(15,21,18,0.45)]" />
+                  <Image src={src} alt={alt} sizes="(min-width: 640px) 33vw, 78vw" className="h-auto w-full rounded-[14px] shadow-[0_18px_40px_-20px_rgba(0,0,0,0.8)] ring-1 ring-line" />
                   <figcaption className="mt-3 text-center text-sm font-semibold text-muted">{label}</figcaption>
                 </figure>
               ))}
@@ -112,7 +112,8 @@ export default async function DemoPage() {
         </section>
 
         {/* 5. CTA */}
-        <section className="border-t border-line bg-accent">
+        <section className="relative isolate overflow-hidden border-t border-line">
+          <div aria-hidden="true" className="hero-aurora pointer-events-none absolute inset-0 -z-10" />
           <div className="mx-auto max-w-6xl px-4 py-14 text-center sm:py-20">
             <h2 className="font-display text-4xl font-extrabold uppercase leading-[0.95] sm:text-6xl">Want this for your business?</h2>
             <TrackLink event="book_call_click" href={site.callUrl} className={`${button.primary} mt-8 h-12 px-6 text-base`}>

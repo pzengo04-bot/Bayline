@@ -58,9 +58,9 @@ export function OfferComposer({ venue, dates, audiences, templates, initialAudie
   if (result?.ok) {
     return (
       <div className={`${card} p-6 text-center`}>
-        <div className="mx-auto grid size-14 place-items-center rounded-full bg-accent" aria-hidden="true">
+        <div className="mx-auto grid size-14 place-items-center rounded-full bg-blue" aria-hidden="true">
           <svg width="26" height="26" viewBox="0 0 26 26">
-            <path d="M6 13.5l4.5 4.5L20 8" fill="none" stroke="var(--ink)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M6 13.5l4.5 4.5L20 8" fill="none" stroke="var(--midnight)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
         <p className="mt-4 font-display text-3xl font-bold uppercase">
@@ -92,23 +92,23 @@ export function OfferComposer({ venue, dates, audiences, templates, initialAudie
               <label
                 key={a.id}
                 className={`flex cursor-pointer items-center justify-between gap-3 rounded-xl border p-3 ${
-                  audience.id === a.id ? "border-ink bg-ink text-white" : "border-line hover:border-ink/40"
+                  audience.id === a.id ? "border-blue bg-blue text-midnight" : "border-line hover:border-blue/60"
                 }`}
               >
                 <input type="radio" name="audience" checked={audience.id === a.id} onChange={() => setAudienceId(a.id)} className="sr-only" />
                 <span className="min-w-0">
                   <span className="block text-sm font-semibold">{a.label}</span>
-                  <span className={`block text-xs ${audience.id === a.id ? "text-white/70" : "text-muted"}`}>{a.hint}</span>
+                  <span className={`block text-xs ${audience.id === a.id ? "text-midnight/80" : "text-muted"}`}>{a.hint}</span>
                 </span>
                 <span className="shrink-0 text-right">
                   <span className="block font-display text-2xl font-bold leading-none tabular-nums">{a.deliver}</span>
-                  <span className={`block text-[11px] ${audience.id === a.id ? "text-white/70" : "text-muted"}`}>of {a.matched} get it</span>
+                  <span className={`block text-[11px] ${audience.id === a.id ? "text-midnight/80" : "text-muted"}`}>of {a.matched} get it</span>
                 </span>
               </label>
             ))}
           </div>
           {(audience.noCard > 0 || audience.cooldown.length > 0) && (
-            <div className="mt-3 space-y-1.5 rounded-xl bg-paper p-3 text-xs text-muted">
+            <div className="mt-3 space-y-1.5 rounded-xl bg-midnight p-3 text-xs text-muted">
               {audience.noCard > 0 && (
                 <p>
                   {audience.noCard} haven&apos;t added the wallet card, so they&apos;re skipped.
@@ -122,7 +122,7 @@ export function OfferComposer({ venue, dates, audiences, templates, initialAudie
                   <ul className="mt-2 space-y-1">
                     {audience.cooldown.map((c) => (
                       <li key={c.name + c.lastOfferAt} className="flex items-center gap-2">
-                        <span className="text-ink">{c.name}</span>
+                        <span className="text-fg">{c.name}</span>
                         <LabelChip label={c.label} />
                         <span>last offer {dayFormat.format(new Date(c.lastOfferAt))}</span>
                       </li>
@@ -149,7 +149,7 @@ export function OfferComposer({ venue, dates, audiences, templates, initialAudie
                   setShortEdited(false);
                 }}
                 className={`rounded-full px-3 py-1.5 text-sm font-semibold ${
-                  template === t.id ? "bg-ink text-white" : "bg-ink/[0.06] text-muted hover:text-ink"
+                  template === t.id ? "bg-blue text-midnight" : "bg-surface-2 text-muted hover:text-fg"
                 }`}
               >
                 {t.label}
@@ -168,9 +168,9 @@ export function OfferComposer({ venue, dates, audiences, templates, initialAudie
               if (!shortEdited) setShort(e.target.value.trim() ? offerShort({ text: e.target.value, expires_at: "" }) : "");
             }}
             rows={3}
-            className="mt-3 w-full resize-none rounded-xl border border-line bg-paper p-3 text-[15px] leading-snug focus:border-ink focus:outline-none"
+            className="mt-3 w-full resize-none rounded-xl border border-line bg-surface-2 p-3 text-[15px] leading-snug focus:border-blue focus:outline-none"
           />
-          <p className={`mt-1 text-right text-xs tabular-nums ${tooLong ? "font-semibold text-red-700" : "text-muted"}`}>
+          <p className={`mt-1 text-right text-xs tabular-nums ${tooLong ? "font-semibold text-red-400" : "text-muted"}`}>
             {message.length} / {OFFER_MAX}
           </p>
           <label className="mt-1 block text-sm">
@@ -183,9 +183,9 @@ export function OfferComposer({ venue, dates, audiences, templates, initialAudie
                 setShort(e.target.value);
                 setShortEdited(true);
               }}
-              className="mt-1.5 h-11 w-full rounded-xl border border-line bg-paper px-3 text-[15px] focus:border-ink focus:outline-none"
+              className="mt-1.5 h-11 w-full rounded-xl border border-line bg-surface-2 px-3 text-[15px] focus:border-blue focus:outline-none"
             />
-            <span className={`mt-1 block text-right text-xs tabular-nums ${short.length > OFFER_SHORT_MAX ? "font-semibold text-red-700" : "text-muted"}`}>
+            <span className={`mt-1 block text-right text-xs tabular-nums ${short.length > OFFER_SHORT_MAX ? "font-semibold text-red-400" : "text-muted"}`}>
               {short.length} / {OFFER_SHORT_MAX}
             </span>
           </label>
@@ -200,7 +200,7 @@ export function OfferComposer({ venue, dates, audiences, templates, initialAudie
               min={dates.today}
               max={dates.maxEnd}
               onChange={(e) => setEndsOn(e.target.value || dates.defaultEnd)}
-              className="h-11 rounded-xl border border-line bg-white px-3 text-base"
+              className="h-11 rounded-xl border border-line bg-surface-2 px-3 text-base"
             />
           </label>
         </fieldset>
@@ -230,7 +230,7 @@ export function OfferComposer({ venue, dates, audiences, templates, initialAudie
               role="tab"
               aria-selected={preview === id}
               onClick={() => setPreview(id)}
-              className={`flex-1 rounded-full px-2 py-1.5 text-xs font-semibold ${preview === id ? "bg-ink text-white" : "bg-ink/[0.06] text-muted hover:text-ink"}`}
+              className={`flex-1 rounded-full px-2 py-1.5 text-xs font-semibold ${preview === id ? "bg-blue text-midnight" : "bg-surface-2 text-muted hover:text-fg"}`}
             >
               {label}
             </button>
@@ -247,7 +247,7 @@ export function OfferComposer({ venue, dates, audiences, templates, initialAudie
         <p className="text-lg font-semibold">
           Send to {audience.deliver} customer{audience.deliver === 1 ? "" : "s"}?
         </p>
-        <p className="mt-2 rounded-xl bg-paper p-3 text-[15px] leading-snug">{message}</p>
+        <p className="mt-2 rounded-xl bg-midnight p-3 text-[15px] leading-snug">{message}</p>
         <p className="mt-2 text-xs text-muted">On the card: “{short || offerShort({ text: message, expires_at: "" })}”</p>
         <p className="mt-2 text-xs text-muted">Ends {endsLabel(endsOn)}.</p>
         {!quick && (
@@ -263,7 +263,7 @@ export function OfferComposer({ venue, dates, audiences, templates, initialAudie
             {pending ? "Sending…" : "Send"}
           </button>
         </div>
-        {result && !result.ok && <p className="mt-3 text-sm text-red-700">{result.message}</p>}
+        {result && !result.ok && <p className="mt-3 text-sm text-red-400">{result.message}</p>}
       </Modal>
     </div>
   );

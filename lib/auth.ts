@@ -32,6 +32,7 @@ export type Venue = RewardSettings & {
   card_bg: string;
   card_fg: string;
   card_accent: string;
+  card_reward: string | null;
   points_per_visit: number;
   stamps_per_day: number | null;
   pass_message: string | null;

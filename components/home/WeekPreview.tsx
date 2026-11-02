@@ -14,7 +14,7 @@ export function WeekPreview({ newCustomers, rewards, visits, bestDay, quietest }
     <Section title="This week" subtitle={`Last 7 days · ${visits} visit${visits === 1 ? "" : "s"}`}>
       <dl className="grid grid-cols-2 gap-3">
         {items.map((i) => (
-          <div key={i.label} className="rounded-xl bg-paper p-3">
+          <div key={i.label} className="rounded-xl bg-midnight p-3">
             <dt className="text-xs text-muted">{i.label}</dt>
             <dd className="mt-0.5 text-[15px] font-semibold leading-snug">{i.value}</dd>
           </div>

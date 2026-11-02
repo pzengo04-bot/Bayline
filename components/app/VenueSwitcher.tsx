@@ -17,7 +17,7 @@ export function VenueSwitcher({ venues, currentId }: Props) {
         name="venueId"
         defaultValue={currentId}
         onChange={(e) => e.currentTarget.form?.requestSubmit()}
-        className="h-9 w-full max-w-[9rem] truncate sm:max-w-[13rem] rounded-full border border-line bg-white pl-3 pr-8 text-sm font-semibold"
+        className="h-9 w-full max-w-[9rem] truncate sm:max-w-[13rem] rounded-full border border-line bg-surface-2 pl-3 pr-8 text-sm font-semibold"
       >
         {venues.map((v) => (
           <option key={v.id} value={v.id}>

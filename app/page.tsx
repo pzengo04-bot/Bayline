@@ -56,12 +56,14 @@ export default function Home() {
 
       <main className="flex-1">
         {/* 1. Hero */}
+        <div className="relative isolate overflow-hidden">
+          <div aria-hidden="true" className="hero-aurora pointer-events-none absolute inset-0 -z-10" />
         <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-16 pt-10 sm:pt-16 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:pb-24">
           <div>
             <h1 className="font-display text-[3.4rem] font-extrabold uppercase leading-[0.9] tracking-tight sm:text-7xl lg:text-[5.5rem]">
               Turn <span className="whitespace-nowrap">first-timers</span> into{" "}
-              <span className="relative whitespace-nowrap">
-                <span className="absolute inset-x-[-0.08em] bottom-[0.06em] top-[0.52em] -z-10 bg-accent" />
+              <span className="relative z-0 whitespace-nowrap">
+                <span className="absolute inset-x-[-0.08em] bottom-[0.06em] top-[0.52em] -z-10 bg-blue/45" />
                 regulars.
               </span>
             </h1>
@@ -81,14 +83,15 @@ export default function Home() {
           </div>
           <HeroPhone />
         </section>
+        </div>
 
         {/* 2. The problem */}
-        <section className="border-y border-line bg-white">
+        <section className="border-y border-line bg-surface">
           <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
             <SectionHeading eyebrow="The problem" title="Most businesses never hear from a first-time customer again." />
             <div className="mt-10 grid gap-3 md:grid-cols-3">
               {problems.map((p) => (
-                <div key={p.title} className="rounded-2xl border border-line bg-paper p-5 sm:p-6">
+                <div key={p.title} className="glow-hover rounded-2xl border border-line bg-surface-2 p-5 sm:p-6">
                   <h3 className="text-lg font-semibold leading-snug">{p.title}</h3>
                   <p className="mt-2 text-muted">{p.body}</p>
                 </div>
@@ -103,8 +106,8 @@ export default function Home() {
             <SectionHeading eyebrow="How it works" title="Three steps. Nothing to install." />
             <ol className="mt-10 grid gap-3 lg:grid-cols-3">
               {steps.map((s, i) => (
-                <li key={s.title} className={`${card} flex gap-4 p-5 sm:p-6 lg:block`}>
-                  <span className="w-12 shrink-0 font-display text-5xl font-extrabold leading-none text-ink/50 lg:w-auto lg:text-7xl" aria-hidden="true">
+                <li key={s.title} className={`${card} glow-hover flex gap-4 p-5 sm:p-6 lg:block`}>
+                  <span className="w-12 shrink-0 font-display text-5xl font-extrabold leading-none text-blue lg:w-auto lg:text-7xl" aria-hidden="true">
                     0{i + 1}
                   </span>
                   <div>
@@ -118,18 +121,18 @@ export default function Home() {
         </section>
 
         {/* 4. What owners get */}
-        <section className="bg-ink text-white">
+        <section className="border-y border-line bg-surface">
           <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
-            <SectionHeading eyebrow="What owners get" title="Know who's slipping. Bring them back." inverted />
+            <SectionHeading eyebrow="What owners get" title="Know who's slipping. Bring them back." />
             <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {benefits.map((b) => (
-                <div key={b.title} className="rounded-2xl border border-white/10 bg-white/[0.04] p-6">
+                <div key={b.title} className="glow-hover rounded-2xl border border-line bg-surface-2 p-6">
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="h-5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
+                    <span className="h-5 w-1.5 rounded-full bg-blue" aria-hidden="true" />
                     <h3 className="font-display text-2xl font-bold uppercase tracking-wide">{b.title}</h3>
-                    {b.soon && <span className="rounded-full border border-white/25 px-2 py-0.5 text-xs font-semibold text-white/80">Coming soon</span>}
+                    {b.soon && <span className="rounded-full border border-line px-2 py-0.5 font-mono text-xs font-semibold text-muted">Coming soon</span>}
                   </div>
-                  <p className="mt-3 text-white/70">{b.body}</p>
+                  <p className="mt-3 text-muted">{b.body}</p>
                 </div>
               ))}
             </div>
@@ -150,14 +153,14 @@ export default function Home() {
                 ] as const
               ).map(([src, label, alt]) => (
                 <figure key={label} className="w-[78%] shrink-0 snap-center sm:w-auto">
-                  <Image src={src} alt={alt} sizes="(min-width: 640px) 33vw, 100vw" className="h-auto w-full rounded-[14px] shadow-[0_18px_40px_-20px_rgba(15,21,18,0.45)]" />
+                  <Image src={src} alt={alt} sizes="(min-width: 640px) 33vw, 100vw" className="h-auto w-full rounded-[14px] shadow-[0_18px_40px_-20px_rgba(0,0,0,0.8)] ring-1 ring-line" />
                   <figcaption className="mt-3 text-center text-sm font-semibold text-muted">{label}</figcaption>
                 </figure>
               ))}
             </div>
             <ul className="mt-10 flex flex-wrap justify-center gap-2">
               {["Your logo and colors", "Stamps that match your business", "Optional halfway reward", "Offers on the lock screen", "Works on iPhone and Android"].map((c) => (
-                <li key={c} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-medium">
+                <li key={c} className="rounded-full border border-line bg-surface-2 px-4 py-2 text-sm font-medium">
                   {c}
                 </li>
               ))}
@@ -166,13 +169,13 @@ export default function Home() {
         </section>
 
         {/* 6. Try it: a teaser for the /demo page */}
-        <section id="try-it" className="scroll-mt-16 border-y border-line bg-white">
+        <section id="try-it" className="scroll-mt-16 border-y border-line bg-surface">
           <div className="mx-auto max-w-6xl px-4 py-10 sm:py-14">
-            <div className="flex flex-col items-start justify-between gap-6 rounded-3xl bg-ink p-6 text-white sm:flex-row sm:items-center sm:p-10">
+            <div className="flex flex-col items-start justify-between gap-6 glow-hover rounded-3xl border border-line bg-surface-2 p-6 sm:flex-row sm:items-center sm:p-10">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-widest text-accent">See it for yourself</p>
+                <p className="font-mono text-sm font-semibold uppercase tracking-widest text-blue">See it for yourself</p>
                 <h2 className="mt-2 font-display text-4xl font-extrabold uppercase leading-[0.95] sm:text-5xl">Try it on your phone in 20 seconds</h2>
-                <p className="mt-3 max-w-xl text-white/70">Add a real Bayline card to your wallet, then click through the owner&apos;s dashboard.</p>
+                <p className="mt-3 max-w-xl text-muted">Add a real Bayline card to your wallet, then click through the owner&apos;s dashboard.</p>
               </div>
               <TrackLink event="try_it_click" href="/demo" className={`${button.accent} h-12 shrink-0 px-6 text-base`}>
                 See the demo <span aria-hidden="true">→</span>
@@ -184,17 +187,21 @@ export default function Home() {
         {/* 7. Founding offer (the paid plan lives in lib/pricing.ts until pricing goes public) */}
         <section id="founding" className="scroll-mt-16">
           <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
-            <div className="relative overflow-hidden rounded-3xl bg-accent p-7 sm:p-12">
+            <div className="relative isolate overflow-hidden rounded-3xl border border-orange/40 bg-surface p-7 shadow-[0_0_60px_-20px_rgb(252_115_77/0.45)] sm:p-12">
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute -right-10 -top-10 hidden size-64 rounded-full border-[28px] border-ink/[0.07] sm:block"
+                className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_80%_at_100%_0%,rgb(252_115_77/0.16),transparent_70%)]"
               />
-              <p className="text-sm font-semibold uppercase tracking-widest">Founding offer</p>
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-10 -top-10 hidden size-64 rounded-full border-[28px] border-orange/[0.12] sm:block"
+              />
+              <p className="font-mono text-sm font-semibold uppercase tracking-widest text-orange">Founding offer</p>
               <h2 className="mt-3 max-w-2xl font-display text-4xl font-extrabold uppercase leading-[0.95] sm:text-6xl">
                 Be one of our first 10 businesses.
               </h2>
-              <p className="mt-4 max-w-xl text-lg">
-                Free for 60 days. No setup fee, no contract, cancel anytime. We set everything up with you in person, including your
+              <p className="mt-4 max-w-xl text-lg text-muted">
+                <span className="font-semibold text-fg">Free for 60 days.</span> No setup fee, no contract, cancel anytime. We set everything up with you in person, including your
                 branded card and counter stand.
               </p>
               <TrackLink event="book_call_click" href={site.callUrl} className={`${button.primary} mt-8 h-12 px-6 text-base`}>
@@ -205,10 +212,10 @@ export default function Home() {
         </section>
 
         {/* 8. FAQ */}
-        <section className="border-t border-line bg-white">
+        <section className="border-t border-line bg-surface">
           <div className="mx-auto max-w-3xl px-4 py-14 sm:py-20">
             <SectionHeading eyebrow="FAQ" title="Questions owners ask" />
-            <div className="mt-8 divide-y divide-line rounded-2xl border border-line">
+            <div className="mt-8 divide-y divide-line rounded-2xl border border-line bg-surface-2">
               {faqs.map((f) => (
                 <details key={f.q} className="group px-5 py-4">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold [&::-webkit-details-marker]:hidden">
@@ -225,7 +232,7 @@ export default function Home() {
         </section>
 
         {/* 9. Final CTA */}
-        <section className="bg-paper">
+        <section className="bg-midnight">
           <div className="mx-auto max-w-6xl px-4 py-14 text-center sm:py-20">
             <h2 className="mx-auto max-w-3xl font-display text-4xl font-extrabold uppercase leading-[0.95] sm:text-6xl">
               Ready to turn <span className="whitespace-nowrap">first-timers</span> into regulars?
@@ -247,10 +254,10 @@ export default function Home() {
   );
 }
 
-function SectionHeading({ eyebrow, title, inverted = false }: { eyebrow: string; title: string; inverted?: boolean }) {
+function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
     <div>
-      <p className={`text-sm font-semibold uppercase tracking-widest ${inverted ? "text-accent" : "text-accent-strong"}`}>{eyebrow}</p>
+      <p className="font-mono text-sm font-semibold uppercase tracking-widest text-blue">{eyebrow}</p>
       <h2 className="mt-2 max-w-3xl font-display text-4xl font-extrabold uppercase leading-[0.95] sm:text-5xl">{title}</h2>
     </div>
   );

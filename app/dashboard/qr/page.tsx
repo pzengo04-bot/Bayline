@@ -25,7 +25,7 @@ async function QrSign() {
     type: "svg",
     margin: 0,
     errorCorrectionLevel: "M",
-    color: { dark: "#0f1512", light: "#ffffff" },
+    color: { dark: "#02070a", light: "#ffffff" },
   });
   const shortUrl = url.replace(/^https?:\/\//, "").replace(/\?.*$/, "");
 
@@ -44,18 +44,18 @@ async function QrSign() {
         <PrintButton />
       </div>
 
-      <div className="mx-auto w-full max-w-[34rem] shadow-[0_20px_50px_-25px_rgba(15,21,18,0.4)] print:max-w-none print:shadow-none">
+      <div className="mx-auto w-full max-w-[34rem] shadow-[0_20px_50px_-25px_rgba(0,0,0,0.8)] print:max-w-none print:shadow-none">
         <div
-          className="@container relative flex aspect-[8.5/11] flex-col items-center bg-white text-center text-ink print:h-[11in] print:w-[8.5in] print:aspect-auto"
+          className="@container relative flex aspect-[8.5/11] flex-col items-center bg-white text-center text-midnight print:h-[11in] print:w-[8.5in] print:aspect-auto"
           style={{ printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}
         >
-          <div className="h-[3cqw] w-full bg-accent" />
-          <p className="mt-[8cqw] text-[3cqw] font-semibold uppercase tracking-[0.3em] text-muted">Rewards</p>
+          <div className="h-[3cqw] w-full bg-blue" />
+          <p className="mt-[8cqw] text-[3cqw] font-semibold uppercase tracking-[0.3em] text-midnight/65">Rewards</p>
           <h2 className="mt-[1.5cqw] max-w-[85%] font-display text-[10cqw] font-extrabold uppercase leading-[0.9]">{venue.name}</h2>
           <p className="mt-[4cqw] font-display text-[6.5cqw] font-bold uppercase leading-none">Scan to earn rewards</p>
-          <p className="mt-[2cqw] text-[3.4cqw] text-muted">{programSummary(venue)}</p>
+          <p className="mt-[2cqw] text-[3.4cqw] text-midnight/65">{programSummary(venue)}</p>
           <div
-            className="mt-[5cqw] w-[46cqw] rounded-[3cqw] border-[0.6cqw] border-ink p-[3cqw] [&_svg]:h-auto [&_svg]:w-full"
+            className="mt-[5cqw] w-[46cqw] rounded-[3cqw] border-[0.6cqw] border-midnight p-[3cqw] [&_svg]:h-auto [&_svg]:w-full"
             dangerouslySetInnerHTML={{ __html: svg }}
             role="img"
             aria-label={`QR code for ${shortUrl}`}
@@ -63,14 +63,14 @@ async function QrSign() {
           <p className="mt-[3.5cqw] text-[3cqw] font-medium">
             No app needed. Just your phone number.
           </p>
-          <p className="mt-[1cqw] font-mono text-[2.6cqw] text-muted">{shortUrl}</p>
+          <p className="mt-[1cqw] font-mono text-[2.6cqw] text-midnight/65">{shortUrl}</p>
           <div className="mt-auto mb-[5cqw] flex scale-[0.8] items-center opacity-70 [font-size:2.2cqw]">
-            <Logo />
+            <Logo onLight />
           </div>
         </div>
       </div>
       {!url.startsWith("https://") && (
-        <p className="mx-auto max-w-[34rem] rounded-xl bg-paper px-3 py-2.5 text-sm text-muted print:hidden">
+        <p className="mx-auto max-w-[34rem] rounded-xl bg-surface-2 px-3 py-2.5 text-sm text-muted print:hidden">
           This QR code points to {shortUrl}, which only works on this computer. On the live site it points to your
           real address.
         </p>

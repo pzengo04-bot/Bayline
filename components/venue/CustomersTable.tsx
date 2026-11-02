@@ -68,7 +68,7 @@ export function CustomersTable({ customers: initial, showSpend, initialLabel }: 
           setLimit(PAGE);
         }}
         placeholder="Search by name or phone"
-        className="h-11 w-full rounded-xl border border-line bg-paper px-3 text-base focus:border-ink focus:outline-none"
+        className="h-11 w-full rounded-xl border border-line bg-surface-2 px-3 text-base focus:border-blue focus:outline-none"
       />
       <div className="mt-3 flex flex-wrap gap-1.5" role="group" aria-label="Filter by label">
         {FILTERS.filter((l) => counts.get(l)).map((l) => (
@@ -81,7 +81,7 @@ export function CustomersTable({ customers: initial, showSpend, initialLabel }: 
               setLimit(PAGE);
             }}
             className={`rounded-full px-3 py-1 text-xs font-semibold ${
-              labelFilter === l ? "bg-ink text-white" : "bg-ink/[0.06] text-muted hover:text-ink"
+              labelFilter === l ? "bg-blue text-midnight" : "bg-surface-2 text-muted hover:text-fg"
             }`}
           >
             {LABELS[l].name} · {counts.get(l)}
@@ -89,7 +89,7 @@ export function CustomersTable({ customers: initial, showSpend, initialLabel }: 
         ))}
       </div>
       {filtered.length === 0 ? (
-        <p className="mt-3 rounded-xl bg-paper p-4 text-sm text-muted">No customers match{query ? <> &ldquo;{query}&rdquo;</> : " this filter"}.</p>
+        <p className="mt-3 rounded-xl bg-midnight p-4 text-sm text-muted">No customers match{query ? <> &ldquo;{query}&rdquo;</> : " this filter"}.</p>
       ) : (
         <ul className="mt-3 divide-y divide-line/70 rounded-xl border border-line">
           {filtered.slice(0, limit).map((c) => (
@@ -102,7 +102,7 @@ export function CustomersTable({ customers: initial, showSpend, initialLabel }: 
                 <p className="text-xs text-muted tabular-nums">{formatPhone(c.phone)}</p>
               </div>
               <p className="text-sm text-muted">
-                <span className="font-semibold text-ink tabular-nums">{c.visits}</span> visit{c.visits === 1 ? "" : "s"}
+                <span className="font-semibold text-fg tabular-nums">{c.visits}</span> visit{c.visits === 1 ? "" : "s"}
                 {showSpend && c.spend > 0 && <> · {formatMoney(c.spend)}</>}
                 {c.daysSinceLastVisit !== null && <> · last {formatDaysAgo(c.daysSinceLastVisit)}</>}
               </p>
@@ -117,7 +117,7 @@ export function CustomersTable({ customers: initial, showSpend, initialLabel }: 
         <button
           type="button"
           onClick={() => setLimit((l) => l + PAGE)}
-          className="mt-3 w-full rounded-full border border-line py-2 text-sm font-semibold hover:border-ink/40"
+          className="mt-3 w-full rounded-full border border-line py-2 text-sm font-semibold hover:border-blue/60"
         >
           Show more ({filtered.length - limit} left)
         </button>

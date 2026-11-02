@@ -17,8 +17,8 @@ type Props = {
 
 /** Busy cells get darker ink; the emptiest slots are called out in the accent color. */
 function cellStyle(value: number, isEmpty: boolean) {
-  if (isEmpty) return { background: "var(--accent)" };
-  return { background: `color-mix(in srgb, var(--ink) ${Math.round(8 + value * 82)}%, white)` };
+  if (isEmpty) return { background: "var(--orange)" };
+  return { background: `color-mix(in srgb, var(--blue) ${Math.round(8 + value * 87)}%, var(--surface-2))` };
 }
 
 /** Day-of-week × hour grid with a legend and a tap/hover readout. */
@@ -61,8 +61,8 @@ export function HeatmapGrid({ grid, emptyKeys, block, emptyLegend, describe, rea
                   onMouseEnter={() => setHovered({ d, i })}
                   onFocus={() => setHovered({ d, i })}
                   onClick={() => setHovered({ d, i })}
-                  className={`h-7 rounded-[4px] transition-transform hover:scale-110 hover:ring-2 hover:ring-ink/60 sm:h-8 ${
-                    inBlock ? "ring-2 ring-inset ring-ink" : ""
+                  className={`h-7 rounded-[4px] transition-transform hover:scale-110 hover:ring-2 hover:ring-fg/70 sm:h-8 ${
+                    inBlock ? "ring-2 ring-inset ring-fg" : ""
                   }`}
                   style={cellStyle(v, isEmpty || inBlock)}
                 />
@@ -76,19 +76,19 @@ export function HeatmapGrid({ grid, emptyKeys, block, emptyLegend, describe, rea
       <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-xs text-muted">
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1.5">
-            <span className="size-3 rounded-[3px] bg-accent" />
+            <span className="size-3 rounded-[3px] bg-orange" />
             {` ${emptyLegend}`}
           </span>
           <span className="flex items-center gap-1.5">
             Empty
             <span
               className="h-3 w-14 rounded-[3px]"
-              style={{ background: "linear-gradient(90deg, color-mix(in srgb, var(--ink) 8%, white), var(--ink))" }}
+              style={{ background: "linear-gradient(90deg, color-mix(in srgb, var(--blue) 8%, var(--surface-2)), var(--blue))" }}
             />
             Full
           </span>
         </div>
-        <p aria-live="polite" className="font-medium text-ink tabular-nums">
+        <p aria-live="polite" className="font-medium text-fg tabular-nums">
           {hovered
             ? `${grid.rows[hovered.d].day} ${formatHour(grid.hours[hovered.i])} · ${readout(hovered.d, hovered.i)}`
             : "Tap a square for details"}

@@ -21,7 +21,7 @@ export function IphoneOfferPreview(p: Props) {
   const text = p.message || "Your message";
   return (
     <div className="space-y-3">
-      <div className="rounded-[28px] bg-[linear-gradient(160deg,#1d3557,#457b9d_55%,#a8dadc)] px-3 pb-5 pt-4">
+      <div className="rounded-[28px] bg-[linear-gradient(160deg,#02070a,#0b3a55_55%,#0297de)] px-3 pb-5 pt-4">
         <p className="text-center font-display text-5xl font-semibold leading-none text-white/90">9:41</p>
         <p className="mt-1 text-center text-xs text-white/70">Tuesday, October 21</p>
         <div className="mt-5 flex gap-2.5 rounded-2xl bg-white/80 p-3 backdrop-blur">

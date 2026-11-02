@@ -120,7 +120,7 @@ export default function Home() {
                 className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_80%_at_100%_0%,rgb(252_115_77/0.16),transparent_70%)]"
               />
               <p className="font-mono text-sm font-semibold uppercase tracking-widest text-orange">Founding offer</p>
-              <h2 className="mt-3 font-display text-4xl font-extrabold uppercase leading-[0.95] lg:text-5xl">First 10 businesses: 60 days free.</h2>
+              <h2 className="mt-3 font-display text-4xl font-extrabold uppercase leading-[0.95] lg:text-5xl">First 10 businesses: 1 month free.</h2>
               <p className="mt-4 flex-1 text-muted">No setup fee. No contract. We set it up with you in person.</p>
               <TrackLink event="book_call_click" href={site.callUrl} className={`${button.primary} mt-8 h-12 px-6 text-base`}>
                 Book a 15-min call

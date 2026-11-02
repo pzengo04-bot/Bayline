@@ -12,5 +12,5 @@ export const PRICING = {
     "Insights & the Monday Brief",
     "Unlimited offers to wallet cards",
   ],
-  foundingOffer: "First 10 businesses: 60 days free, then keep $49/month for life.",
+  foundingOffer: "First 10 businesses: 1 month free, then keep $49/month for life.",
 } as const;

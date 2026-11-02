@@ -102,7 +102,7 @@ Tap-to-join wallet rewards cards plus retention insights for any local business 
   `components/demo/DemoDashboard.tsx`, a clickable sample dashboard built from the real dashboard
   components (labeled "Sample data"; Send offer opens a simulated lock-screen phone). It has a
   `sampleOfferSlot` prop for the planned "Send me a sample offer" button.
-- Pricing isn't shown: the site only has the founding offer (60 days free). The paid plan lives in
+- Pricing isn't shown: the site only has the founding offer (1 month free). The paid plan lives in
   `lib/pricing.ts` for when pricing goes public.
 - First-load intro: `components/site/IntroLoader.tsx`, an inline script in the root layout that only
   runs on the marketing pages it lists (full once, logo-only for returning visitors, nothing again in

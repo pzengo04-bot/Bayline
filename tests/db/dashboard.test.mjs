@@ -53,8 +53,10 @@ test("dashboard stats, heatmap and staff desk respect venue boundaries", async (
   r = await as(db, "authenticated", b.id, `select add_visit($1, '+19145550002', 40, 'Dana') as j`, [vb.id]);
   assert.equal(r.rows[0].j.progress.points, 80);
   r = await as(db, "authenticated", b.id, `select add_visit($1, '+19145550002', 15) as j`, [vb.id]);
-  assert.equal(r.rows[0].j.progress.points, 110);
+  assert.equal(r.rows[0].j.result, "limit_reached", "one visit per day from the desk too");
+  assert.equal(r.rows[0].j.progress.points, 80);
   const dana = r.rows[0].j.customer_id;
+  await as(db, "authenticated", b.id, `insert into visits (venue_id, customer_id, amount, source, visited_at) values ($1, $2, 15, 'staff', now() - interval '1 day')`, [vb.id, dana]);
   r = await as(db, "authenticated", b.id, `select redeem_reward($1) as j`, [dana]);
   assert.equal(r.rows[0].j.points, 10, "redeeming spends 100 points");
   assert.ok(await fails("authenticated", b.id, `select redeem_reward($1)`, [dana]), "can't redeem without enough points");

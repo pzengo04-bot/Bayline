@@ -67,4 +67,12 @@ test("customer labels: new, regular, slipping, vip, lapsed, occasional, demo gue
   assert.equal(label(ids.regular), "regular");
   assert.equal(label(guest), "demo_guest", "real joiners at the demo venue");
   assert.notEqual(label(seeded), "demo_guest", "seeded demo customers get normal labels");
+
+  // The home page's counts use the same rules, so they match the view.
+  for (const venue of [v.id, demo.id]) {
+    const inVenue = (await as(db, "authenticated", owner.id, `select label from customer_insights where venue_id = $1`, [venue])).rows;
+    const { rows: [h] } = await as(db, "authenticated", owner.id, `select venue_home($1) as j`, [venue]);
+    assert.equal(h.j.slipping, inVenue.filter((r) => r.label === "slipping").length, "home slipping count");
+    assert.equal(h.j.regulars, inVenue.filter((r) => r.label === "regular" || r.label === "vip").length, "home regulars count");
+  }
 });

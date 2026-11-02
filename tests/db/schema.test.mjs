@@ -63,15 +63,57 @@ test("schema, taps, rewards and row level security", async () => {
   // Reward ready: fill the card with past visits, then staff redeem.
   const { rows: [mike] } = await db.query(`select id from customers where phone='+19145550123' and venue_id=$1`, [va.id]);
   await db.query(`update visits set visited_at = now() - interval '6 days' where customer_id=$1`, [mike.id]);
-  for (let i = 5; i >= 2; i--) await db.query(`insert into visits (venue_id, customer_id, visited_at) values ($1,$2, now() - ($3 || ' days')::interval)`, [va.id, mike.id, i]);
+  for (let i = 5; i >= 3; i--) await db.query(`insert into visits (venue_id, customer_id, visited_at) values ($1,$2, now() - ($3 || ' days')::interval)`, [va.id, mike.id, i]);
   r = await tap(`'test-lounge', 'nfc', '${token}'`);
-  ok(r.status === "stamped" && r.progress.reward_ready === true && r.progress.stamps === 5, "full card shows reward ready (capped): " + JSON.stringify(r.progress));
+  ok(r.status === "stamped" && r.progress.reward_ready === true && r.progress.stamps === 5, "the fifth stamp fills the card: " + JSON.stringify(r.progress));
+  const visitsBefore = (await db.query(`select count(*)::int n from visits where customer_id=$1`, [mike.id])).rows[0].n;
+  r = await tap(`'test-lounge', 'nfc', '${token}'`);
+  ok(r.status === "reward_ready" && r.progress.stamps === 5, "a tap on a full card says reward ready: " + r.status);
+  ok((await db.query(`select count(*)::int n from visits where customer_id=$1`, [mike.id])).rows[0].n === visitsBefore, "and adds nothing");
   t = await tryQ("authenticated", b.id, `select redeem_reward($1)`, [mike.id]);
   ok(!!t.e, "owner B cannot redeem at venue A");
   r = await as(db, "authenticated", a.id, `select redeem_reward($1) as j`, [mike.id]);
   ok(r.rows[0].j.stamps === 0 && r.rows[0].j.reward_ready === false, "redeem resets the card");
   t = await tryQ("authenticated", a.id, `select redeem_reward($1)`, [mike.id]);
   ok(!!t.e, "can't redeem an empty card");
+  r = await tap(`'test-lounge', 'nfc', '${token}'`);
+  ok(r.status === "limit_reached" && r.progress.stamps === 0, "the redemption visit earns no stamp: " + r.status);
+  const log = (await as(db, "authenticated", a.id, `select kind, source, actor_email, detail from card_events where customer_id=$1 order by created_at desc, kind`, [mike.id])).rows;
+  ok(log.some((e) => e.kind === "redeem" && e.actor_email === "a@x.com" && e.detail === "free bay hour"), "redemption logged with who did it: " + JSON.stringify(log.slice(0, 3)));
+  ok(log.some((e) => e.kind === "stamp" && e.source === "customer"), "taps logged as the customer's");
+  t = await tryQ("authenticated", a.id, `insert into card_events (venue_id, customer_id, kind, source) values ($1,$2,'stamp','staff')`, [va.id, mike.id]);
+  ok(!!t.e, "nobody writes the log directly");
+  t = await tryQ("authenticated", b.id, `select * from card_events where venue_id=$1`, [va.id]);
+  ok(!t.e && t.r.rows.length === 0, "owner B sees none of venue A's log");
+
+  // Staff stamping, removing and resetting by hand.
+  const { rows: [sam] } = await db.query(`insert into customers (venue_id, name, phone) values ($1,'Sam','+19145550177') returning id, card_code`, [va.id]);
+  ok(/^[0-9A-F]{16}$/.test(sam.card_code), "each card gets a random 16-character code: " + sam.card_code);
+  r = await as(db, "authenticated", a.id, `select find_card($1, $2) as j`, [va.id, sam.card_code.toLowerCase()]);
+  ok(r.rows[0].j.status === "found" && r.rows[0].j.card.name === "Sam", "scanning the code finds the card");
+  r = await as(db, "authenticated", b.id, `select find_card($1, $2) as j`, [vb.id, sam.card_code]);
+  ok(r.rows[0].j.status === "other_venue", "another venue's scan finds nothing usable");
+  t = await tryQ("authenticated", b.id, `select find_card($1, $2)`, [va.id, sam.card_code]);
+  ok(!!t.e, "owner B can't scan at venue A");
+  r = await as(db, "authenticated", a.id, `select stamp_customer($1) as j`, [sam.id]);
+  ok(r.rows[0].j.result === "stamped" && r.rows[0].j.card.progress.stamps === 1 && r.rows[0].j.card.stamped_today, "staff add a stamp");
+  r = await as(db, "authenticated", a.id, `select stamp_customer($1) as j`, [sam.id]);
+  ok(r.rows[0].j.result === "limit_reached" && r.rows[0].j.card.progress.stamps === 1, "one stamp per day for staff too");
+  t = await tryQ("authenticated", b.id, `select stamp_customer($1)`, [sam.id]);
+  ok(!!t.e, "owner B can't stamp venue A cards");
+  r = await as(db, "authenticated", a.id, `select remove_stamp($1) as j`, [sam.id]);
+  ok(r.rows[0].j.progress.stamps === 0 && r.rows[0].j.visits === 1, "removing a stamp keeps the visit");
+  t = await tryQ("authenticated", a.id, `select remove_stamp($1)`, [sam.id]);
+  ok(!!t.e, "nothing left to remove");
+  await db.query(`insert into visits (venue_id, customer_id, visited_at) values ($1,$2, now() - interval '3 days'), ($1,$2, now() - interval '2 days')`, [va.id, sam.id]);
+  r = await as(db, "authenticated", a.id, `select reset_card($1) as j`, [sam.id]);
+  ok(r.rows[0].j.progress.stamps === 0 && r.rows[0].j.visits === 3, "reset starts the card at 0");
+  const samLog = (await as(db, "authenticated", a.id, `select kind, actor_email from card_events where customer_id=$1`, [sam.id])).rows;
+  ok(["stamp", "stamp_removed", "card_reset"].every((k) => samLog.some((e) => e.kind === k && e.actor_email === "a@x.com")), "manual changes logged: " + JSON.stringify(samLog));
+  r = await as(db, "authenticated", a.id, `select venue_home($1) as j`, [va.id]);
+  ok(typeof r.rows[0].j.week_visits === "number" && "prev_regulars" in r.rows[0].j, "home numbers: " + JSON.stringify(r.rows[0].j));
+  r = await as(db, "authenticated", a.id, `select venue_week($1, current_date - 7) as j`, [va.id]);
+  ok(typeof r.rows[0].j.visits === "number", "weekly brief numbers");
 
   // Pass freshness bumps on stamps and on card redesign.
   const before = (await db.query(`select pass_updated_at from customers where id=$1`, [mike.id])).rows[0].pass_updated_at;
@@ -124,5 +166,5 @@ test("schema, taps, rewards and row level security", async () => {
   t = await tryQ("authenticated", a.id, `insert into venue_members values ($1,$2,'owner')`, [a.id, vb.id]);
   ok(!!t.e, "owner A cannot add themselves to venue B");
   r = await as(db, "authenticated", adm.id, `select count(*)::int n from customers`);
-  ok(r.rows[0].n === 3, "admin sees all customers");
+  ok(r.rows[0].n === 4, "admin sees all customers");
 });

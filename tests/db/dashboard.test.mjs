@@ -46,6 +46,18 @@ test("dashboard stats, heatmap and staff desk respect venue boundaries", async (
   r = await as(db, "authenticated", a.id, `select * from visit_heatmap($1, 60)`, [va.id]);
   assert.equal(r.rows.length > 0 && r.rows.every((x) => x.hour === 19), true, "heatmap uses venue local time");
 
+  r = await as(db, "authenticated", a.id, `select venue_dashboard($1, 90) as j`, [va.id]);
+  assert.equal(r.rows[0].j.visits, 3, "three visits in the last 90 days");
+  assert.equal(r.rows[0].j.active, 1);
+  assert.equal(r.rows[0].j.series.length, 90, "one point per day");
+  r = await as(db, "authenticated", a.id, `select venue_dashboard($1, 7) as j`, [va.id]);
+  assert.equal(r.rows[0].j.visits, 0);
+  r = await as(db, "authenticated", a.id, `select detail, created_at::date = (now() - interval '30 days')::date as backdated from card_events where kind = 'stamp' order by created_at desc limit 1`);
+  assert.ok(r.rows[0].backdated, "events keep the visit's own time");
+  assert.equal(r.rows[0].detail, "3 of 5", "stamps say where the card stood");
+  r = await as(db, "authenticated", b.id, `select venue_dashboard($1, 90) as j`, [va.id]);
+  assert.equal(r.rows[0].j.visits, 0, "B sees none of A's visits");
+
   r = await as(db, "authenticated", a.id, `select venue_overview($1) as j`, [va.id]);
   assert.equal(r.rows[0].j.active_customers, 1);
 

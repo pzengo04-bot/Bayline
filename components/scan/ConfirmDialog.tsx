@@ -8,7 +8,7 @@ type Props = {
   title: string;
   children: ReactNode;
   confirmLabel: string;
-  /** orange for redeeming a reward, red for taking something away. */
+  /** orange fill for redeeming a reward, an orange outline for taking something away. */
   tone?: "orange" | "danger";
   busy?: boolean;
   onConfirm: () => void;
@@ -26,7 +26,7 @@ export function ConfirmDialog({ open, title, children, confirmLabel, tone = "ora
           disabled={busy}
           onClick={onConfirm}
           className={`h-14 rounded-full text-lg font-semibold disabled:opacity-60 ${
-            tone === "orange" ? "bg-orange text-midnight hover:bg-orange-hover" : "bg-red-400 text-midnight hover:bg-red-300"
+            tone === "orange" ? "bg-orange text-midnight hover:bg-orange-hover" : "border-2 border-orange text-orange hover:bg-orange/10"
           }`}
         >
           {busy ? "Saving…" : confirmLabel}

@@ -23,8 +23,8 @@ type Props = {
   draft: OfferDraft;
   venue: { name: string; logoUrl: string | null; cardBg: string; cardFg: string; cooldownDays: number };
   label?: string;
-  /** large: the home action card. medium: a row of profile buttons. small: a list row. */
-  size?: "large" | "medium" | "small";
+  /** large: blue. orange: the page's main action. medium: a row of profile buttons. small: a list row. outline: a table row. */
+  size?: "large" | "orange" | "medium" | "small" | "outline";
   /** Let the owner change the words before sending (the customer profile). */
   editable?: boolean;
 };
@@ -59,7 +59,11 @@ export function SendOfferButton({ draft, venue, label = "Send offer", size = "la
           setOpen(true);
         }}
         className={
-          size === "large"
+          size === "orange"
+            ? "inline-flex h-11 items-center justify-center rounded-[10px] bg-orange px-5 text-sm font-bold text-midnight hover:bg-orange-hover"
+            : size === "outline"
+              ? "inline-flex h-9 shrink-0 items-center rounded-[10px] border border-blue/60 px-3 text-sm font-semibold text-blue-light hover:bg-blue/10"
+              : size === "large"
             ? `${button.accent} h-12 px-6 text-base`
             : `shrink-0 rounded-full bg-blue/15 text-sm font-semibold text-blue hover:bg-blue/25 ${size === "medium" ? "flex h-12 items-center justify-center px-4" : "px-3.5 py-2"}`
         }

@@ -84,10 +84,15 @@ Tap-to-join wallet rewards cards plus retention insights for any local business 
 - Scan (`components/scan/`): camera via BarcodeDetector or jsQR, search fallback, big buttons; card
   actions in `app/dashboard/scan/actions.ts` (shared with the customer profile
   `/dashboard/customers/[id]`) push to wallets with `notifyPassChanged` in `after()`.
-- Home: `venue_home` (last 7 days vs the 7 before; regulars/slipping via `private.label_counts`,
-  which must match `customer_insights`), one Send offer with a preview (`SendOfferButton`), rewards
-  ready, slipping regulars, Recent activity from `card_events` (refreshes every 30s), and the Monday
-  brief at `/dashboard/brief` (`venue_week`).
+- Shell: `components/dash/Sidebar.tsx` (240px sidebar, top bar on phones), Inter + JetBrains Mono via
+  the `.dash` class in globals.css (also muted #A9B6BF, `blue-light` #4FB8EA). Trends are blue for
+  good and orange for bad, never green/red. Building blocks in `components/dash/ui.tsx`.
+- Home (`components/dash/HomeView.tsx`, data `lib/home-data.ts`): `?range=7|30|90` drives
+  `venue_dashboard` (numbers, daily series, rewards) and `visit_heatmap`; slipping counts use
+  `private.label_counts`, which must match `customer_insights`. Monday brief at `/dashboard/brief`.
+- Customer profile (`components/dash/ProfileView.tsx`, data `lib/profile-data.ts`), CSV at
+  `/dashboard/customers/[id]/export`. `card_events` rows keep the visit's own time, and stamps carry
+  "5 of 8" in `detail`.
 
 ## Brand and styling
 

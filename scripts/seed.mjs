@@ -109,8 +109,9 @@ const VENUES = [
       card_bg: "#02070a", card_fg: "#f2f5f7", card_accent: "#0297de", card_reward: "#fc734d",
       milestone_text: "free drink", milestone_at: 3, head_start_stamps: 1,
       pass_message: "Thanks for trying Bayline! Tap the stand again to watch your stamp land.", is_demo: true,
-      logo_text: "Bayline", website: "https://getbayline.app" },
-    customers: makeCustomers(60, { regular: 20, quiet: 10 }),
+      logo_text: "Bayline", website: "https://getbayline.app", open_hour: 10, close_hour: 23 },
+    // Enough regulars that Home looks lived in: ~a dozen slipping, a few in today already.
+    customers: makeCustomers(90, { regular: 32, quiet: 14 }),
     amount: () => null,
   },
 ];
@@ -141,10 +142,14 @@ try {
           pass_message = excluded.pass_message, is_demo = excluded.is_demo,
           logo_text = excluded.logo_text, website = excluded.website,
           milestone_text = excluded.milestone_text, milestone_at = excluded.milestone_at,
-          head_start_stamps = excluded.head_start_stamps
+          head_start_stamps = excluded.head_start_stamps,
+          open_hour = excluded.open_hour, close_hour = excluded.close_hour
         returning id, name, timezone`;
       // Test venues reset completely; the demo venue keeps its real demo guests.
-      if (venue.is_demo) await tx`delete from public.customers where venue_id = ${v.id} and is_seed`;
+      if (venue.is_demo) {
+        await tx`delete from public.customers where venue_id = ${v.id} and is_seed`;
+        await tx`delete from public.offer_sends where venue_id = ${v.id} and created_by is null`; // seeded offers only
+      }
       else await tx`delete from public.customers where venue_id = ${v.id}`;
 
       const consentText = `I agree to receive offers by text from ${v.name}. Msg & data rates may apply. Reply STOP to opt out.`;
@@ -162,8 +167,19 @@ try {
         offsets.forEach((d, i) => {
           const local = i === 0 ? firstLocal : localVisitTime(d);
           const amt = amount();
-          visits.push({ customer_id: row.id, local, amount: amt, source: amt == null ? "qr" : pick(["staff", "staff", "qr"]) });
+          // The demo shows a mix of stand taps and stamps staff added at the counter.
+          const source = amt != null ? pick(["staff", "staff", "qr"]) : venue.is_demo && rand() < 0.2 ? "staff" : "qr";
+          visits.push({ customer_id: row.id, local, amount: amt, source, kind: c.kind });
         });
+      }
+      // Demo: a handful of regulars already in today, so Recent activity is current.
+      if (venue.is_demo) {
+        const nowHour = Number(new Intl.DateTimeFormat("en-US", { hour: "numeric", hourCycle: "h23", timeZone: v.timezone }).format(today));
+        const ymd = ymdIn(today, v.timezone);
+        const regulars = [...new Set(visits.filter((x) => x.kind === "regular").map((x) => x.customer_id))];
+        for (let k = 0; k < 6 && k * 3 < regulars.length && nowHour - k - 1 >= 10; k++) {
+          visits.push({ customer_id: regulars[k * 3], local: `${ymd} ${String(nowHour - k - 1).padStart(2, "0")}:${pick(["05", "20", "35", "50"])}`, amount: null, source: k % 3 ? "qr" : "staff" });
+        }
       }
       // Oldest first. Staff redeem a full card a few minutes after the visit that fills it, so most
       // regulars aren't sitting on unclaimed rewards.
@@ -186,6 +202,24 @@ try {
           progress.set(vi.customer_id, isPoints ? have - need : 0);
         } else {
           progress.set(vi.customer_id, have);
+        }
+      }
+      if (venue.is_demo) {
+        // Two offers already sent: a win-back to the quiet ones, and a slow-hours invite to regulars.
+        const quiet = [...new Set(visits.filter((x) => x.kind === "quiet").map((x) => x.customer_id))];
+        const loyal = [...new Set(visits.filter((x) => x.kind === "regular").map((x) => x.customer_id))];
+        for (const [daysAgo, audience, message, who] of [
+          [23, "regulars", "Bays are wide open Tue 2–5pm. Come play!", loyal.slice(0, 18)],
+          [9, "slipping", `We miss you at ${v.name}! Come back this week for a bonus stamp.`, quiet.slice(0, 9)],
+        ]) {
+          const [send] = await tx`
+            insert into public.offer_sends (venue_id, audience, message, recipients, delivered, created_at, expires_at)
+            values (${v.id}, ${audience}, ${message}, ${who.length}, ${who.length},
+              now() - make_interval(days => ${daysAgo}), now() - make_interval(days => ${daysAgo - 7}))
+            returning id`;
+          for (const id of who) {
+            await tx`insert into public.offer_recipients (send_id, customer_id, venue_id, status, apple) values (${send.id}, ${id}, ${v.id}, 'delivered', true)`;
+          }
         }
       }
       if (venue.slug === "bayline-demo") {

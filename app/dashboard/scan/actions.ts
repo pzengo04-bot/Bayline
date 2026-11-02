@@ -179,3 +179,15 @@ export async function addNewCustomer(phoneInput: string, name: string, amount?: 
   if (!got.ok) return got;
   return { ok: true, card: got.card, done: r.result === "stamped" ? `Added ${got.card.name} with their first stamp` : `Found ${got.card.name}` };
 }
+
+/** Fix a customer's name (staff can too; consent and phone stay as the customer gave them). */
+export async function renameCustomer(customerId: string, name: string): Promise<{ ok: boolean; message: string }> {
+  const { venue } = await requireVenue();
+  if (!venue) return { ok: false, message: "No venue selected." };
+  const clean = name.replace(/\s+/g, " ").trim().slice(0, 60);
+  if (!clean) return { ok: false, message: "Enter a name." };
+  const { data, error } = await (await createUserClient()).from("customers").update({ name: clean }).eq("id", customerId).eq("venue_id", venue.id).select("id");
+  if (error || !data?.length) return { ok: false, message: "Couldn't save. Try again." };
+  changed(customerId);
+  return { ok: true, message: "Saved" };
+}

@@ -11,6 +11,7 @@
   --blue-hover: #33abe5;
   --orange: #fc734d; /* accent only: the main CTA, the founding offer, the odd key number. Midnight text on it */
   --orange-hover: #fd8a6a;
+  --blue-light: #4fb8ea; /* links and good trends on dark surfaces */
   color-scheme: dark;
 }
 
@@ -25,6 +26,7 @@
   --color-blue-hover: var(--blue-hover);
   --color-orange: var(--orange);
   --color-orange-hover: var(--orange-hover);
+  --color-blue-light: var(--blue-light);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-display: var(--font-display);
@@ -67,4 +69,13 @@ body {
 .glow-hover:hover {
   border-color: rgb(2 151 222 / 0.45);
   box-shadow: 0 0 0 1px rgb(2 151 222 / 0.15), 0 12px 40px -12px rgb(2 151 222 / 0.35);
+}
+
+/* The venue dashboard: Inter for text, JetBrains Mono for small numbers, a lighter muted grey. */
+.dash {
+  --font-geist-sans: var(--font-inter);
+  --font-display: var(--font-inter);
+  --font-geist-mono: var(--font-jetbrains);
+  --muted: #a9b6bf;
+  font-family: var(--font-inter), system-ui, sans-serif;
 }

@@ -52,7 +52,8 @@ export type Venue = RewardSettings & {
 };
 
 export type Access = {
-  user: { id: string; email: string };
+  /** name: from Google sign-in (user metadata), when there is one. */
+  user: { id: string; email: string; name: string | null };
   isAdmin: boolean;
   venues: (Venue & { role: "owner" | "staff" | "admin" })[];
 };
@@ -74,7 +75,11 @@ export const getAccess = cache(async (): Promise<Access | null> => {
   ]);
   const roles = new Map((memberships ?? []).map((m) => [m.venue_id as string, m.role as "owner" | "staff"]));
   return {
-    user: { id: sub, email: String(claims.claims.email ?? "") },
+    user: {
+      id: sub,
+      email: String(claims.claims.email ?? ""),
+      name: ((claims.claims.user_metadata as { full_name?: string; name?: string } | undefined)?.full_name ?? null) || null,
+    },
     isAdmin: Boolean(adminRow),
     venues: ((venues ?? []) as Venue[]).map((v) => ({ ...v, role: roles.get(v.id) ?? "admin" })),
   };

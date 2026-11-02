@@ -42,6 +42,8 @@ export type Venue = RewardSettings & {
   offer_cooldown_days: number;
   logo_text: string | null;
   address: string | null;
+  latitude: number | null;
+  longitude: number | null;
   website: string | null;
   milestone_text: string | null;
   milestone_at: number | null;

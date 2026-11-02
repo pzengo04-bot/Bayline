@@ -6,6 +6,7 @@ import sharp from "sharp";
 import { requireVenue } from "@/lib/auth";
 import { normalizePhone } from "@/lib/phone";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { geocodeAddress } from "@/lib/geocode";
 import { createUserClient } from "@/lib/supabase/server";
 import { parseRewardSettings } from "@/lib/venues";
 import { notifyVenuePassesChanged } from "@/lib/wallet/notify";
@@ -130,10 +131,14 @@ export async function saveCard(_prev: SaveState, form: FormData): Promise<SaveSt
   const cooldown = Number(form.get("offer_cooldown_days"));
   const offer_cooldown_days = Number.isInteger(cooldown) && cooldown >= 1 && cooldown <= 60 ? cooldown : 7;
 
+  // A new address gets its latitude/longitude (kept null if the geocoder can't find it).
+  const location =
+    address === venue.address ? {} : address ? ((await geocodeAddress(address)) ?? { latitude: null, longitude: null }) : { latitude: null, longitude: null };
+
   const supabase = await createUserClient();
   const { data, error } = await supabase
     .from("venues")
-    .update({ ...rewards.value, card_bg, card_fg, card_accent, card_reward, points_per_visit, phone, open_hour, close_hour, offer_cooldown_days, logo_text, address, website, milestone_text, milestone_at, head_start_stamps, stamp_icon })
+    .update({ ...location, ...rewards.value, card_bg, card_fg, card_accent, card_reward, points_per_visit, phone, open_hour, close_hour, offer_cooldown_days, logo_text, address, website, milestone_text, milestone_at, head_start_stamps, stamp_icon })
     .eq("id", venue.id)
     .select("id");
   if (error || !data?.length) return { status: "error", message: error?.message ?? "Couldn't save. Try again." };

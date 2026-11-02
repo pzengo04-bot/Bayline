@@ -104,7 +104,7 @@ const VENUES = [
     amount: () => pick([25, 30, 35, 40, 45, 55, 60, 75]),
   },
   {
-    venue: { name: "Bayline Demo", slug: "bayline-demo", type: "golf_sim", reward_type: "stamps", stamps_needed: 5,
+    venue: { name: "Bayline Demo", slug: "bayline-demo", type: "golf_sim", reward_type: "stamps", stamps_needed: 8,
       points_per_dollar: 1, points_needed: 500, reward_text: "free bay hour", stamps_per_day: null,
       card_bg: "#02070a", card_fg: "#f2f5f7", card_accent: "#0297de", card_reward: "#fc734d",
       milestone_text: "free drink", milestone_at: 3, head_start_stamps: 1,

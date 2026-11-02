@@ -194,7 +194,9 @@ try {
         const isPoints = venue.reward_type === "points";
         const have = (progress.get(vi.customer_id) ?? 0) + (isPoints ? row.points : 1);
         const need = isPoints ? venue.points_needed : venue.stamps_needed;
-        if (have >= need && rand() < 0.85) {
+        // Cards filled in the last 10 days are often still waiting to be redeemed ("rewards ready").
+        const recent = vi.local >= ymdIn(new Date(today.getTime() - 10 * 86_400_000), v.timezone);
+        if (have >= need && rand() < (recent ? 0.3 : 0.85)) {
           await tx`
             insert into public.rewards_redeemed (venue_id, customer_id, redeemed_at, reward_text, points_spent)
             values (${v.id}, ${vi.customer_id}, ${row.visited_at}::timestamptz + interval '5 minutes',

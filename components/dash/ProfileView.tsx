@@ -108,7 +108,7 @@ export function ProfileView({ venue, data, owner, offerButton }: Props) {
         </div>
 
         <div className="min-w-0 space-y-4">
-          <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(170px,1fr))]">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:[grid-template-columns:repeat(auto-fit,minmax(170px,1fr))]">
             <Stat label="Total visits" value={String(card.visits)} sub={firstVisit ? `since ${date(firstVisit, { month: "long", year: "numeric" })}` : "No visits yet"} />
             <Stat label="Usually every" value={c.rhythm_days ? `${Math.max(1, Math.round(c.rhythm_days))} days` : "—"} sub={c.rhythm_days ? "between visits" : "Needs 3+ visits"} />
             <Stat label="Rewards redeemed" value={String(data.rewardsRedeemed)} sub={card.progress.reward_text} />

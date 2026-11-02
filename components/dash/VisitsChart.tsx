@@ -1,10 +1,9 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 type Point = { d: string; n: number };
 
-const W = 640;
 const H = 220;
 const PAD = { top: 12, right: 12, bottom: 26, left: 34 };
 
@@ -17,6 +16,16 @@ const dayLabel = (d: string, long = false) =>
 export function VisitsChart({ data }: { data: Point[] }) {
   const id = useId();
   const [hover, setHover] = useState<number | null>(null);
+  // Drawn at the card's real width, so labels stay readable on phones instead of shrinking.
+  const box = useRef<HTMLDivElement>(null);
+  const [W, setW] = useState(640);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setW(Math.max(280, Math.round(e.contentRect.width))));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const max = Math.max(4, ...data.map((p) => p.n));
   const step = Math.ceil(max / 4);
   const top = step * 4;
@@ -27,11 +36,11 @@ export function VisitsChart({ data }: { data: Point[] }) {
   const line = data.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.n).toFixed(1)}`).join("");
   const area = `${line}L${x(data.length - 1).toFixed(1)},${PAD.top + ih}L${x(0).toFixed(1)},${PAD.top + ih}Z`;
   const ticks = [0, 1, 2, 3, 4].map((k) => k * step);
-  const labelEvery = Math.max(1, Math.ceil(data.length / 6));
+  const labelEvery = Math.max(1, Math.ceil(data.length / Math.max(3, Math.floor(W / 100))));
   const h = hover === null ? null : data[hover];
 
   return (
-    <div className="relative">
+    <div ref={box} className="relative">
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="h-auto w-full touch-none select-none"

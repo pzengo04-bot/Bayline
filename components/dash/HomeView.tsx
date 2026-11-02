@@ -72,12 +72,13 @@ export function HomeView({ venue, data, days, greeting, actionButton, rowAction 
       </header>
 
       {/* Row 1: the numbers */}
-      <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+      {/* Two across on phones, as many as fit from there up. */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:[grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
         {stats.map((s) => (
-          <div key={s.label} className={`rounded-[14px] border bg-surface p-5 ${s.warn ? "border-orange/45" : "border-line"}`}>
+          <div key={s.label} className={`rounded-[14px] border bg-surface p-4 sm:p-5 ${s.warn ? "border-orange/45" : "border-line"}`}>
             <p className="text-sm font-medium text-muted">{s.label}</p>
-            <p className="mt-2 text-4xl font-extrabold tabular-nums">{s.value}</p>
-            <div className="mt-4 flex items-center justify-between gap-3 border-t border-line pt-3">
+            <p className="mt-2 text-3xl font-extrabold tabular-nums sm:text-4xl">{s.value}</p>
+            <div className="mt-3 flex flex-col items-start gap-1 border-t border-line pt-3 sm:mt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
               <Trend diff={s.diff} text={s.text} upIsBad={s.warn} />
               <TextLink href={s.href}>View →</TextLink>
             </div>
